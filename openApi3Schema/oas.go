@@ -1,4 +1,4 @@
-package main
+package openApi3Schema
 
 import "github.com/iancoleman/orderedmap"
 
@@ -106,10 +106,6 @@ type ParameterObject struct {
 	// AllowReserved
 	// Examples
 	// Content
-}
-
-type ReferenceObject struct {
-	Ref string `json:"$ref,omitempty"`
 }
 
 type RequestBodyObject struct {

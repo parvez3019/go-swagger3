@@ -1,13 +1,12 @@
 package main
 
 import (
-	"log"
-	"os"
-
+	"github.com/parvez3019/go-swagger3/parser"
 	"github.com/urfave/cli"
+	"log"
 )
 
-var version = "v1.0.0"
+var version = "v1.0.1"
 
 var flags = []cli.Flag{
 	cli.StringFlag{
@@ -34,10 +33,14 @@ var flags = []cli.Flag{
 		Name:  "debug",
 		Usage: "show debug message",
 	},
+	cli.BoolFlag{
+		Name:  "strict",
+		Usage: "convert go parsing warnings to fatal errors",
+	},
 }
 
 func action(c *cli.Context) error {
-	p, err := newParser(c.GlobalString("module-path"), c.GlobalString("main-file-path"), c.GlobalString("handler-path"), c.GlobalBool("debug"))
+	p, err := parser.NewParser(c.GlobalString("module-path"), c.GlobalString("main-file-path"), c.GlobalString("handler-path"), c.GlobalBool("debug"), c.GlobalBool("strict"))
 	if err != nil {
 		return err
 	}
@@ -56,7 +59,8 @@ func main() {
 	app.Flags = flags
 	app.Action = action
 
-	err := app.Run(os.Args)
+	args := []string{"goas", "--module-path", "../", "--main-file-path", "../cmd/server/main.go", "--output", "oas.json"}
+	err := app.Run(args)
 	if err != nil {
 		log.Fatal("Error: ", err)
 	}
