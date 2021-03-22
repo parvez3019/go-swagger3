@@ -708,10 +708,10 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 	}
 
 	parameterObject := ParameterObject{}
-	parameterObject = appendName(parameterObject, matches[1])
-	parameterObject = appendIn(parameterObject, matches[2])
-	parameterObject = appendRequired(parameterObject, matches[4])
-	parameterObject = appendDescription(parameterObject, matches[5])
+	appendName(&parameterObject, matches[1])
+	appendIn(&parameterObject, matches[2])
+	appendRequired(&parameterObject, matches[4])
+	appendDescription(&parameterObject, matches[5])
 
 	goType := getType(re, matches)
 
@@ -829,27 +829,23 @@ func getType(re *regexp.Regexp, matches []string) string {
 	return goType
 }
 
-func appendRequired(paramObject ParameterObject, isRequired string) ParameterObject {
+func appendRequired(paramObject *ParameterObject, isRequired string) {
 	switch strings.ToLower(isRequired) {
 	case "true", "required":
 		paramObject.Required = true
 	}
-	return paramObject
 }
 
-func appendDescription(parameterObject ParameterObject, description string) ParameterObject {
+func appendDescription(parameterObject *ParameterObject, description string) {
 	parameterObject.Description = description
-	return parameterObject
 }
 
-func appendIn(parameterObject ParameterObject, in string) ParameterObject {
+func appendIn(parameterObject *ParameterObject, in string) {
 	parameterObject.In = in
-	return parameterObject
 }
 
-func appendName(parameterObject ParameterObject, name string) ParameterObject {
+func appendName(parameterObject *ParameterObject, name string) {
 	parameterObject.Name = name
-	return parameterObject
 }
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
