@@ -59,7 +59,7 @@ func main() {
 	app.Flags = flags
 	app.Action = action
 
-	args := []string{"goas", "--module-path", "../", "--main-file-path", "../cmd/server/main.go", "--output", "oas.json"}
+	args := []string{"goas", "--module-path", "../dealer", "--main-file-path", "../dealer/cmd/server/main.go", "--output", "../dealer/oas.json"}
 	err := app.Run(args)
 	if err != nil {
 		log.Fatal("Error: ", err)

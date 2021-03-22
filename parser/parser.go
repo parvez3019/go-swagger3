@@ -706,94 +706,28 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 	if len(matches) != 6 {
 		return fmt.Errorf("parseParamComment can not parse param comment \"%s\"", comment)
 	}
-	name := matches[1]
-	in := matches[2]
 
-	re = regexp.MustCompile(`\[\w*\]`)
-	goType := re.ReplaceAllString(matches[3], "[]")
+	parameterObject := ParameterObject{}
+	parameterObject = appendName(parameterObject, matches[1])
+	parameterObject = appendIn(parameterObject, matches[2])
+	parameterObject = appendRequired(parameterObject, matches[4])
+	parameterObject = appendDescription(parameterObject, matches[5])
 
-	required := false
-	switch strings.ToLower(matches[4]) {
-	case "true", "required":
-		required = true
-	}
-	description := matches[5]
+	goType := getType(re, matches)
 
 	// `file`, `form`
-	if in == "file" || in == "form" {
-		if operation.RequestBody == nil {
-			operation.RequestBody = &RequestBodyObject{
-				Content: map[string]*MediaTypeObject{
-					ContentTypeForm: &MediaTypeObject{
-						Schema: SchemaObject{
-							Type:       "object",
-							Properties: orderedmap.New(),
-						},
-					},
-				},
-				Required: required,
-			}
-		}
-		if in == "file" {
-			operation.RequestBody.Content[ContentTypeForm].Schema.Properties.Set(name, &SchemaObject{
-				Type:        "string",
-				Format:      "binary",
-				Description: description,
-			})
-		} else if isGoTypeOASType(goType) {
-			operation.RequestBody.Content[ContentTypeForm].Schema.Properties.Set(name, &SchemaObject{
-				Type:        goTypesOASTypes[goType],
-				Format:      goTypesOASFormats[goType],
-				Description: description,
-			})
-		}
-		return nil
-	}
+	appendRequestBody(operation, parameterObject, goType)
 
 	// `path`, `query`, `header`, `cookie`
-	if in != "body" {
-		parameterObject := ParameterObject{
-			Name:        name,
-			In:          in,
-			Description: description,
-			Required:    required,
-		}
-		if in == "path" {
-			parameterObject.Required = true
-		}
-		if goType == "time.Time" {
-			var err error
-			parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
-			if err != nil {
-				p.debug("parseResponseComment cannot parse goType", goType)
-			}
-			operation.Parameters = append(operation.Parameters, parameterObject)
-		} else if isGoTypeOASType(goType) {
-			parameterObject.Schema = &SchemaObject{
-				Type:        goTypesOASTypes[goType],
-				Format:      goTypesOASFormats[goType],
-				Description: description,
-			}
-			operation.Parameters = append(operation.Parameters, parameterObject)
-		} else if strings.Contains(goType, "model.") {
-			typeName, err := p.registerType(pkgPath, pkgName, goType)
-			if err != nil {
-				p.debug("parse param model type failed", goType)
-				return err
-			}
-			parameterObject.Schema = &SchemaObject{
-				Ref:  addSchemaRefLinkPrefix(typeName),
-				Type: typeName,
-			}
-			operation.Parameters = append(operation.Parameters, parameterObject)
-		}
-		return nil
+	err := p.appendQueryParam(pkgPath, pkgName, operation, parameterObject, goType)
+	if err != nil {
+		return err
 	}
 
 	if operation.RequestBody == nil {
 		operation.RequestBody = &RequestBodyObject{
 			Content:  map[string]*MediaTypeObject{},
-			Required: required,
+			Required: parameterObject.Required,
 		}
 	}
 
@@ -826,6 +760,96 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 	}
 
 	return nil
+}
+
+func (p *parser) appendQueryParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
+	if parameterObject.In != "body" {
+		if parameterObject.In == "path" {
+			parameterObject.Required = true
+		}
+		if goType == "time.Time" {
+			var err error
+			parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
+			if err != nil {
+				p.debug("parseResponseComment cannot parse goType", goType)
+			}
+			operation.Parameters = append(operation.Parameters, parameterObject)
+		} else if isGoTypeOASType(goType) {
+			parameterObject.Schema = &SchemaObject{
+				Type:        goTypesOASTypes[goType],
+				Format:      goTypesOASFormats[goType],
+				Description: parameterObject.Description,
+			}
+			operation.Parameters = append(operation.Parameters, parameterObject)
+		} else if strings.Contains(goType, "model.") {
+			typeName, err := p.registerType(pkgPath, pkgName, goType)
+			if err != nil {
+				p.debug("parse param model type failed", goType)
+				return err
+			}
+			parameterObject.Schema = &SchemaObject{
+				Ref:  addSchemaRefLinkPrefix(typeName),
+				Type: typeName,
+			}
+			operation.Parameters = append(operation.Parameters, parameterObject)
+		}
+		return nil
+	}
+	return nil
+}
+
+func appendRequestBody(operation *OperationObject, parameterObject ParameterObject, goType string) {
+	if operation.RequestBody == nil {
+		operation.RequestBody = &RequestBodyObject{
+			Content: map[string]*MediaTypeObject{
+				ContentTypeForm: {Schema: SchemaObject{Type: "object", Properties: orderedmap.New()}},
+			},
+			Required: parameterObject.Required,
+		}
+	}
+	if parameterObject.In == "file" {
+		operation.RequestBody.Content[ContentTypeForm].Schema.Properties.Set(parameterObject.Name, &SchemaObject{
+			Type:        "string",
+			Format:      "binary",
+			Description: parameterObject.Description,
+		})
+	}
+	if isGoTypeOASType(goType) {
+		operation.RequestBody.Content[ContentTypeForm].Schema.Properties.Set(parameterObject.Name, &SchemaObject{
+			Type:        goTypesOASTypes[goType],
+			Format:      goTypesOASFormats[goType],
+			Description: parameterObject.Description,
+		})
+	}
+}
+
+func getType(re *regexp.Regexp, matches []string) string {
+	re = regexp.MustCompile(`\[\w*\]`)
+	goType := re.ReplaceAllString(matches[3], "[]")
+	return goType
+}
+
+func appendRequired(paramObject ParameterObject, isRequired string) ParameterObject {
+	switch strings.ToLower(isRequired) {
+	case "true", "required":
+		paramObject.Required = true
+	}
+	return paramObject
+}
+
+func appendDescription(parameterObject ParameterObject, description string) ParameterObject {
+	parameterObject.Description = description
+	return parameterObject
+}
+
+func appendIn(parameterObject ParameterObject, in string) ParameterObject {
+	parameterObject.In = in
+	return parameterObject
+}
+
+func appendName(parameterObject ParameterObject, name string) ParameterObject {
+	parameterObject.Name = name
+	return parameterObject
 }
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
