@@ -16,7 +16,7 @@ type OpenAPIObject struct {
 	Servers []ServerObject `json:"servers,omitempty"`
 	Paths   PathsObject    `json:"paths"` // Required
 
-	Components ComponentsOjbect      `json:"components,omitempty"` // Required for Authorization header
+	Components ComponentsObject      `json:"components,omitempty"` // Required for Authorization header
 	Security   []map[string][]string `json:"security,omitempty"`
 
 	// Tags
@@ -195,12 +195,13 @@ type HeaderObject struct {
 	Ref string `json:"$ref,omitempty"`
 }
 
-type ComponentsOjbect struct {
+type ComponentsObject struct {
 	Schemas         map[string]*SchemaObject         `json:"schemas,omitempty"`
 	SecuritySchemes map[string]*SecuritySchemeObject `json:"securitySchemes,omitempty"`
-
+	Parameters      map[string]*ParameterObject      `json:"parameters,omitempty"`
 	// Responses
 	// Parameters
+
 	// Examples
 	// RequestBodies
 	// Headers

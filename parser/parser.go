@@ -71,7 +71,8 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict bool)
 	p.OpenAPI.Paths = make(PathsObject)
 	p.OpenAPI.Security = []map[string][]string{}
 	p.OpenAPI.Components.Schemas = make(map[string]*SchemaObject)
-	p.OpenAPI.Components.SecuritySchemes = map[string]*SecuritySchemeObject{}
+	p.OpenAPI.Components.Parameters = make(map[string]*ParameterObject)
+	p.OpenAPI.Components.SecuritySchemes = make(map[string]*SecuritySchemeObject)
 
 	// check modulePath is exist
 	modulePath, _ = filepath.Abs(modulePath)
@@ -677,6 +678,8 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 			operation.Description = strings.Join([]string{operation.Description, strings.TrimSpace(comment[len(attribute):])}, " ")
 		case "@param":
 			err = p.parseParamComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
+		case "@header":
+			err = p.parseHeaderComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
 		case "@success", "@failure":
 			err = p.parseResponseComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
 		case "@resource", "@tag":
@@ -695,6 +698,41 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 		}
 	}
 	return nil
+}
+
+func (p *parser) parseHeaderComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
+	fmt.Println(comment)
+	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	if err != nil {
+		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
+	}
+	for _, key := range schema.Properties.Keys() {
+		value, _ := schema.Properties.Get(key)
+		currentSchemaObj, ok := value.(*SchemaObject)
+		if !ok {
+			return fmt.Errorf("parseHeaderComment can not parse Header Params %s", comment)
+		}
+
+		paramObj := &ParameterObject{
+			Name:        key,
+			In:          "header",
+			Required:    isRequiredParam(schema.Required, key),
+			Example:     currentSchemaObj.Example,
+			Description: currentSchemaObj.Description,
+			Schema:      currentSchemaObj,
+		}
+		p.OpenAPI.Components.Parameters[key] = paramObj
+	}
+	return nil
+}
+
+func isRequiredParam(requiredParams []string, key string) bool {
+	for _, param := range requiredParams {
+		if key == param {
+			return true
+		}
+	}
+	return false
 }
 
 func (p *parser) parseParamComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
