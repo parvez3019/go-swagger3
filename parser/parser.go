@@ -3,7 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	. "frontiercargroup.org/dealer/goas/openApi3Schema"
+	. "github.com/parvez3019/goas/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
