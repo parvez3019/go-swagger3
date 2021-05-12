@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/parvez3019/go-swagger3/parser"
+	"github.com/parvez3019/go-swagger3/writer"
 	"github.com/urfave/cli"
 	"log"
 )
@@ -44,7 +45,13 @@ func action(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	return p.CreateOASFile(c.GlobalString("output"))
+	openApiObject, err := p.Parse()
+	if err != nil {
+		return err
+	}
+
+	fw := writer.NewFileWriter()
+	return fw.Write(openApiObject, c.GlobalString("output"))
 }
 
 func main() {
@@ -59,6 +66,7 @@ func main() {
 	app.Flags = flags
 	app.Action = action
 
+	// TODO : remove hardcoded paths
 	args := []string{"goas", "--module-path", "../dealer", "--main-file-path", "../dealer/cmd/server/main.go", "--output", "../dealer/oas.json"}
 	err := app.Run(args)
 	if err != nil {
