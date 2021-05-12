@@ -662,53 +662,6 @@ func (p *parser) parsePaths() error {
 	return nil
 }
 
-func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comment) error {
-	operation := &OperationObject{
-		Responses: map[string]*ResponseObject{},
-	}
-	if !strings.HasPrefix(pkgPath, p.ModulePath) {
-		// ignore this pkgName
-		// p.debugf("parseOperation ignores %s", pkgPath)
-		return nil
-	} else if p.HandlerPath != "" && !strings.HasPrefix(pkgPath, p.HandlerPath) {
-		return nil
-	}
-	var err error
-	for _, astComment := range astComments {
-		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))
-		if len(comment) == 0 {
-			return nil
-		}
-		attribute := strings.Fields(comment)[0]
-		switch strings.ToLower(attribute) {
-		case "@title":
-			operation.Summary = strings.TrimSpace(comment[len(attribute):])
-		case "@description":
-			operation.Description = strings.Join([]string{operation.Description, strings.TrimSpace(comment[len(attribute):])}, " ")
-		case "@param":
-			err = p.parseParamComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
-		//case "@parameters":
-		//	err = p.parseHeaderComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
-		case "@success", "@failure":
-			err = p.parseResponseComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
-		case "@resource", "@tag":
-			resource := strings.TrimSpace(comment[len(attribute):])
-			if resource == "" {
-				resource = "others"
-			}
-			if !isInStringList(operation.Tags, resource) {
-				operation.Tags = append(operation.Tags, resource)
-			}
-		case "@route", "@router":
-			err = p.parseRouteComment(operation, comment)
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (p *parser) parseParameters(pkgPath, pkgName string, astComments []*ast.Comment) error {
 	var err error
 	for _, astComment := range astComments {
@@ -751,6 +704,66 @@ func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment s
 		p.OpenAPI.Components.Parameters[key] = paramObj
 	}
 	return nil
+}
+
+func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comment) error {
+	operation := &OperationObject{
+		Responses: map[string]*ResponseObject{},
+	}
+	if !strings.HasPrefix(pkgPath, p.ModulePath) {
+		// ignore this pkgName
+		// p.debugf("parseOperation ignores %s", pkgPath)
+		return nil
+	} else if p.HandlerPath != "" && !strings.HasPrefix(pkgPath, p.HandlerPath) {
+		return nil
+	}
+	var err error
+	for _, astComment := range astComments {
+		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))
+		if len(comment) == 0 {
+			return nil
+		}
+		attribute := strings.Fields(comment)[0]
+		switch strings.ToLower(attribute) {
+		case "@title":
+			operation.Summary = strings.TrimSpace(comment[len(attribute):])
+		case "@description":
+			operation.Description = strings.Join([]string{operation.Description, strings.TrimSpace(comment[len(attribute):])}, " ")
+		case "@param":
+			err = p.parseParamComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
+		case "@header":
+			err = p.parseHeaders(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
+		case "@success", "@failure":
+			err = p.parseResponseComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
+		case "@resource", "@tag":
+			resource := strings.TrimSpace(comment[len(attribute):])
+			if resource == "" {
+				resource = "others"
+			}
+			if !isInStringList(operation.Tags, resource) {
+				operation.Tags = append(operation.Tags, resource)
+			}
+		case "@route", "@router":
+			err = p.parseRouteComment(operation, comment)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parser) parseHeaders(pkgPath string, pkgName string, operation *OperationObject, comment string) error {
+	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	if err != nil || schema.Properties == nil {
+		return fmt.Errorf("parseHeaders can not parse Header schema %s", comment)
+	}
+	for _, key := range schema.Properties.Keys() {
+		operation.Parameters = append(operation.Parameters, ParameterObject{
+			Ref: addParametersRefLinkPrefix(key),
+		})
+	}
+	return err
 }
 
 func isRequiredParam(requiredParams []string, key string) bool {

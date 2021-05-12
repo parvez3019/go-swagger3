@@ -88,9 +88,8 @@ type OperationObject struct {
 }
 
 type ParameterObject struct {
-	Name string `json:"name"` // Required
-	In   string `json:"in"`   // Required. Possible values are "query", "header", "path" or "cookie"
-
+	Name        string        `json:"name,omitempty"` // Required
+	In          string        `json:"in,omitempty"`   // Required. Possible values are "query", "header", "path" or "cookie"
 	Description string        `json:"description,omitempty"`
 	Required    bool          `json:"required,omitempty"`
 	Example     interface{}   `json:"example,omitempty"`

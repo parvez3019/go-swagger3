@@ -98,8 +98,15 @@ type ErrorResponse struct {
   ErrorInfo Error `json:"error"`
 }
 
+// RequestHeaders represents the model for header params
+// @HeaderParameters RequestHeaders
+type RequestHeaders struct {
+    Authorization  string  `json:"Authorization"`
+}
+
 // @Title Get user list of a group.
 // @Description Get users related to a specific group.
+// @Header model.RequestHeaders
 // @Param  groupID  path  int  true  "Id of a specific group."
 // @Success  200  object  UsersResponse  "UsersResponse JSON"
 // @Failure  400  object  ErrorResponse  "ErrorResponse JSON"
@@ -142,6 +149,23 @@ func PostUser() {
 - {goType}: The type in go code. This will be ignored when {in} is `file`.
 - {required}: `true`, `false`, `required` or `optional`. 
 - {description}: The description of the parameter. Must be quoted.
+
+#### Header 
+```
+@Header          {goType}
+@HeaderParameters   model.RequestHeaders
+```
+- Header query param for endpoints, parses the query param from the model
+
+
+#### HeaderParameters
+```
+@Param              {goType}
+@HeaderParameters   RequestHeaders
+```
+
+- {goType}: The type in go code. This will be ignored when {in} is `file`.
+- Parses parameters from the type and keep it up component section for reference
 
 #### Response
 ```

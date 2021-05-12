@@ -143,6 +143,13 @@ func addSchemaRefLinkPrefix(name string) string {
 	return replaceBackslash("#/components/schemas/" + name)
 }
 
+func addParametersRefLinkPrefix(name string) string {
+	if strings.HasPrefix(name, "#/components/parameters/") {
+		return replaceBackslash(name)
+	}
+	return replaceBackslash("#/components/parameters/" + name)
+}
+
 func genSchemeaObjectID(pkgName, typeName string) string {
 	typeNameParts := strings.Split(typeName, ".")
 	pkgName = replaceBackslash(pkgName)
