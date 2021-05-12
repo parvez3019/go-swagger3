@@ -645,6 +645,15 @@ func (p *parser) parsePaths() error {
 							}
 						}
 					}
+
+					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
+						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
+							err = p.parseParameters(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+							if err != nil {
+								return err
+							}
+						}
+					}
 				}
 			}
 		}
@@ -678,8 +687,8 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 			operation.Description = strings.Join([]string{operation.Description, strings.TrimSpace(comment[len(attribute):])}, " ")
 		case "@param":
 			err = p.parseParamComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
-		case "@header":
-			err = p.parseHeaderComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
+		//case "@parameters":
+		//	err = p.parseHeaderComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
 		case "@success", "@failure":
 			err = p.parseResponseComment(pkgPath, pkgName, operation, strings.TrimSpace(comment[len(attribute):]))
 		case "@resource", "@tag":
@@ -700,10 +709,28 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 	return nil
 }
 
-func (p *parser) parseHeaderComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
-	fmt.Println(comment)
+func (p *parser) parseParameters(pkgPath, pkgName string, astComments []*ast.Comment) error {
+	var err error
+	for _, astComment := range astComments {
+		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))
+		if len(comment) == 0 {
+			return nil
+		}
+		attribute := strings.Fields(comment)[0]
+		switch strings.ToLower(attribute) {
+		case "@headerparameters":
+			err = p.parseHeaderParameters(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
+		}
+	}
+	return err
+}
+
+func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
 	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
+		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
+	}
+	if schema.Properties == nil {
 		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
 	}
 	for _, key := range schema.Properties.Keys() {
