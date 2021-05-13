@@ -91,7 +91,8 @@ type UsersResponse struct {
 
 type Error struct {
   Code string `json:"code"`
-  Msg  string `json:"msg"`
+  Msg  string `json:"msg" skip:"true"`
+  // use skip:"true" if you want to skip the field in the documentation spec
 }
 
 type ErrorResponse struct {

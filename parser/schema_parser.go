@@ -284,6 +284,11 @@ astFieldsLoop:
 			if tag := astFieldTag.Get("goas"); tag != "" {
 				tagText = tag
 			}
+
+			if skip := astFieldTag.Get("skip"); skip == "true" {
+				continue astFieldsLoop
+			}
+
 			tagValues := strings.Split(tagText, ",")
 			for _, v := range tagValues {
 				if v == "-" {
