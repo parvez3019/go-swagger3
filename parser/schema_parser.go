@@ -1,10 +1,10 @@
 package parser
 
 import (
-	. "github.com/parvez3019/goas/openApi3Schema"
 	"encoding/json"
 	"fmt"
 	"github.com/iancoleman/orderedmap"
+	. "github.com/parvez3019/goas/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
@@ -360,6 +360,15 @@ astFieldsLoop:
 			if desc := astFieldTag.Get("description"); desc != "" {
 				fieldSchema.Description = desc
 			}
+
+			if ref := astFieldTag.Get("$ref"); ref != "" {
+				fieldSchema.Ref = addSchemaRefLinkPrefix(ref)
+				fieldSchema.Type = "" // remove default type in case of reference link
+			}
+
+			if enumValues := astFieldTag.Get("enum"); enumValues != "" {
+				fieldSchema.Enum = parseEnumValues(enumValues)
+			}
 		}
 
 		structSchema.Properties.Set(name, fieldSchema)
@@ -448,6 +457,14 @@ astFieldsLoop:
 	}
 }
 
+func parseEnumValues(enumString string) interface{} {
+	var result []interface{}
+	for _, currentEnumValue := range strings.Split(enumString, EnumValueSeparator) {
+		result = append(result, currentEnumValue)
+	}
+	return result
+}
+
 func (p *parser) getTypeAsString(fieldType interface{}) string {
 	astArrayType, ok := fieldType.(*ast.ArrayType)
 	if ok {
@@ -491,3 +508,5 @@ type DECL struct {
 		Name string
 	}
 }
+
+const EnumValueSeparator = ","

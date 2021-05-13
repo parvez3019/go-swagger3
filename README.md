@@ -188,15 +188,42 @@ func PostUser() {
 @Tag {tag}
 @tag xxx
 ```
+
 - {resource}, {tag}: Tag of the route.
 
 #### Route
+
 ```
 @Route {path}    {method}
 @Route /api/user [post]
 ```
+
 - {path}: The URL path.
 - {method}: The HTTP Method. Must be put in brackets.
+
+#### Enums
+
+- To generate enums create type structs for enum field with comma-separated values as follows:
+- Create struct type fields with @Enum Tag
+- Example as follows-
+
+``` go
+// @Enum CountriesEnum
+type CountriesEnum struct {
+    // Create the field name with same as struct name
+    CountriesEnum string `enum:"india,china,mexico,japan" example:"india"`
+}
+```
+
+##### How to add reference of Enum on types
+
+``` go
+type Request struct {
+  Name string `json:"name" example:"Parvez"` 
+  Country string `json:"country" $ref:"CountriesEnum"`
+}
+
+```
 
 ### Documentation Generation
 

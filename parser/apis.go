@@ -200,9 +200,31 @@ func (p *parser) parseParameters(pkgPath, pkgName string, astComments []*ast.Com
 		switch strings.ToLower(attribute) {
 		case "@headerparameters":
 			err = p.parseHeaderParameters(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
+		case "@enum":
+			err = p.parseEnums(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
 		}
 	}
 	return err
+}
+
+func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) error {
+	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	if err != nil {
+		return fmt.Errorf("parseEnums can not parse enum schema %s", comment)
+	}
+	if schema.Properties == nil {
+		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
+	}
+	for _, key := range schema.Properties.Keys() {
+		value, _ := schema.Properties.Get(key)
+		currentSchemaObj, ok := value.(*SchemaObject)
+		if !ok {
+			return fmt.Errorf("parseEnums can not parse enum params %s", comment)
+		}
+
+		p.OpenAPI.Components.Schemas[key] = currentSchemaObj
+	}
+	return nil
 }
 
 func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
