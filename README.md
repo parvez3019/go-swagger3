@@ -79,7 +79,7 @@ For OAuth2 security schemes, it is possible to define scopes using the `@Securit
 
 By adding comments to your handler func godoc, you can document individual actions as well as their input and output.
 
-```go
+``` go
 type User struct {
   ID   uint64 `json:"id" example:"100" description:"User identity"`
   Name string `json:"name" example:"Mikun"` 
