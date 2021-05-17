@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/iancoleman/orderedmap"
-	. "github.com/parvez3019/goas/openApi3Schema"
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
@@ -281,7 +281,7 @@ astFieldsLoop:
 			astFieldTag := reflect.StructTag(strings.Trim(astField.Tag.Value, "`"))
 			tagText := ""
 
-			if tag := astFieldTag.Get("goas"); tag != "" {
+			if tag := astFieldTag.Get("go-swagger3"); tag != "" {
 				tagText = tag
 			}
 

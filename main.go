@@ -67,7 +67,7 @@ func main() {
 	app.Action = action
 
 	// TODO : remove hardcoded paths
-	args := []string{"goas", "--module-path", "../dealer", "--main-file-path", "../dealer/cmd/server/main.go", "--output", "../dealer/oas.json"}
+	args := []string{"go-swagger3", "--module-path", "../dealer", "--main-file-path", "../dealer/cmd/server/main.go", "--output", "../dealer/oas.json"}
 	err := app.Run(args)
 	if err != nil {
 		log.Fatal("Error: ", err)

@@ -126,10 +126,10 @@ type MediaTypeObject struct {
 }
 
 type SchemaObject struct {
-	ID                 string                 `json:"-"` // For goas
-	PkgName            string                 `json:"-"` // For goas
-	FieldName          string                 `json:"-"` // For goas
-	DisabledFieldNames map[string]struct{}    `json:"-"` // For goas
+	ID                 string                 `json:"-"` // For go-swagger3
+	PkgName            string                 `json:"-"` // For go-swagger3
+	FieldName          string                 `json:"-"` // For go-swagger3
+	DisabledFieldNames map[string]struct{}    `json:"-"` // For go-swagger3
 	Type               string                 `json:"type,omitempty"`
 	Format             string                 `json:"format,omitempty"`
 	Required           []string               `json:"required,omitempty"`

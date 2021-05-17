@@ -1,0 +1,211 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "User API",
+    "description": "Restaurants API documentation",
+    "contact": {
+      "name": "Restaurants API Support",
+      "email": "parvez.hassan@olx.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://en.wikipedia.org/wiki/MIT_License"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "localhost:8080",
+      "description": " Server 1"
+    },
+    {
+      "url": "localhost:8081",
+      "description": " Server 2"
+    }
+  ],
+  "paths": {
+    "/restaurants": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get restaurants list",
+        "description": " Returns a list of restaurants based on filter request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Version"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Language"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Platform"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "count of restaurants",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "count of restaurants"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "offset limit count",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "offset limit count"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "order restaurants list",
+            "schema": {
+              "$ref": "#/components/schemas/OrderByEnum"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "In json format",
+            "schema": {
+              "type": "github.com.parvez3019.go-swagger3.model.Filter",
+              "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.Filter"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LanguageEnum": {
+        "type": "string",
+        "example": "en-in",
+        "enum": [
+          "en-in",
+          "en-id",
+          "id",
+          "en-mx",
+          "es-mx",
+          "en-cl",
+          "es-cl",
+          "en-ng",
+          "en-pk",
+          "en-tr",
+          "tr"
+        ]
+      },
+      "OrderByEnum": {
+        "type": "string",
+        "example": "popular",
+        "enum": [
+          "nearest",
+          "popular",
+          "new",
+          "highest-rated"
+        ]
+      },
+      "github.com.parvez3019.go-swagger3.model.Filter": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "integer"
+          },
+          "district_code": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse": {
+        "type": "object",
+        "properties": {
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "AuthorizationHeader": {
+        "type": "http",
+        "description": "Input your token",
+        "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "Client-Language": {
+        "name": "Client-Language",
+        "in": "header",
+        "schema": {
+          "$ref": "#/components/schemas/LanguageEnum"
+        }
+      },
+      "Client-Platform": {
+        "name": "Client-Platform",
+        "in": "header",
+        "description": "Available values : android, ios, web",
+        "example": "android",
+        "schema": {
+          "type": "string",
+          "description": "Available values : android, ios, web",
+          "example": "android"
+        }
+      },
+      "Client-Version": {
+        "name": "Client-Version",
+        "in": "header",
+        "description": "Client Version",
+        "schema": {
+          "type": "string",
+          "description": "Client Version"
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "AuthorizationHeader": [
+        "read",
+        "write"
+      ]
+    }
+  ]
+}
