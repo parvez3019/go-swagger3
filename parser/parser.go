@@ -190,18 +190,6 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 		return OpenAPIObject{}, err
 	}
 
-	//fd, err := os.Create(path)
-	//if err != nil {
-	//	return OpenAPIObject{}, fmt.Errorf("Can not create the file %s: %v", path, err)
-	//}
-	//defer fd.Close()
-	//
-	//output, err := json.MarshalIndent(p.OpenAPI, "", "  ")
-	//if err != nil {
-	//	return err
-	//}
-	//_, err = fd.WriteString(string(output))
-
 	return p.OpenAPI, nil
 }
 
