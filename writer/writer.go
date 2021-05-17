@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -18,6 +19,7 @@ func NewFileWriter() *fileWriter {
 }
 
 func (w *fileWriter) Write(openApiObject OpenAPIObject, path string) error {
+	log.Info("Writing to open api object file ...")
 	fd, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("Can not create the file %s: %v", path, err)

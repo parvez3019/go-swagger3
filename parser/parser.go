@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	log "github.com/sirupsen/logrus"
 	"go/ast"
-	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -166,19 +166,23 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict bool)
 }
 
 func (p *parser) Parse() (OpenAPIObject, error) {
+	log.Info("Parsing Initialized")
 	// parse basic info
+	log.Info("Parsing Info ...")
 	err := p.parseInfo()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
 	// parse sub-package
+	log.Info("Parsing Modules ...")
 	err = p.parseModule()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
 	// parse go.mod info
+	log.Info("Parsing GoMod Info ...")
 	err = p.parseGoMod()
 	if err != nil {
 		return OpenAPIObject{}, err
@@ -186,21 +190,23 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 
 	// parse APIs info
 	err = p.parseAPIs()
+	log.Info("Parsing APIs ...")
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
+	log.Info("Parsing Completed ...")
 	return p.OpenAPI, nil
 }
 
 func (p *parser) debug(v ...interface{}) {
 	if p.Debug {
-		log.Println(v...)
+		log.Debugln(v...)
 	}
 }
 
 func (p *parser) debugf(format string, args ...interface{}) {
 	if p.Debug {
-		log.Printf(format, args...)
+		log.Debugf(format, args...)
 	}
 }
