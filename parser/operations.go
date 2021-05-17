@@ -136,36 +136,63 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 }
 
 func (p *parser) appendQueryParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
+	var err error
 	if parameterObject.In == "path" {
 		parameterObject.Required = true
 	}
 	if goType == "time.Time" {
-		var err error
-		parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
-		if err != nil {
-			p.debug("parseResponseComment cannot parse goType", goType)
-		}
-		operation.Parameters = append(operation.Parameters, parameterObject)
+		err = p.appendTimeParam(pkgPath, pkgName, operation, parameterObject, goType, err)
 	} else if isGoTypeOASType(goType) {
-		parameterObject.Schema = &SchemaObject{
-			Type:        goTypesOASTypes[goType],
-			Format:      goTypesOASFormats[goType],
-			Description: parameterObject.Description,
-		}
-		operation.Parameters = append(operation.Parameters, parameterObject)
+		p.appendGoTypeParams(parameterObject, goType, operation)
+	} else if isEnumType(goType) {
+		p.appendEnumParamRef(goType, parameterObject, operation)
 	} else if strings.Contains(goType, "model.") {
-		typeName, err := p.registerType(pkgPath, pkgName, goType)
-		if err != nil {
-			p.debug("parse param model type failed", goType)
-			return err
-		}
-		parameterObject.Schema = &SchemaObject{
-			Ref:  addSchemaRefLinkPrefix(typeName),
-			Type: typeName,
-		}
-		operation.Parameters = append(operation.Parameters, parameterObject)
+		err = p.appendModelSchemaRef(pkgPath, pkgName, operation, parameterObject, goType)
 	}
+	return err
+}
+
+func (p *parser) appendTimeParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string, err error) error {
+	parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
+	if err != nil {
+		p.debug("parseResponseComment cannot parse goType", goType)
+	}
+	operation.Parameters = append(operation.Parameters, parameterObject)
+	return err
+}
+
+func (p *parser) appendGoTypeParams(parameterObject ParameterObject, goType string, operation *OperationObject) {
+	parameterObject.Schema = &SchemaObject{
+		Type:        goTypesOASTypes[goType],
+		Format:      goTypesOASFormats[goType],
+		Description: parameterObject.Description,
+	}
+	operation.Parameters = append(operation.Parameters, parameterObject)
+}
+
+func (p *parser) appendModelSchemaRef(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
+	typeName, err := p.registerType(pkgPath, pkgName, goType)
+	if err != nil {
+		p.debug("parse param model type failed", goType)
+		return err
+	}
+	parameterObject.Schema = &SchemaObject{
+		Ref:  addSchemaRefLinkPrefix(typeName),
+		Type: typeName,
+	}
+	operation.Parameters = append(operation.Parameters, parameterObject)
 	return nil
+}
+
+func (p *parser) appendEnumParamRef(goType string, parameterObject ParameterObject, operation *OperationObject) {
+	typeName := goType
+	if strings.Contains(goType, "model.") {
+		typeName = strings.Replace(typeName, "model.", "", -1)
+	}
+	parameterObject.Schema = &SchemaObject{
+		Ref: addSchemaRefLinkPrefix(typeName),
+	}
+	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
@@ -286,6 +313,10 @@ func (p *parser) parseRouteComment(operation *OperationObject, comment string) e
 	}
 
 	return nil
+}
+
+func isEnumType(name string) bool {
+	return strings.Contains(name, "Enum")
 }
 
 func appendRequestBody(operation *OperationObject, parameterObject ParameterObject, goType string) {
