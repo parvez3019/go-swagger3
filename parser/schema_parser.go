@@ -34,7 +34,7 @@ func (p *parser) getPkgAst(pkgPath string) (map[string]*ast.Package, error) {
 func (p *parser) registerType(pkgPath, pkgName, typeName string) (string, error) {
 	var registerTypeName string
 
-	if isBasicGoType(typeName) {
+	if isBasicGoType(typeName) || isInterfaceType(typeName) {
 		registerTypeName = typeName
 	} else if _, ok := p.KnownIDSchema[genSchemeaObjectID(pkgName, typeName)]; ok {
 		return genSchemeaObjectID(pkgName, typeName), nil
@@ -92,7 +92,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 		schemaObject.Format = "date-time"
 		return &schemaObject, nil
 	} else if strings.HasPrefix(typeName, "interface{}") {
-		return &schemaObject, nil
+		return &SchemaObject{Type: "object"}, nil
 	} else if isGoTypeOASType(typeName) {
 		schemaObject.Type = goTypesOASTypes[typeName]
 		return &schemaObject, nil
