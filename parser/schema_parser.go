@@ -36,8 +36,8 @@ func (p *parser) registerType(pkgPath, pkgName, typeName string) (string, error)
 
 	if isBasicGoType(typeName) || isInterfaceType(typeName) {
 		registerTypeName = typeName
-	} else if _, ok := p.KnownIDSchema[genSchemeaObjectID(pkgName, typeName)]; ok {
-		return genSchemeaObjectID(pkgName, typeName), nil
+	} else if _, ok := p.KnownIDSchema[genSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
+		return genSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
 	} else {
 		schemaObject, err := p.parseSchemaObject(pkgPath, pkgName, typeName)
 		if err != nil {
@@ -62,7 +62,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 	if strings.HasPrefix(typeName, "[]") {
 		schemaObject.Type = "array"
 		itemTypeName := typeName[2:]
-		schema, ok := p.KnownIDSchema[genSchemeaObjectID(pkgName, itemTypeName)]
+		schema, ok := p.KnownIDSchema[genSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 		if ok {
 			schemaObject.Items = &SchemaObject{Ref: addSchemaRefLinkPrefix(schema.ID)}
 			return &schemaObject, nil
@@ -75,7 +75,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 	} else if strings.HasPrefix(typeName, "map[]") {
 		schemaObject.Type = "object"
 		itemTypeName := typeName[5:]
-		schema, ok := p.KnownIDSchema[genSchemeaObjectID(pkgName, itemTypeName)]
+		schema, ok := p.KnownIDSchema[genSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 		if ok {
 			schemaObject.Items = &SchemaObject{Ref: addSchemaRefLinkPrefix(schema.ID)}
 			return &schemaObject, nil
@@ -106,7 +106,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 			log.Fatalf("Can not find definition of %s ast.TypeSpec. Current package %s", typeName, pkgName)
 		}
 		schemaObject.PkgName = pkgName
-		schemaObject.ID = genSchemeaObjectID(pkgName, typeName)
+		schemaObject.ID = genSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)
 		p.KnownIDSchema[schemaObject.ID] = &schemaObject
 	} else {
 		guessPkgName := strings.Join(typeNameParts[:len(typeNameParts)-1], "/")
@@ -146,7 +146,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 				return &schemaObject, nil
 			}
 			schemaObject.PkgName = guessPkgName
-			schemaObject.ID = genSchemeaObjectID(guessPkgName, guessTypeName)
+			schemaObject.ID = genSchemaObjectID(guessPkgName, guessTypeName, p.SchemaWithoutPkg)
 			p.KnownIDSchema[schemaObject.ID] = &schemaObject
 		}
 		pkgPath, pkgName = guessPkgPath, guessPkgName

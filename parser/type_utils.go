@@ -150,9 +150,12 @@ func addParametersRefLinkPrefix(name string) string {
 	return replaceBackslash("#/components/parameters/" + name)
 }
 
-func genSchemeaObjectID(pkgName, typeName string) string {
+func genSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
 	typeNameParts := strings.Split(typeName, ".")
 	pkgName = replaceBackslash(pkgName)
+	if withoutPkg {
+		return typeNameParts[len(typeNameParts)-1]
+	}
 	return strings.Join(append(strings.Split(pkgName, "/"), typeNameParts[len(typeNameParts)-1]), ".")
 }
 

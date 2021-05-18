@@ -5,6 +5,7 @@ import (
 	"github.com/parvez3019/go-swagger3/writer"
 	"github.com/urfave/cli"
 	"log"
+	"os"
 )
 
 var version = "v1.0.1"
@@ -38,10 +39,21 @@ var flags = []cli.Flag{
 		Name:  "strict",
 		Usage: "convert go parsing warnings to fatal errors",
 	},
+	cli.BoolFlag{
+		Name:  "schema-without-pkg",
+		Usage: "create schemas without package name append to the name",
+	},
 }
 
 func action(c *cli.Context) error {
-	p, err := parser.NewParser(c.GlobalString("module-path"), c.GlobalString("main-file-path"), c.GlobalString("handler-path"), c.GlobalBool("debug"), c.GlobalBool("strict"))
+	p, err := parser.NewParser(
+		c.GlobalString("module-path"),
+		c.GlobalString("main-file-path"),
+		c.GlobalString("handler-path"),
+		c.GlobalBool("debug"),
+		c.GlobalBool("strict"),
+		c.GlobalBool("schema-without-pkg"),
+		)
 	if err != nil {
 		return err
 	}
@@ -66,9 +78,7 @@ func main() {
 	app.Flags = flags
 	app.Action = action
 
-	// TODO : remove hardcoded paths
-	args := []string{"go-swagger3", "--module-path", "../dealer", "--main-file-path", "../dealer/cmd/server/main.go", "--output", "../dealer/oas.json"}
-	err := app.Run(args)
+	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal("Error: ", err)
 	}

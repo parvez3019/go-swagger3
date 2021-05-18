@@ -33,8 +33,9 @@ type parser struct {
 	PkgPathAstPkgCache      map[string]map[string]*ast.Package
 	PkgNameImportedPkgAlias map[string]map[string][]string
 
-	Debug  bool
-	Strict bool
+	Debug            bool
+	Strict           bool
+	SchemaWithoutPkg bool
 }
 
 type pkg struct {
@@ -42,7 +43,7 @@ type pkg struct {
 	Path string
 }
 
-func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict bool) (*parser, error) {
+func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) (*parser, error) {
 	p := &parser{
 		KnownPkgs:               []pkg{},
 		KnownNamePkg:            map[string]*pkg{},
@@ -53,6 +54,7 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict bool)
 		PkgNameImportedPkgAlias: map[string]map[string][]string{},
 		Debug:                   debug,
 		Strict:                  strict,
+		SchemaWithoutPkg:        schemaWithoutPkg,
 	}
 	p.OpenAPI.OpenAPI = OpenAPIVersion
 	p.OpenAPI.Paths = make(PathsObject)
