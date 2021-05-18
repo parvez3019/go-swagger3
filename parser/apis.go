@@ -19,10 +19,10 @@ func (p *parser) parseAPIs() error {
 		return err
 	}
 
-	// err = p.parsePaths()
-	// if err != nil {
-	// 	return err
-	// }
+	err = p.parseParameters()
+	if err != nil {
+		return err
+	}
 
 	return p.parsePaths()
 }
@@ -137,16 +137,6 @@ func (p *parser) parseTypeSpecs() error {
 							}
 						}
 					}
-
-					// Parse Parameters
-					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
-						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.parseParameters(pkgPath, pkgName, astFuncDeclaration.Doc.List)
-							if err != nil {
-								return err
-							}
-						}
-					}
 				}
 			}
 		}
@@ -190,7 +180,43 @@ func (p *parser) parsePaths() error {
 	return nil
 }
 
-func (p *parser) parseParameters(pkgPath, pkgName string, astComments []*ast.Comment) error {
+func (p *parser) parseParameters() error {
+	for i := range p.KnownPkgs {
+		pkgPath := p.KnownPkgs[i].Path
+		pkgName := p.KnownPkgs[i].Name
+		// p.debug(pkgName, "->", pkgPath)
+
+		astPkgs, err := p.getPkgAst(pkgPath)
+		if err != nil {
+			if p.Strict {
+				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
+			}
+
+			p.debugf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
+			continue
+		}
+
+		for _, astPackage := range astPkgs {
+			for _, astFile := range astPackage.Files {
+				for _, astDeclaration := range astFile.Decls {
+					// Parse Parameters
+					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
+						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
+							err = p.parseParameter(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+							if err != nil {
+								return err
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*ast.Comment) error {
 	var err error
 	for _, astComment := range astComments {
 		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))

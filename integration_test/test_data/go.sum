@@ -1,0 +1,9 @@
+github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 h1:i462o439ZjprVSFSZLZxcsoAe592sZB1rci2Z8j4wdk=
+github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
+github.com/mikunalpha/go-module v0.0.0-20190521120234-12aa2dc244ca h1:5s3kB2GTEN8/X591x/Qz7o3oNHtgF+cS/360aiVy71k=
+github.com/mikunalpha/go-module v0.0.0-20190521120234-12aa2dc244ca/go.mod h1:ZA+ZzsD/oj1v6Flm0iUci0TQr48OCj4gPCg1JA0zyh0=
+github.com/parvez3019/goas v1.8.0 h1:nt4VgFqvqPeqMO5Z9gTXs5mbxKQAmrMjMEoEloFeUl0=
+github.com/parvez3019/goas v1.8.0/go.mod h1:lv2JhMYpfAQiFZiwhwEnbcm/ZdwdatmsAM3KMmnhjD8=
+github.com/urfave/cli v1.20.0 h1:fDqGv3UG/4jbVl/QkFwEdddtEDjh/5Ov6X+0B/3bPaw=
+github.com/urfave/cli v1.20.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijbERA=
+github.com/uudashr/go-module v0.0.0-20180827225833-c0ca9c3a4966/go.mod h1:P6Nk1sQWL6jcdBIxnLVlqCsOl0arao7gg7sPoM6gx4A=
