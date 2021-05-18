@@ -137,6 +137,16 @@ func (p *parser) parseTypeSpecs() error {
 							}
 						}
 					}
+
+					// Parse Parameters
+					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
+						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
+							err = p.parseParameters(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+							if err != nil {
+								return err
+							}
+						}
+					}
 				}
 			}
 		}
@@ -167,15 +177,6 @@ func (p *parser) parsePaths() error {
 					if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
 						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
 							err = p.parseOperation(pkgPath, pkgName, astFuncDeclaration.Doc.List)
-							if err != nil {
-								return err
-							}
-						}
-					}
-
-					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
-						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.parseParameters(pkgPath, pkgName, astFuncDeclaration.Doc.List)
 							if err != nil {
 								return err
 							}
