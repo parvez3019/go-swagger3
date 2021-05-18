@@ -198,7 +198,7 @@ func (p *parser) appendEnumParamRef(goType string, parameterObject ParameterObje
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
 	// {status}  {jsonType}  {goType}     {description}
 	// 201       object      models.User  "User Model"
-	re := regexp.MustCompile(`([\d]+)[\s]+([\w\{\}]+)[\s]+([\w\-\.\/\[\]{}]+)[^"]*(.*)?`)
+	re := regexp.MustCompile(`([\d]+)[\s]+([\w\{\}]+)[\s]+([\w\-\.\/\[\]]+)[^"]*(.*)?`)
 	matches := re.FindStringSubmatch(comment)
 	if len(matches) != 5 {
 		return fmt.Errorf("parseResponseComment can not parse response comment \"%s\"", comment)
@@ -265,12 +265,6 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *Operat
 					Type: "string",
 				},
 			}
-		} else if isInterfaceType(typeName) {
-			responseObject.Content[ContentTypeJson] = &MediaTypeObject{
-				Schema: SchemaObject{
-					Type: "object",
-				},
-			}
 		} else {
 			responseObject.Content[ContentTypeJson] = &MediaTypeObject{
 				Schema: SchemaObject{
@@ -280,6 +274,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *Operat
 		}
 	}
 	operation.Responses[status] = responseObject
+
 	return nil
 }
 
@@ -318,10 +313,6 @@ func (p *parser) parseRouteComment(operation *OperationObject, comment string) e
 	}
 
 	return nil
-}
-
-func isInterfaceType(typeName string) bool {
-	return strings.EqualFold(typeName, "interface{}")
 }
 
 func isEnumType(name string) bool {
