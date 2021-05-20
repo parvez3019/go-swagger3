@@ -155,7 +155,6 @@ type SchemaObject struct {
 	// UniqueItems
 	// MaxProperties
 	// MinProperties
-	// Enum
 	// AllOf
 	// OneOf
 	// AnyOf
@@ -197,8 +196,6 @@ type ComponentsObject struct {
 	SecuritySchemes map[string]*SecuritySchemeObject `json:"securitySchemes,omitempty"`
 	Parameters      map[string]*ParameterObject      `json:"parameters,omitempty"`
 	// Responses
-	// Parameters
-
 	// Examples
 	// RequestBodies
 	// Headers

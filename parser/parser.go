@@ -13,13 +13,9 @@ import (
 type parser struct {
 	ModulePath string
 	ModuleName string
-
 	MainFilePath string
-
 	HandlerPath string
-
 	GoModFilePath string
-
 	GoModCachePath string
 
 	OpenAPI OpenAPIObject
