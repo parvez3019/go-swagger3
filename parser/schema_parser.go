@@ -358,6 +358,14 @@ astFieldsLoop:
 				}
 			}
 
+			if tag := astFieldTag.Get("override-example"); tag != "" {
+				fieldSchema.Example = tag
+
+				if fieldSchema.Example != nil && len(fieldSchema.Ref) != 0 {
+					fieldSchema.Ref = ""
+				}
+			}
+
 			if _, ok := astFieldTag.Lookup("required"); ok || isRequired {
 				structSchema.Required = append(structSchema.Required, name)
 			}

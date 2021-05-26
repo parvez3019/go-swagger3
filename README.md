@@ -151,6 +151,14 @@ func PostUser() {
 - {required}: `true`, `false`, `required` or `optional`. 
 - {description}: The description of the parameter. Must be quoted.
 
+One can also override example for an object with `override-example` key in struct
+eg -
+```go
+type Request struct {
+    version  model.Version `"json:"Version" override-example:"11.0.0"`
+}
+```
+
 #### Header 
 ```
 @Header          {goType}
