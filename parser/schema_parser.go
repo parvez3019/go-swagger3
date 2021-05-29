@@ -121,8 +121,9 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 		typeSpec, exist = p.getTypeSpec(guessPkgName, guessTypeName)
 		if !exist {
 			found := false
+			aliases := p.PkgNameImportedPkgAlias[pkgName][guessPkgName]
 			for k := range p.PkgNameImportedPkgAlias[pkgName] {
-				if k == guessPkgName && len(p.PkgNameImportedPkgAlias[pkgName][guessPkgName]) != 0 {
+				if k == guessPkgName && len(aliases) != 0 {
 					found = true
 					break
 				}
@@ -131,20 +132,26 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 				p.debugf("unknown guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
 				return &schemaObject, nil
 			}
-			guessPkgName = p.PkgNameImportedPkgAlias[pkgName][guessPkgName][0]
-			guessPkgPath = ""
-			for i := range p.KnownPkgs {
-				if guessPkgName == p.KnownPkgs[i].Name {
-					guessPkgPath = p.KnownPkgs[i].Path
+			for index, currentAliasName := range aliases {
+				guessPkgName = currentAliasName
+				guessPkgPath = ""
+				for i := range p.KnownPkgs {
+					if guessPkgName == p.KnownPkgs[i].Name {
+						guessPkgPath = p.KnownPkgs[i].Path
+						break
+					}
+				}
+				// p.debugf("guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
+				typeSpec, exist = p.getTypeSpec(guessPkgName, guessTypeName)
+				if exist {
 					break
 				}
+				if !exist && index == len(aliases)-1 {
+					p.debugf("can not find definition of guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
+					return &schemaObject, nil
+				}
 			}
-			// p.debugf("guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
-			typeSpec, exist = p.getTypeSpec(guessPkgName, guessTypeName)
-			if !exist {
-				p.debugf("can not find definition of guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
-				return &schemaObject, nil
-			}
+
 			schemaObject.PkgName = guessPkgName
 			schemaObject.ID = genSchemaObjectID(guessPkgName, guessTypeName, p.SchemaWithoutPkg)
 			p.KnownIDSchema[schemaObject.ID] = &schemaObject
