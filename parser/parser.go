@@ -59,17 +59,21 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 		Debug:            debug,
 		Strict:           strict,
 		SchemaWithoutPkg: schemaWithoutPkg,
+
+		OpenAPI: OpenAPIObject{
+			Paths:    make(PathsObject),
+			Security: make([]map[string][]string, 0),
+			Components: ComponentsObject{
+				Schemas:         make(map[string]*SchemaObject),
+				Parameters:      make(map[string]*ParameterObject),
+				SecuritySchemes: make(map[string]*SecuritySchemeObject),
+			},
+		},
 	}
 }
 
 func (p *parser) Init() (*parser, error) {
 	p.SchemaParser = NewSchemaParser(p)
-	p.OpenAPI.OpenAPI = OpenAPIVersion
-	p.OpenAPI.Paths = make(PathsObject)
-	p.OpenAPI.Security = []map[string][]string{}
-	p.OpenAPI.Components.Schemas = make(map[string]*SchemaObject)
-	p.OpenAPI.Components.Parameters = make(map[string]*ParameterObject)
-	p.OpenAPI.Components.SecuritySchemes = make(map[string]*SecuritySchemeObject)
 
 	// check modulePath is exist
 	var err error
