@@ -6,7 +6,6 @@ github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0 h1:i462o439Z
 github.com/iancoleman/orderedmap v0.0.0-20190318233801-ac98e3ecb4b0/go.mod h1:N0Wam8K1arqPXNWjMo21EXnBPOPp36vB07FNRdD2geA=
 github.com/mikunalpha/go-module v0.0.0-20190521120234-12aa2dc244ca h1:5s3kB2GTEN8/X591x/Qz7o3oNHtgF+cS/360aiVy71k=
 github.com/mikunalpha/go-module v0.0.0-20190521120234-12aa2dc244ca/go.mod h1:ZA+ZzsD/oj1v6Flm0iUci0TQr48OCj4gPCg1JA0zyh0=
-github.com/parvez3019/goas v1.8.0 h1:nt4VgFqvqPeqMO5Z9gTXs5mbxKQAmrMjMEoEloFeUl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=

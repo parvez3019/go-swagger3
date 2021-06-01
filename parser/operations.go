@@ -60,8 +60,11 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 
 func (p *parser) parseHeaders(pkgPath string, pkgName string, operation *OperationObject, comment string) error {
 	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
-	if err != nil || schema.Properties == nil {
-		return fmt.Errorf("parseHeaders can not parse Header schema %s", comment)
+	if err != nil {
+		return err
+	}
+	if schema.Properties == nil {
+		return fmt.Errorf("NilSchemaProperties : parseHeaders can not parse Header schema %s", comment)
 	}
 	for _, key := range schema.Properties.Keys() {
 		operation.Parameters = append(operation.Parameters, ParameterObject{

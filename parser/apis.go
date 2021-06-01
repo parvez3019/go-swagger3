@@ -257,16 +257,16 @@ func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) erro
 func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
 	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
-		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
+		return err
 	}
 	if schema.Properties == nil {
-		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
+		return fmt.Errorf("NilSchemaProperties: parseHeaderComment can not parse Header comment schema, comment : %s", comment)
 	}
 	for _, key := range schema.Properties.Keys() {
 		value, _ := schema.Properties.Get(key)
 		currentSchemaObj, ok := value.(*SchemaObject)
 		if !ok {
-			return fmt.Errorf("parseHeaderComment can not parse Header Params %s", comment)
+			return fmt.Errorf("FailSchemaCasting: parseHeaderComment header param object to schema object casting failed, comment : %s", comment)
 		}
 
 		paramObj := &ParameterObject{

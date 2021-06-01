@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-var version = "v1.0.1"
+var version = "v1.0.0"
 
 var flags = []cli.Flag{
 	cli.StringFlag{

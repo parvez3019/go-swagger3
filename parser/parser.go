@@ -61,6 +61,7 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 		SchemaWithoutPkg: schemaWithoutPkg,
 
 		OpenAPI: OpenAPIObject{
+			Version:  OpenAPIVersion,
 			Paths:    make(PathsObject),
 			Security: make([]map[string][]string, 0),
 			Components: ComponentsObject{

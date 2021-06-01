@@ -11,7 +11,7 @@ const (
 )
 
 type OpenAPIObject struct {
-	OpenAPI string         `json:"openapi"` // Required
+	Version string         `json:"openapi"` // Required
 	Info    InfoObject     `json:"info"`    // Required
 	Servers []ServerObject `json:"servers,omitempty"`
 	Paths   PathsObject    `json:"paths"` // Required
