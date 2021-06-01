@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/parvez3019/go-swagger3/parser"
+	parserPkg "github.com/parvez3019/go-swagger3/parser"
 	"github.com/parvez3019/go-swagger3/writer"
 	"github.com/urfave/cli"
 	"log"
@@ -46,18 +46,19 @@ var flags = []cli.Flag{
 }
 
 func action(c *cli.Context) error {
-	p, err := parser.NewParser(
+	parser, err := parserPkg.NewParser(
 		c.GlobalString("module-path"),
 		c.GlobalString("main-file-path"),
 		c.GlobalString("handler-path"),
 		c.GlobalBool("debug"),
 		c.GlobalBool("strict"),
 		c.GlobalBool("schema-without-pkg"),
-		)
+	).Init()
+
 	if err != nil {
 		return err
 	}
-	openApiObject, err := p.Parse()
+	openApiObject, err := parser.Parse()
 	if err != nil {
 		return err
 	}

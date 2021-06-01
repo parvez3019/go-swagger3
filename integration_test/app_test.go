@@ -30,7 +30,15 @@ func LoadJSONAsString(path string) string {
 }
 
 func createSpecFile() error {
-	p, err := parser.NewParser("test_data", "test_data/server/main.go", "", false, false, false)
+	p, err := parser.NewParser(
+		"test_data",
+		"test_data/server/main.go",
+		"",
+		false,
+		false,
+		false,
+	).Init()
+
 	if err != nil {
 		return err
 	}

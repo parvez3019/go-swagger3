@@ -59,7 +59,7 @@ func (p *parser) parseOperation(pkgPath, pkgName string, astComments []*ast.Comm
 }
 
 func (p *parser) parseHeaders(pkgPath string, pkgName string, operation *OperationObject, comment string) error {
-	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil || schema.Properties == nil {
 		return fmt.Errorf("parseHeaders can not parse Header schema %s", comment)
 	}
@@ -105,7 +105,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 	}
 
 	if strings.HasPrefix(goType, "[]") || strings.HasPrefix(goType, "map[]") || goType == "time.Time" {
-		schema, err := p.parseSchemaObject(pkgPath, pkgName, goType)
+		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
 			p.debug("parseResponseComment cannot parse goType", goType)
 		}
@@ -113,7 +113,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *Operation
 			Schema: *schema,
 		}
 	} else {
-		typeName, err := p.registerType(pkgPath, pkgName, matches[3])
+		typeName, err := p.RegisterType(pkgPath, pkgName, matches[3])
 		if err != nil {
 			return err
 		}
@@ -153,7 +153,7 @@ func (p *parser) appendQueryParam(pkgPath string, pkgName string, operation *Ope
 }
 
 func (p *parser) appendTimeParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string, err error) error {
-	parameterObject.Schema, err = p.parseSchemaObject(pkgPath, pkgName, goType)
+	parameterObject.Schema, err = p.ParseSchemaObject(pkgPath, pkgName, goType)
 	if err != nil {
 		p.debug("parseResponseComment cannot parse goType", goType)
 	}
@@ -171,7 +171,7 @@ func (p *parser) appendGoTypeParams(parameterObject ParameterObject, goType stri
 }
 
 func (p *parser) appendModelSchemaRef(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
-	typeName, err := p.registerType(pkgPath, pkgName, goType)
+	typeName, err := p.RegisterType(pkgPath, pkgName, goType)
 	if err != nil {
 		p.debug("parse param model type failed", goType)
 		return err
@@ -222,7 +222,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *Operat
 	re = regexp.MustCompile(`\[\w*\]`)
 	goType := re.ReplaceAllString(matches[3], "[]")
 	if strings.HasPrefix(goType, "map[]") {
-		schema, err := p.parseSchemaObject(pkgPath, pkgName, goType)
+		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
 			p.debug("parseResponseComment cannot parse goType", goType)
 		}
@@ -231,7 +231,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *Operat
 		}
 	} else if strings.HasPrefix(goType, "[]") {
 		goType = strings.Replace(goType, "[]", "", -1)
-		typeName, err := p.registerType(pkgPath, pkgName, goType)
+		typeName, err := p.RegisterType(pkgPath, pkgName, goType)
 		if err != nil {
 			return err
 		}
@@ -255,7 +255,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *Operat
 			},
 		}
 	} else {
-		typeName, err := p.registerType(pkgPath, pkgName, matches[3])
+		typeName, err := p.RegisterType(pkgPath, pkgName, matches[3])
 		if err != nil {
 			return err
 		}

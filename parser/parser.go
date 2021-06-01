@@ -32,6 +32,8 @@ type parser struct {
 	Debug            bool
 	Strict           bool
 	SchemaWithoutPkg bool
+
+	SchemaParser
 }
 
 type pkg struct {
@@ -39,19 +41,29 @@ type pkg struct {
 	Path string
 }
 
-func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) (*parser, error) {
-	p := &parser{
-		KnownPkgs:               []pkg{},
-		KnownNamePkg:            map[string]*pkg{},
-		KnownPathPkg:            map[string]*pkg{},
-		KnownIDSchema:           map[string]*SchemaObject{},
-		TypeSpecs:               map[string]map[string]*ast.TypeSpec{},
-		PkgPathAstPkgCache:      map[string]map[string]*ast.Package{},
-		PkgNameImportedPkgAlias: map[string]map[string][]string{},
-		Debug:                   debug,
-		Strict:                  strict,
-		SchemaWithoutPkg:        schemaWithoutPkg,
+func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
+	return &parser{
+		ModulePath:   modulePath,
+		MainFilePath: mainFilePath,
+		HandlerPath:  handlerPath,
+
+		KnownPkgs:     make([]pkg, 0),
+		KnownNamePkg:  make(map[string]*pkg, 0),
+		KnownPathPkg:  make(map[string]*pkg, 0),
+		KnownIDSchema: make(map[string]*SchemaObject, 0),
+
+		TypeSpecs:               make(map[string]map[string]*ast.TypeSpec, 0),
+		PkgPathAstPkgCache:      make(map[string]map[string]*ast.Package, 0),
+		PkgNameImportedPkgAlias: make(map[string]map[string][]string, 0),
+
+		Debug:            debug,
+		Strict:           strict,
+		SchemaWithoutPkg: schemaWithoutPkg,
 	}
+}
+
+func (p *parser) Init() (*parser, error) {
+	p.SchemaParser = NewSchemaParser(p)
 	p.OpenAPI.OpenAPI = OpenAPIVersion
 	p.OpenAPI.Paths = make(PathsObject)
 	p.OpenAPI.Security = []map[string][]string{}
@@ -60,22 +72,25 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 	p.OpenAPI.Components.SecuritySchemes = make(map[string]*SecuritySchemeObject)
 
 	// check modulePath is exist
-	modulePath, _ = filepath.Abs(modulePath)
-	moduleInfo, err := os.Stat(modulePath)
+	var err error
+	p.ModulePath, err = filepath.Abs(p.ModulePath)
+	if err != nil {
+		return nil, err
+	}
+	moduleInfo, err := os.Stat(p.ModulePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, err
 		}
-		return nil, fmt.Errorf("cannot get information of %s: %s", modulePath, err)
+		return nil, fmt.Errorf("cannot get information of %s: %s", p.ModulePath, err)
 	}
 	if !moduleInfo.IsDir() {
 		return nil, fmt.Errorf("modulePath should be a directory")
 	}
-	p.ModulePath = modulePath
 	p.debugf("module path: %s", p.ModulePath)
 
 	// check go.mod file is exist
-	goModFilePath := filepath.Join(modulePath, "go.mod")
+	goModFilePath := filepath.Join(p.ModulePath, "go.mod")
 	goModFileInfo, err := os.Stat(goModFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -90,30 +105,29 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 	p.debugf("go.mod file path: %s", p.GoModFilePath)
 
 	// check mainFilePath is exist
-	if mainFilePath == "" {
-		fns, err := filepath.Glob(filepath.Join(modulePath, "*.go"))
+	if p.MainFilePath == "" {
+		fns, err := filepath.Glob(filepath.Join(p.ModulePath, "*.go"))
 		if err != nil {
 			return nil, err
 		}
 		for _, fn := range fns {
 			if isMainFile(fn) {
-				mainFilePath = fn
+				p.MainFilePath = fn
 				break
 			}
 		}
 	} else {
-		mainFileInfo, err := os.Stat(mainFilePath)
+		mainFileInfo, err := os.Stat(p.MainFilePath)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return nil, err
 			}
-			return nil, fmt.Errorf("cannot get information of %s: %s", mainFilePath, err)
+			return nil, fmt.Errorf("cannot get information of %s: %s", p.MainFilePath, err)
 		}
 		if mainFileInfo.IsDir() {
 			return nil, fmt.Errorf("mainFilePath should not be a directory")
 		}
 	}
-	p.MainFilePath = mainFilePath
 	p.debugf("main file path: %s", p.MainFilePath)
 
 	// get module name from go.mod file
@@ -147,17 +161,19 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 	p.GoModCachePath = goModCachePath
 	p.debugf("go module cache path: %s", p.GoModCachePath)
 
-	if handlerPath != "" {
-		handlerPath, _ = filepath.Abs(handlerPath)
-		_, err := os.Stat(handlerPath)
+	if p.HandlerPath != "" {
+		p.HandlerPath, err = filepath.Abs(p.HandlerPath)
+		if err != nil {
+			return nil, err
+		}
+		_, err := os.Stat(p.HandlerPath)
 		if err != nil {
 			if os.IsNotExist(err) {
 				return nil, err
 			}
-			return nil, fmt.Errorf("cannot get information of %s: %s", handlerPath, err)
+			return nil, fmt.Errorf("cannot get information of %s: %s", p.HandlerPath, err)
 		}
 	}
-	p.HandlerPath = handlerPath
 	p.debugf("handler path: %s", p.HandlerPath)
 
 	return p, nil

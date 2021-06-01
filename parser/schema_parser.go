@@ -15,7 +15,23 @@ import (
 	"strings"
 )
 
-func (p *parser) getPkgAst(pkgPath string) (map[string]*ast.Package, error) {
+type SchemaParser interface {
+	GetPkgAst(pkgPath string) (map[string]*ast.Package, error)
+	RegisterType(pkgPath, pkgName, typeName string) (string, error)
+	ParseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error)
+}
+
+type schemaParser struct {
+	*parser
+}
+
+func NewSchemaParser(parser *parser) SchemaParser {
+	return &schemaParser{
+		parser: parser,
+	}
+}
+
+func (p *schemaParser) GetPkgAst(pkgPath string) (map[string]*ast.Package, error) {
 	if cache, ok := p.PkgPathAstPkgCache[pkgPath]; ok {
 		return cache, nil
 	}
@@ -31,7 +47,7 @@ func (p *parser) getPkgAst(pkgPath string) (map[string]*ast.Package, error) {
 	return astPackages, nil
 }
 
-func (p *parser) registerType(pkgPath, pkgName, typeName string) (string, error) {
+func (p *schemaParser) RegisterType(pkgPath, pkgName, typeName string) (string, error) {
 	var registerTypeName string
 
 	if isBasicGoType(typeName) || isInterfaceType(typeName) {
@@ -39,7 +55,7 @@ func (p *parser) registerType(pkgPath, pkgName, typeName string) (string, error)
 	} else if _, ok := p.KnownIDSchema[genSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
 		return genSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
 	} else {
-		schemaObject, err := p.parseSchemaObject(pkgPath, pkgName, typeName)
+		schemaObject, err := p.ParseSchemaObject(pkgPath, pkgName, typeName)
 		if err != nil {
 			return "", err
 		}
@@ -52,7 +68,7 @@ func (p *parser) registerType(pkgPath, pkgName, typeName string) (string, error)
 	return registerTypeName, nil
 }
 
-func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error) {
+func (p *schemaParser) ParseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error) {
 	var typeSpec *ast.TypeSpec
 	var exist bool
 	var schemaObject SchemaObject
@@ -67,7 +83,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 			schemaObject.Items = &SchemaObject{Ref: addSchemaRefLinkPrefix(schema.ID)}
 			return &schemaObject, nil
 		}
-		schemaObject.Items, err = p.parseSchemaObject(pkgPath, pkgName, itemTypeName)
+		schemaObject.Items, err = p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 		if err != nil {
 			return nil, err
 		}
@@ -80,7 +96,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 			schemaObject.Items = &SchemaObject{Ref: addSchemaRefLinkPrefix(schema.ID)}
 			return &schemaObject, nil
 		}
-		schemaProperty, err := p.parseSchemaObject(pkgPath, pkgName, itemTypeName)
+		schemaProperty, err := p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 		if err != nil {
 			return nil, err
 		}
@@ -174,9 +190,9 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 		typeAsString := p.getTypeAsString(astArrayType.Elt)
 		typeAsString = strings.TrimLeft(typeAsString, "*")
 		if !isBasicGoType(typeAsString) {
-			schemaItemsSchemeaObjectID, err := p.registerType(pkgPath, pkgName, typeAsString)
+			schemaItemsSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {
-				p.debug("parseSchemaObject parse array items err:", err)
+				p.debug("ParseSchemaObject parse array items err:", err)
 			} else {
 				schemaObject.Items.Ref = addSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
 			}
@@ -191,9 +207,9 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 		typeAsString := p.getTypeAsString(astMapType.Value)
 		typeAsString = strings.TrimLeft(typeAsString, "*")
 		if !isBasicGoType(typeAsString) {
-			schemaItemsSchemeaObjectID, err := p.registerType(pkgPath, pkgName, typeAsString)
+			schemaItemsSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {
-				p.debug("parseSchemaObject parse array items err:", err)
+				p.debug("ParseSchemaObject parse array items err:", err)
 			} else {
 				propertySchema.Ref = addSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
 			}
@@ -205,7 +221,7 @@ func (p *parser) parseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaOb
 	return &schemaObject, nil
 }
 
-func (p *parser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
+func (p *schemaParser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
 	pkgTypeSpecs, exist := p.TypeSpecs[pkgName]
 	if !exist {
 		return nil, false
@@ -217,7 +233,7 @@ func (p *parser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
 	return astTypeSpec, true
 }
 
-func (p *parser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, structSchema *SchemaObject, astFields []*ast.Field) {
+func (p *schemaParser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, structSchema *SchemaObject, astFields []*ast.Field) {
 	if astFields == nil {
 		return
 	}
@@ -235,31 +251,31 @@ astFieldsLoop:
 		typeAsString := p.getTypeAsString(astField.Type)
 		typeAsString = strings.TrimLeft(typeAsString, "*")
 		if strings.HasPrefix(typeAsString, "[]") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if strings.HasPrefix(typeAsString, "map[]") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if typeAsString == "time.Time" {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if strings.HasPrefix(typeAsString, "interface{}") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if !isBasicGoType(typeAsString) {
-			fieldSchemaSchemeaObjectID, err := p.registerType(pkgPath, pkgName, typeAsString)
+			fieldSchemaSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug("parseSchemaPropertiesFromStructFields err:", err)
 			} else {
@@ -401,31 +417,31 @@ astFieldsLoop:
 		typeAsString := p.getTypeAsString(astField.Type)
 		typeAsString = strings.TrimLeft(typeAsString, "*")
 		if strings.HasPrefix(typeAsString, "[]") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if strings.HasPrefix(typeAsString, "map[]") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if typeAsString == "time.Time" {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if strings.HasPrefix(typeAsString, "interface{}") {
-			fieldSchema, err = p.parseSchemaObject(pkgPath, pkgName, typeAsString)
+			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug(err)
 				return
 			}
 		} else if !isBasicGoType(typeAsString) {
-			fieldSchemaSchemeaObjectID, err := p.registerType(pkgPath, pkgName, typeAsString)
+			fieldSchemaSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.debug("parseSchemaPropertiesFromStructFields err:", err)
 			} else {
@@ -485,7 +501,7 @@ func parseEnumValues(enumString string) interface{} {
 	return result
 }
 
-func (p *parser) getTypeAsString(fieldType interface{}) string {
+func (p *schemaParser) getTypeAsString(fieldType interface{}) string {
 	astArrayType, ok := fieldType.(*ast.ArrayType)
 	if ok {
 		return fmt.Sprintf("[]%v", p.getTypeAsString(astArrayType.Elt))

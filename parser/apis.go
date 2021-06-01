@@ -32,7 +32,7 @@ func (p *parser) parseImportStatements() error {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
 
-		astPkgs, err := p.getPkgAst(pkgPath)
+		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.Strict {
 				return fmt.Errorf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
@@ -88,7 +88,7 @@ func (p *parser) parseTypeSpecs() error {
 		if !ok {
 			p.TypeSpecs[pkgName] = map[string]*ast.TypeSpec{}
 		}
-		astPkgs, err := p.getPkgAst(pkgPath)
+		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.Strict {
 				return fmt.Errorf("parseTypeSpecs: parse of %s package cause error: %s", pkgPath, err)
@@ -151,7 +151,7 @@ func (p *parser) parsePaths() error {
 		pkgName := p.KnownPkgs[i].Name
 		// p.debug(pkgName, "->", pkgPath)
 
-		astPkgs, err := p.getPkgAst(pkgPath)
+		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.Strict {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
@@ -186,7 +186,7 @@ func (p *parser) parseParameters() error {
 		pkgName := p.KnownPkgs[i].Name
 		// p.debug(pkgName, "->", pkgPath)
 
-		astPkgs, err := p.getPkgAst(pkgPath)
+		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.Strict {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
@@ -235,7 +235,7 @@ func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*a
 }
 
 func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) error {
-	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return fmt.Errorf("parseEnums can not parse enum schema %s", comment)
 	}
@@ -255,7 +255,7 @@ func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) erro
 }
 
 func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
-	schema, err := p.parseSchemaObject(pkgPath, pkgName, comment)
+	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
 	}
