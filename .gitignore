@@ -13,3 +13,6 @@
 
 #Intellij
 .idea
+
+# build file
+go-swagger3
