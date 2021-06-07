@@ -33,6 +33,7 @@ type parser struct {
 	Strict           bool
 	SchemaWithoutPkg bool
 
+	APIParser
 	SchemaParser
 }
 
@@ -75,6 +76,7 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 
 func (p *parser) Init() (*parser, error) {
 	p.SchemaParser = NewSchemaParser(p)
+	p.APIParser = NewAPIParser(p)
 
 	// check modulePath is exist
 	var err error
@@ -208,7 +210,7 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 	}
 
 	// parse APIs info
-	err = p.parseAPIs()
+	err = p.ParseAPIs()
 	log.Info("Parsing APIs ...")
 	if err != nil {
 		return OpenAPIObject{}, err

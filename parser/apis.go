@@ -8,7 +8,21 @@ import (
 	"strings"
 )
 
-func (p *parser) parseAPIs() error {
+type APIParser interface {
+	ParseAPIs() error
+}
+
+type apiParser struct {
+	*parser
+}
+
+func NewAPIParser(parser *parser) APIParser {
+	return &apiParser{
+		parser: parser,
+	}
+}
+
+func (p *apiParser) ParseAPIs() error {
 	err := p.parseImportStatements()
 	if err != nil {
 		return err
@@ -27,7 +41,7 @@ func (p *parser) parseAPIs() error {
 	return p.parsePaths()
 }
 
-func (p *parser) parseImportStatements() error {
+func (p *apiParser) parseImportStatements() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
@@ -48,11 +62,6 @@ func (p *parser) parseImportStatements() error {
 				for _, astImport := range astFile.Imports {
 					importedPkgName := strings.Trim(astImport.Path.Value, "\"")
 					importedPkgAlias := ""
-
-					// _, known := p.KnownNamePkg[importedPkgName]
-					// if !known {
-					// 	p.debug("unknown", importedPkgName)
-					// }
 
 					if astImport.Name != nil && astImport.Name.Name != "." && astImport.Name.Name != "_" {
 						importedPkgAlias = astImport.Name.String()
@@ -79,7 +88,7 @@ func (p *parser) parseImportStatements() error {
 	return nil
 }
 
-func (p *parser) parseTypeSpecs() error {
+func (p *apiParser) parseTypeSpecs() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
@@ -145,7 +154,7 @@ func (p *parser) parseTypeSpecs() error {
 	return nil
 }
 
-func (p *parser) parsePaths() error {
+func (p *apiParser) parsePaths() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
@@ -180,7 +189,7 @@ func (p *parser) parsePaths() error {
 	return nil
 }
 
-func (p *parser) parseParameters() error {
+func (p *apiParser) parseParameters() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
@@ -216,7 +225,7 @@ func (p *parser) parseParameters() error {
 	return nil
 }
 
-func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*ast.Comment) error {
+func (p *apiParser) parseParameter(pkgPath string, pkgName string, astComments []*ast.Comment) error {
 	var err error
 	for _, astComment := range astComments {
 		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))
@@ -234,7 +243,7 @@ func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*a
 	return err
 }
 
-func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) error {
+func (p *apiParser) parseEnums(pkgPath string, pkgName string, comment string) error {
 	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return fmt.Errorf("parseEnums can not parse enum schema %s", comment)
@@ -254,7 +263,7 @@ func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) erro
 	return nil
 }
 
-func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
+func (p *apiParser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
 	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return err
