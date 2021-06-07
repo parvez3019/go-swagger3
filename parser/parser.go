@@ -35,6 +35,7 @@ type parser struct {
 
 	APIParser
 	InfoParser
+	GoModParser
 	SchemaParser
 }
 
@@ -79,6 +80,7 @@ func (p *parser) Init() (*parser, error) {
 	p.SchemaParser = NewSchemaParser(p)
 	p.APIParser = NewAPIParser(p)
 	p.InfoParser = NewInfoParser(p)
+	p.GoModParser = NewGoModParser(p)
 
 	// check modulePath is exist
 	var err error
@@ -206,7 +208,7 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 
 	// parse go.mod info
 	log.Info("Parsing GoMod Info ...")
-	err = p.parseGoMod()
+	err = p.ParseGoMod()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}

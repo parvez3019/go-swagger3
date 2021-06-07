@@ -9,7 +9,21 @@ import (
 	"unicode"
 )
 
-func (p *parser) parseGoMod() error {
+type GoModParser interface {
+	ParseGoMod() error
+}
+
+type goModParser struct {
+	*parser
+}
+
+func NewGoModParser(parser *parser) GoModParser {
+	return &goModParser{
+		parser: parser,
+	}
+}
+
+func (p *goModParser) ParseGoMod() error {
 	b, err := ioutil.ReadFile(p.GoModFilePath)
 	if err != nil {
 		return err
