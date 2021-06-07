@@ -19,7 +19,7 @@ func NewFileWriter() *fileWriter {
 	return &fileWriter{}
 }
 
-func (w *fileWriter) Write(openApiObject oas.OpenAPIObject, path string, isYaml bool) error {
+func (w *fileWriter) Write(openApiObject oas.OpenAPIObject, path string, generateYAML bool) error {
 	log.Info("Writing to open api object file ...")
 	fd, err := os.Create(path)
 	if err != nil {
@@ -31,7 +31,7 @@ func (w *fileWriter) Write(openApiObject oas.OpenAPIObject, path string, isYaml 
 	if err != nil {
 		return err
 	}
-	if isYaml {
+	if generateYAML {
 		output, err = yaml.JSONToYAML(output)
 		if err != nil {
 			return err
