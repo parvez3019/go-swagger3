@@ -43,6 +43,10 @@ var flags = []cli.Flag{
 		Name:  "schema-without-pkg",
 		Usage: "create schemas without package name append to the name",
 	},
+	cli.BoolFlag{
+		Name:  "generate-yaml",
+		Usage: "generate yaml spec if true",
+	},
 }
 
 func action(c *cli.Context) error {
@@ -64,7 +68,7 @@ func action(c *cli.Context) error {
 	}
 
 	fw := writer.NewFileWriter()
-	return fw.Write(openApiObject, c.GlobalString("output"))
+	return fw.Write(openApiObject, c.GlobalString("output"), c.GlobalBool("generate-yaml"))
 }
 
 func main() {

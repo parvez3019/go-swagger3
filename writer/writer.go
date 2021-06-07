@@ -3,13 +3,14 @@ package writer
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/ghodss/yaml"
+	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 type Writer interface {
-	Write(OpenAPIObject, string) error
+	Write(openApiObject oas.OpenAPIObject, path string, isYaml bool) error
 }
 
 type fileWriter struct{}
@@ -18,7 +19,7 @@ func NewFileWriter() *fileWriter {
 	return &fileWriter{}
 }
 
-func (w *fileWriter) Write(openApiObject OpenAPIObject, path string) error {
+func (w *fileWriter) Write(openApiObject oas.OpenAPIObject, path string, isYaml bool) error {
 	log.Info("Writing to open api object file ...")
 	fd, err := os.Create(path)
 	if err != nil {
@@ -29,6 +30,12 @@ func (w *fileWriter) Write(openApiObject OpenAPIObject, path string) error {
 	output, err := json.MarshalIndent(openApiObject, "", "  ")
 	if err != nil {
 		return err
+	}
+	if isYaml {
+		output, err = yaml.JSONToYAML(output)
+		if err != nil {
+			return err
+		}
 	}
 	_, err = fd.WriteString(string(output))
 	return err
