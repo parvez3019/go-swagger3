@@ -41,9 +41,9 @@ func Test_ParseHeader(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			parser := parser{SchemaParser: test.schemaParser}
+			operationParser := operationParser{parser: &parser{SchemaParser: test.schemaParser}}
 			operationObject := &oas.OperationObject{}
-			err := parser.parseHeaders("/test/path", "pkgName", operationObject, "comment")
+			err := operationParser.parseHeaders("/test/path", "pkgName", operationObject, "comment")
 			if test.wantErr {
 				assert.NotNil(t, err)
 				assert.EqualError(t, err, test.errMsg)

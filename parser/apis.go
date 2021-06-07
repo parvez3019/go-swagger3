@@ -14,11 +14,13 @@ type APIParser interface {
 
 type apiParser struct {
 	*parser
+	OperationParser
 }
 
 func NewAPIParser(parser *parser) APIParser {
 	return &apiParser{
-		parser: parser,
+		parser:          parser,
+		OperationParser: NewOperationParser(parser),
 	}
 }
 
@@ -175,7 +177,7 @@ func (p *apiParser) parsePaths() error {
 				for _, astDeclaration := range astFile.Decls {
 					if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
 						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.parseOperation(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+							err = p.ParseOperation(pkgPath, pkgName, astFuncDeclaration.Doc.List)
 							if err != nil {
 								return err
 							}

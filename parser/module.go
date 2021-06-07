@@ -6,7 +6,21 @@ import (
 	"strings"
 )
 
-func (p *parser) parseModule() error {
+type ModuleParser interface {
+	ParseModule() error
+}
+
+type moduleParser struct {
+	*parser
+}
+
+func NewModuleParser(parser *parser) ModuleParser {
+	return &moduleParser{
+		parser: parser,
+	}
+}
+
+func (p *moduleParser) ParseModule() error {
 	walker := func(path string, info os.FileInfo, err error) error {
 		if info != nil && info.IsDir() {
 			if strings.HasPrefix(strings.Trim(strings.TrimPrefix(path, p.ModulePath), "/"), ".git") {
