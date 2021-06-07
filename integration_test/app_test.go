@@ -48,5 +48,5 @@ func createSpecFile() error {
 	}
 
 	fw := writer.NewFileWriter()
-	return fw.Write(openApiObject, "test_data/spec/actual.json")
+	return fw.Write(openApiObject, "test_data/spec/actual.json", false)
 }
