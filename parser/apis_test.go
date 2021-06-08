@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_ParseHeaderParameters1(t *testing.T) {
+func Test_ParseHeaderParameters(t *testing.T) {
 	tests := []struct {
 		name               string
 		schemaParser       SchemaParser
