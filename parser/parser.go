@@ -11,27 +11,11 @@ import (
 )
 
 type parser struct {
-	ModulePath string
-	ModuleName string
-	MainFilePath string
-	HandlerPath string
-	GoModFilePath string
-	GoModCachePath string
-
 	OpenAPI OpenAPIObject
 
-	KnownPkgs     []pkg
-	KnownNamePkg  map[string]*pkg
-	KnownPathPkg  map[string]*pkg
-	KnownIDSchema map[string]*SchemaObject
-
-	TypeSpecs               map[string]map[string]*ast.TypeSpec
-	PkgPathAstPkgCache      map[string]map[string]*ast.Package
-	PkgNameImportedPkgAlias map[string]map[string][]string
-
-	Debug            bool
-	Strict           bool
-	SchemaWithoutPkg bool
+	Path
+	PkgAndSpecs
+	Flags
 
 	APIParser
 	InfoParser
@@ -40,40 +24,12 @@ type parser struct {
 	SchemaParser
 }
 
-type pkg struct {
-	Name string
-	Path string
-}
-
 func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
 	return &parser{
-		ModulePath:   modulePath,
-		MainFilePath: mainFilePath,
-		HandlerPath:  handlerPath,
-
-		KnownPkgs:     make([]pkg, 0),
-		KnownNamePkg:  make(map[string]*pkg, 0),
-		KnownPathPkg:  make(map[string]*pkg, 0),
-		KnownIDSchema: make(map[string]*SchemaObject, 0),
-
-		TypeSpecs:               make(map[string]map[string]*ast.TypeSpec, 0),
-		PkgPathAstPkgCache:      make(map[string]map[string]*ast.Package, 0),
-		PkgNameImportedPkgAlias: make(map[string]map[string][]string, 0),
-
-		Debug:            debug,
-		Strict:           strict,
-		SchemaWithoutPkg: schemaWithoutPkg,
-
-		OpenAPI: OpenAPIObject{
-			Version:  OpenAPIVersion,
-			Paths:    make(PathsObject),
-			Security: make([]map[string][]string, 0),
-			Components: ComponentsObject{
-				Schemas:         make(map[string]*SchemaObject),
-				Parameters:      make(map[string]*ParameterObject),
-				SecuritySchemes: make(map[string]*SecuritySchemeObject),
-			},
-		},
+		Path:        getPaths(modulePath, mainFilePath, handlerPath),
+		Flags:       geFlags(debug, strict, schemaWithoutPkg),
+		PkgAndSpecs: initPkgAndSpecs(),
+		OpenAPI:     initOpenApiObject(),
 	}
 }
 
@@ -235,5 +191,77 @@ func (p *parser) debug(v ...interface{}) {
 func (p *parser) debugf(format string, args ...interface{}) {
 	if p.Debug {
 		log.Debugf(format, args...)
+	}
+}
+
+type Path struct {
+	ModulePath     string
+	ModuleName     string
+	MainFilePath   string
+	HandlerPath    string
+	GoModFilePath  string
+	GoModCachePath string
+}
+
+type PkgAndSpecs struct {
+	KnownPkgs     []pkg
+	KnownNamePkg  map[string]*pkg
+	KnownPathPkg  map[string]*pkg
+	KnownIDSchema map[string]*SchemaObject
+
+	TypeSpecs               map[string]map[string]*ast.TypeSpec
+	PkgPathAstPkgCache      map[string]map[string]*ast.Package
+	PkgNameImportedPkgAlias map[string]map[string][]string
+}
+
+type Flags struct {
+	Debug            bool
+	Strict           bool
+	SchemaWithoutPkg bool
+}
+
+type pkg struct {
+	Name string
+	Path string
+}
+
+func initOpenApiObject() OpenAPIObject {
+	return OpenAPIObject{
+		Version:  OpenAPIVersion,
+		Paths:    make(PathsObject),
+		Security: make([]map[string][]string, 0),
+		Components: ComponentsObject{
+			Schemas:         make(map[string]*SchemaObject),
+			Parameters:      make(map[string]*ParameterObject),
+			SecuritySchemes: make(map[string]*SecuritySchemeObject),
+		},
+	}
+}
+
+func geFlags(debug bool, strict bool, schemaWithoutPkg bool) Flags {
+	return Flags{
+		Debug:            debug,
+		Strict:           strict,
+		SchemaWithoutPkg: schemaWithoutPkg,
+	}
+}
+
+func getPaths(modulePath string, mainFilePath string, handlerPath string) Path {
+	return Path{
+		ModulePath:   modulePath,
+		MainFilePath: mainFilePath,
+		HandlerPath:  handlerPath,
+	}
+}
+
+func initPkgAndSpecs() PkgAndSpecs {
+	return PkgAndSpecs{
+		KnownPkgs:               make([]pkg, 0),
+		KnownNamePkg:            make(map[string]*pkg, 0),
+		KnownPathPkg:            make(map[string]*pkg, 0),
+		KnownIDSchema:           make(map[string]*SchemaObject, 0),
+		TypeSpecs:               make(map[string]map[string]*ast.TypeSpec, 0),
+		PkgPathAstPkgCache:      make(map[string]map[string]*ast.Package, 0),
+		PkgNameImportedPkgAlias: make(map[string]map[string][]string, 0),
 	}
 }
