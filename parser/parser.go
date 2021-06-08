@@ -114,11 +114,11 @@ func (p *parser) Init() (*parser, error) {
 	// check go module cache path is exist ($GOPATH/pkg/mod)
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
-		user, err := user.Current()
+		current, err := user.Current()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get current user: %s", err)
 		}
-		goPath = filepath.Join(user.HomeDir, "go")
+		goPath = filepath.Join(current.HomeDir, "go")
 	}
 	goModCachePath := filepath.Join(goPath, "pkg", "mod")
 	goModCacheInfo, err := os.Stat(goModCachePath)
