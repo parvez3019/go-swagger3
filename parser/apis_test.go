@@ -47,7 +47,7 @@ func Test_ParseHeaderParameters1(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			apiParser := apiParser{parser: &parser{
 				SchemaParser: test.schemaParser,
-				OpenAPI:      oas.OpenAPIObject{Components: oas.ComponentsObject{Parameters: map[string]*oas.ParameterObject{}}},
+				OpenAPI:      &oas.OpenAPIObject{Components: oas.ComponentsObject{Parameters: map[string]*oas.ParameterObject{}}},
 			}}
 			err := apiParser.parseHeaderParameters("/test/path", "pkgName", "comment")
 			if test.wantErr {

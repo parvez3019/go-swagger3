@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/mikunalpha/go-module"
+	"github.com/parvez3019/go-swagger3/logger"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,11 +16,13 @@ type GoModParser interface {
 
 type goModParser struct {
 	*parser
+	*logger.Logger
 }
 
-func NewGoModParser(parser *parser) GoModParser {
+func NewGoModParser(parser *parser, logger *logger.Logger) GoModParser {
 	return &goModParser{
 		parser: parser,
+		Logger: logger,
 	}
 }
 
@@ -75,9 +78,9 @@ func (p *goModParser) ParseGoMod() error {
 		}
 		filepath.Walk(pkgPath, walker)
 	}
-	if p.Debug {
+	if p.RunInDebugMode {
 		for i := range p.KnownPkgs {
-			p.debug(p.KnownPkgs[i].Name, "->", p.KnownPkgs[i].Path)
+			p.Debugf(p.KnownPkgs[i].Name, "->", p.KnownPkgs[i].Path)
 		}
 	}
 	return nil

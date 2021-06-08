@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	"go/token"
@@ -15,12 +16,14 @@ type APIParser interface {
 type apiParser struct {
 	*parser
 	OperationParser
+	*logger.Logger
 }
 
-func NewAPIParser(parser *parser) APIParser {
+func NewAPIParser(parser *parser, logger *logger.Logger) APIParser {
 	return &apiParser{
 		parser:          parser,
-		OperationParser: NewOperationParser(parser),
+		Logger:          logger,
+		OperationParser: NewOperationParser(parser, logger),
 	}
 }
 
@@ -50,11 +53,11 @@ func (p *apiParser) parseImportStatements() error {
 
 		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
-			if p.Strict {
+			if p.RunInStrictMode {
 				return fmt.Errorf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
 			}
 
-			p.debugf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
+			p.Debugf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
 			continue
 		}
 
@@ -101,11 +104,11 @@ func (p *apiParser) parseTypeSpecs() error {
 		}
 		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
-			if p.Strict {
+			if p.RunInStrictMode {
 				return fmt.Errorf("parseTypeSpecs: parse of %s package cause error: %s", pkgPath, err)
 			}
 
-			p.debugf("parseTypeSpecs: parse of %s package cause error: %s", pkgPath, err)
+			p.Debugf("parseTypeSpecs: parse of %s package cause error: %s", pkgPath, err)
 			continue
 		}
 
@@ -164,11 +167,11 @@ func (p *apiParser) parsePaths() error {
 
 		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
-			if p.Strict {
+			if p.RunInStrictMode {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
 			}
 
-			p.debugf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
+			p.Debugf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
 			continue
 		}
 
@@ -199,11 +202,11 @@ func (p *apiParser) parseParameters() error {
 
 		astPkgs, err := p.GetPkgAst(pkgPath)
 		if err != nil {
-			if p.Strict {
+			if p.RunInStrictMode {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
 			}
 
-			p.debugf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
+			p.Debugf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
 			continue
 		}
 

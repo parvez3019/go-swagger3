@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
@@ -15,11 +16,13 @@ type InfoParser interface {
 
 type infoParser struct {
 	*parser
+	*logger.Logger
 }
 
-func NewInfoParser(parser *parser) InfoParser {
+func NewInfoParser(parser *parser, logger *logger.Logger) InfoParser {
 	return &infoParser{
 		parser: parser,
+		Logger: logger,
 	}
 }
 
@@ -58,7 +61,7 @@ func (p *infoParser) parseComment(comment string, oauthScopes map[string]map[str
 	if notPresent {
 		return
 	}
-	p.debug(attribute, value)
+	p.Debug(attribute, value)
 	p.parseOpenApiInfo(attribute, value)
 	p.parseServerUrls(attribute, value)
 	p.parseSecurity(attribute, value)

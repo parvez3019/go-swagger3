@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
@@ -11,17 +12,19 @@ import (
 )
 
 type parser struct {
-	OpenAPI OpenAPIObject
-
 	Path
-	PkgAndSpecs
 	Flags
+	*PkgAndSpecs
+
+	OpenAPI *OpenAPIObject
 
 	APIParser
 	InfoParser
 	GoModParser
 	ModuleParser
 	SchemaParser
+
+	*logger.Logger
 }
 
 func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
@@ -34,11 +37,12 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 }
 
 func (p *parser) Init() (*parser, error) {
-	p.SchemaParser = NewSchemaParser(p)
-	p.APIParser = NewAPIParser(p)
-	p.InfoParser = NewInfoParser(p)
-	p.GoModParser = NewGoModParser(p)
-	p.ModuleParser = NewModuleParser(p)
+	p.Logger = logger.SetDebugMode(p.RunInDebugMode)
+	p.SchemaParser = NewSchemaParser(p.PkgAndSpecs, p.Flags, p.OpenAPI, p.Logger)
+	p.APIParser = NewAPIParser(p, p.Logger)
+	p.InfoParser = NewInfoParser(p, p.Logger)
+	p.GoModParser = NewGoModParser(p, p.Logger)
+	p.ModuleParser = NewModuleParser(p, p.Logger)
 
 	// check modulePath is exist
 	var err error
@@ -56,7 +60,7 @@ func (p *parser) Init() (*parser, error) {
 	if !moduleInfo.IsDir() {
 		return nil, fmt.Errorf("modulePath should be a directory")
 	}
-	p.debugf("module path: %s", p.ModulePath)
+	p.Debugf("module path: %s", p.ModulePath)
 
 	// check go.mod file is exist
 	goModFilePath := filepath.Join(p.ModulePath, "go.mod")
@@ -71,7 +75,7 @@ func (p *parser) Init() (*parser, error) {
 		return nil, fmt.Errorf("%s should be a file", goModFilePath)
 	}
 	p.GoModFilePath = goModFilePath
-	p.debugf("go.mod file path: %s", p.GoModFilePath)
+	p.Debugf("go.mod file path: %s", p.GoModFilePath)
 
 	// check mainFilePath is exist
 	if p.MainFilePath == "" {
@@ -97,7 +101,7 @@ func (p *parser) Init() (*parser, error) {
 			return nil, fmt.Errorf("mainFilePath should not be a directory")
 		}
 	}
-	p.debugf("main file path: %s", p.MainFilePath)
+	p.Debugf("main file path: %s", p.MainFilePath)
 
 	// get module name from go.mod file
 	moduleName := getModuleNameFromGoMod(goModFilePath)
@@ -105,7 +109,7 @@ func (p *parser) Init() (*parser, error) {
 		return nil, fmt.Errorf("cannot get module name from %s", goModFileInfo)
 	}
 	p.ModuleName = moduleName
-	p.debugf("module name: %s", p.ModuleName)
+	p.Debugf("module name: %s", p.ModuleName)
 
 	// check go module cache path is exist ($GOPATH/pkg/mod)
 	goPath := os.Getenv("GOPATH")
@@ -128,7 +132,7 @@ func (p *parser) Init() (*parser, error) {
 		return nil, fmt.Errorf("%s should be a directory", goModCachePath)
 	}
 	p.GoModCachePath = goModCachePath
-	p.debugf("go module cache path: %s", p.GoModCachePath)
+	p.Debugf("go module cache path: %s", p.GoModCachePath)
 
 	if p.HandlerPath != "" {
 		p.HandlerPath, err = filepath.Abs(p.HandlerPath)
@@ -143,7 +147,7 @@ func (p *parser) Init() (*parser, error) {
 			return nil, fmt.Errorf("cannot get information of %s: %s", p.HandlerPath, err)
 		}
 	}
-	p.debugf("handler path: %s", p.HandlerPath)
+	p.Debugf("handler path: %s", p.HandlerPath)
 
 	return p, nil
 }
@@ -179,19 +183,7 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 	}
 
 	log.Info("Parsing Completed ...")
-	return p.OpenAPI, nil
-}
-
-func (p *parser) debug(v ...interface{}) {
-	if p.Debug {
-		log.Debugln(v...)
-	}
-}
-
-func (p *parser) debugf(format string, args ...interface{}) {
-	if p.Debug {
-		log.Debugf(format, args...)
-	}
+	return *p.OpenAPI, nil
 }
 
 type Path struct {
@@ -215,8 +207,8 @@ type PkgAndSpecs struct {
 }
 
 type Flags struct {
-	Debug            bool
-	Strict           bool
+	RunInDebugMode   bool
+	RunInStrictMode  bool
 	SchemaWithoutPkg bool
 }
 
@@ -225,8 +217,8 @@ type pkg struct {
 	Path string
 }
 
-func initOpenApiObject() OpenAPIObject {
-	return OpenAPIObject{
+func initOpenApiObject() *OpenAPIObject {
+	return &OpenAPIObject{
 		Version:  OpenAPIVersion,
 		Paths:    make(PathsObject),
 		Security: make([]map[string][]string, 0),
@@ -240,8 +232,8 @@ func initOpenApiObject() OpenAPIObject {
 
 func geFlags(debug bool, strict bool, schemaWithoutPkg bool) Flags {
 	return Flags{
-		Debug:            debug,
-		Strict:           strict,
+		RunInDebugMode:   debug,
+		RunInStrictMode:  strict,
 		SchemaWithoutPkg: schemaWithoutPkg,
 	}
 }
@@ -254,8 +246,8 @@ func getPaths(modulePath string, mainFilePath string, handlerPath string) Path {
 	}
 }
 
-func initPkgAndSpecs() PkgAndSpecs {
-	return PkgAndSpecs{
+func initPkgAndSpecs() *PkgAndSpecs {
+	return &PkgAndSpecs{
 		KnownPkgs:               make([]pkg, 0),
 		KnownNamePkg:            make(map[string]*pkg, 0),
 		KnownPathPkg:            make(map[string]*pkg, 0),

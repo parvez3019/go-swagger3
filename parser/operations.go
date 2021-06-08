@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"github.com/iancoleman/orderedmap"
+	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	"net/http"
@@ -17,10 +18,14 @@ type OperationParser interface {
 
 type operationParser struct {
 	*parser
+	*logger.Logger
 }
 
-func NewOperationParser(parser *parser) OperationParser {
-	return &operationParser{parser: parser}
+func NewOperationParser(parser *parser, logger *logger.Logger) OperationParser {
+	return &operationParser{
+		parser: parser,
+		Logger: logger,
+	}
 }
 
 func (p *operationParser) ParseOperation(pkgPath, pkgName string, astComments []*ast.Comment) error {
@@ -122,7 +127,7 @@ func (p *operationParser) parseParamComment(pkgPath, pkgName string, operation *
 	if strings.HasPrefix(goType, "[]") || strings.HasPrefix(goType, "map[]") || goType == "time.Time" {
 		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
-			p.debug("parseResponseComment cannot parse goType", goType)
+			p.Debug("parseResponseComment cannot parse goType", goType)
 		}
 		operation.RequestBody.Content[ContentTypeJson] = &MediaTypeObject{
 			Schema: *schema,
@@ -170,7 +175,7 @@ func (p *operationParser) appendQueryParam(pkgPath string, pkgName string, opera
 func (p *operationParser) appendTimeParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string, err error) error {
 	parameterObject.Schema, err = p.ParseSchemaObject(pkgPath, pkgName, goType)
 	if err != nil {
-		p.debug("parseResponseComment cannot parse goType", goType)
+		p.Debug("parseResponseComment cannot parse goType", goType)
 	}
 	operation.Parameters = append(operation.Parameters, parameterObject)
 	return err
@@ -188,7 +193,7 @@ func (p *operationParser) appendGoTypeParams(parameterObject ParameterObject, go
 func (p *operationParser) appendModelSchemaRef(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
 	typeName, err := p.RegisterType(pkgPath, pkgName, goType)
 	if err != nil {
-		p.debug("parse param model type failed", goType)
+		p.Debug("parse param model type failed", goType)
 		return err
 	}
 	parameterObject.Schema = &SchemaObject{
@@ -239,7 +244,7 @@ func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operatio
 	if strings.HasPrefix(goType, "map[]") {
 		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
-			p.debug("parseResponseComment cannot parse goType", goType)
+			p.Debug("parseResponseComment cannot parse goType", goType)
 		}
 		responseObject.Content[ContentTypeJson] = &MediaTypeObject{
 			Schema: *schema,
