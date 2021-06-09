@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/parvez3019/go-swagger3/logger"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,16 +11,12 @@ type ModuleParser interface {
 }
 
 type moduleParser struct {
-	Path
-	*PkgAndSpecs
-	*logger.Logger
+	Utils
 }
 
-func NewModuleParser(path Path, specs *PkgAndSpecs, logger *logger.Logger) ModuleParser {
+func NewModuleParser(utils Utils) ModuleParser {
 	return &moduleParser{
-		Path:        path,
-		PkgAndSpecs: specs,
-		Logger:      logger,
+		Utils: utils,
 	}
 }
 

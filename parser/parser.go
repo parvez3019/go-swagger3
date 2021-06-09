@@ -12,10 +12,6 @@ import (
 )
 
 type parser struct {
-	Path
-	Flags
-	*PkgAndSpecs
-
 	OpenAPI *OpenAPIObject
 
 	APIParser
@@ -24,15 +20,17 @@ type parser struct {
 	ModuleParser
 	SchemaParser
 
-	*logger.Logger
+	Utils
 }
 
 func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
 	return &parser{
-		Path:        getPaths(modulePath, mainFilePath, handlerPath),
-		Flags:       geFlags(debug, strict, schemaWithoutPkg),
-		PkgAndSpecs: initPkgAndSpecs(),
-		OpenAPI:     initOpenApiObject(),
+		Utils: Utils{
+			Path:        getPaths(modulePath, mainFilePath, handlerPath),
+			Flags:       geFlags(debug, strict, schemaWithoutPkg),
+			PkgAndSpecs: initPkgAndSpecs(),
+		},
+		OpenAPI: initOpenApiObject(),
 	}
 }
 
@@ -144,11 +142,11 @@ func (p *parser) Init() (*parser, error) {
 	}
 	p.Debugf("handler path: %s", p.HandlerPath)
 
-	p.SchemaParser = NewSchemaParser(p.PkgAndSpecs, p.Flags, p.OpenAPI, p.Logger)
-	p.APIParser = NewAPIParser(p.Path, p.Flags, p.PkgAndSpecs, p.OpenAPI, p.Logger, p.SchemaParser)
-	p.InfoParser = NewInfoParser(p.Path, p.Flags, p.PkgAndSpecs, p.OpenAPI, p.Logger)
-	p.GoModParser = NewGoModParser(p.Path, p.PkgAndSpecs, p.RunInDebugMode, p.Logger)
-	p.ModuleParser = NewModuleParser(p.Path, p.PkgAndSpecs, p.Logger)
+	p.SchemaParser = NewSchemaParser(p.Utils, p.OpenAPI)
+	p.APIParser = NewAPIParser(p.Utils, p.OpenAPI, p.SchemaParser)
+	p.InfoParser = NewInfoParser(p.Utils, p.OpenAPI)
+	p.GoModParser = NewGoModParser(p.Utils)
+	p.ModuleParser = NewModuleParser(p.Utils)
 
 	return p, nil
 }
@@ -185,6 +183,14 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 
 	log.Info("Parsing Completed ...")
 	return *p.OpenAPI, nil
+}
+
+type Utils struct {
+	Path
+	Flags
+	*PkgAndSpecs
+
+	*logger.Logger
 }
 
 type Path struct {

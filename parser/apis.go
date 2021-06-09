@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	"go/token"
@@ -14,26 +13,19 @@ type APIParser interface {
 }
 
 type apiParser struct {
-	Path
-	Flags
-	*PkgAndSpecs
 	OpenAPI *OpenAPIObject
 
+	Utils
 	SchemaParser
 	OperationParser
-
-	*logger.Logger
 }
 
-func NewAPIParser(path Path, flags Flags, specs *PkgAndSpecs, api *OpenAPIObject, logger *logger.Logger, schemaParser SchemaParser) APIParser {
+func NewAPIParser(utils Utils, api *OpenAPIObject, schemaParser SchemaParser) APIParser {
 	return &apiParser{
-		Path:            path,
-		Flags:           flags,
-		PkgAndSpecs:     specs,
+		Utils:           utils,
 		OpenAPI:         api,
 		SchemaParser:    schemaParser,
-		OperationParser: NewOperationParser(path, flags, specs, api, logger, schemaParser),
-		Logger:          logger,
+		OperationParser: NewOperationParser(utils, api, schemaParser),
 	}
 }
 

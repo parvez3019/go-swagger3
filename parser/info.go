@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
@@ -15,20 +14,14 @@ type InfoParser interface {
 }
 
 type infoParser struct {
-	Path
-	Flags
-	*PkgAndSpecs
-	*logger.Logger
+	Utils
 	OpenAPI *OpenAPIObject
 }
 
-func NewInfoParser(path Path, flags Flags, specs *PkgAndSpecs, api *OpenAPIObject, logger *logger.Logger) InfoParser {
+func NewInfoParser(utils Utils, api *OpenAPIObject) InfoParser {
 	return &infoParser{
-		Path:        path,
-		Flags:       flags,
-		PkgAndSpecs: specs,
-		OpenAPI:     api,
-		Logger:      logger,
+		Utils:   utils,
+		OpenAPI: api,
 	}
 }
 

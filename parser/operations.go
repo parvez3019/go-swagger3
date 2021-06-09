@@ -3,7 +3,6 @@ package parser
 import (
 	"fmt"
 	"github.com/iancoleman/orderedmap"
-	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	"net/http"
@@ -17,23 +16,16 @@ type OperationParser interface {
 }
 
 type operationParser struct {
-	Path
-	Flags
-	*PkgAndSpecs
 	OpenAPI *OpenAPIObject
 
+	Utils
 	SchemaParser
-
-	*logger.Logger
 }
 
-func NewOperationParser(path Path, flags Flags, specs *PkgAndSpecs, api *OpenAPIObject, logger *logger.Logger, schemaParser SchemaParser) OperationParser {
+func NewOperationParser(utils Utils, api *OpenAPIObject, schemaParser SchemaParser) OperationParser {
 	return &operationParser{
-		Path:         path,
-		Flags:        flags,
-		PkgAndSpecs:  specs,
+		Utils:        utils,
 		OpenAPI:      api,
-		Logger:       logger,
 		SchemaParser: schemaParser,
 	}
 }

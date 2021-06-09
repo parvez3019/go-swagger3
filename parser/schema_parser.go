@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/iancoleman/orderedmap"
-	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	goparser "go/parser"
@@ -23,18 +22,14 @@ type SchemaParser interface {
 }
 
 type schemaParser struct {
-	*PkgAndSpecs
-	Flags
+	Utils
 	OpenAPI *OpenAPIObject
-	*logger.Logger
 }
 
-func NewSchemaParser(pkgAndSpecs *PkgAndSpecs, flags Flags, openAPIObject *OpenAPIObject, logger *logger.Logger) SchemaParser {
+func NewSchemaParser(utils Utils, openAPIObject *OpenAPIObject) SchemaParser {
 	return &schemaParser{
-		PkgAndSpecs: pkgAndSpecs,
-		Flags:       flags,
-		OpenAPI:     openAPIObject,
-		Logger:      logger,
+		Utils:   utils,
+		OpenAPI: openAPIObject,
 	}
 }
 
