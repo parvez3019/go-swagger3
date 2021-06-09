@@ -45,10 +45,10 @@ func Test_ParseHeaderParameters(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			apiParser := apiParser{parser: &parser{
+			apiParser := apiParser{
 				SchemaParser: test.schemaParser,
 				OpenAPI:      &oas.OpenAPIObject{Components: oas.ComponentsObject{Parameters: map[string]*oas.ParameterObject{}}},
-			}}
+			}
 			err := apiParser.parseHeaderParameters("/test/path", "pkgName", "comment")
 			if test.wantErr {
 				assert.NotNil(t, err)

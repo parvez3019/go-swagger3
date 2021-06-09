@@ -15,14 +15,19 @@ type GoModParser interface {
 }
 
 type goModParser struct {
-	*parser
+	Path
+	*PkgAndSpecs
 	*logger.Logger
+
+	runInDebugMode bool
 }
 
-func NewGoModParser(parser *parser, logger *logger.Logger) GoModParser {
+func NewGoModParser(path Path, specs *PkgAndSpecs, debugMode bool, logger *logger.Logger) GoModParser {
 	return &goModParser{
-		parser: parser,
-		Logger: logger,
+		Path:           path,
+		PkgAndSpecs:    specs,
+		runInDebugMode: debugMode,
+		Logger:         logger,
 	}
 }
 
@@ -78,7 +83,7 @@ func (p *goModParser) ParseGoMod() error {
 		}
 		filepath.Walk(pkgPath, walker)
 	}
-	if p.RunInDebugMode {
+	if p.runInDebugMode {
 		for i := range p.KnownPkgs {
 			p.Debugf(p.KnownPkgs[i].Name, "->", p.KnownPkgs[i].Path)
 		}

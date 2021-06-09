@@ -14,16 +14,26 @@ type APIParser interface {
 }
 
 type apiParser struct {
-	*parser
+	Path
+	Flags
+	*PkgAndSpecs
+	OpenAPI *OpenAPIObject
+
+	SchemaParser
 	OperationParser
+
 	*logger.Logger
 }
 
-func NewAPIParser(parser *parser, logger *logger.Logger) APIParser {
+func NewAPIParser(path Path, flags Flags, specs *PkgAndSpecs, api *OpenAPIObject, logger *logger.Logger, schemaParser SchemaParser) APIParser {
 	return &apiParser{
-		parser:          parser,
+		Path:            path,
+		Flags:           flags,
+		PkgAndSpecs:     specs,
+		OpenAPI:         api,
+		SchemaParser:    schemaParser,
+		OperationParser: NewOperationParser(path, flags, specs, api, logger, schemaParser),
 		Logger:          logger,
-		OperationParser: NewOperationParser(parser, logger),
 	}
 }
 

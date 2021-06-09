@@ -12,14 +12,16 @@ type ModuleParser interface {
 }
 
 type moduleParser struct {
-	*parser
+	Path
+	*PkgAndSpecs
 	*logger.Logger
 }
 
-func NewModuleParser(parser *parser, logger *logger.Logger) ModuleParser {
+func NewModuleParser(path Path, specs *PkgAndSpecs, logger *logger.Logger) ModuleParser {
 	return &moduleParser{
-		parser: parser,
-		Logger: logger,
+		Path:        path,
+		PkgAndSpecs: specs,
+		Logger:      logger,
 	}
 }
 

@@ -38,11 +38,6 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 
 func (p *parser) Init() (*parser, error) {
 	p.Logger = logger.SetDebugMode(p.RunInDebugMode)
-	p.SchemaParser = NewSchemaParser(p.PkgAndSpecs, p.Flags, p.OpenAPI, p.Logger)
-	p.APIParser = NewAPIParser(p, p.Logger)
-	p.InfoParser = NewInfoParser(p, p.Logger)
-	p.GoModParser = NewGoModParser(p, p.Logger)
-	p.ModuleParser = NewModuleParser(p, p.Logger)
 
 	// check modulePath is exist
 	var err error
@@ -148,6 +143,12 @@ func (p *parser) Init() (*parser, error) {
 		}
 	}
 	p.Debugf("handler path: %s", p.HandlerPath)
+
+	p.SchemaParser = NewSchemaParser(p.PkgAndSpecs, p.Flags, p.OpenAPI, p.Logger)
+	p.APIParser = NewAPIParser(p.Path, p.Flags, p.PkgAndSpecs, p.OpenAPI, p.Logger, p.SchemaParser)
+	p.InfoParser = NewInfoParser(p.Path, p.Flags, p.PkgAndSpecs, p.OpenAPI, p.Logger)
+	p.GoModParser = NewGoModParser(p.Path, p.PkgAndSpecs, p.RunInDebugMode, p.Logger)
+	p.ModuleParser = NewModuleParser(p.Path, p.PkgAndSpecs, p.Logger)
 
 	return p, nil
 }

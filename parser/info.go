@@ -15,14 +15,20 @@ type InfoParser interface {
 }
 
 type infoParser struct {
-	*parser
+	Path
+	Flags
+	*PkgAndSpecs
 	*logger.Logger
+	OpenAPI *OpenAPIObject
 }
 
-func NewInfoParser(parser *parser, logger *logger.Logger) InfoParser {
+func NewInfoParser(path Path, flags Flags, specs *PkgAndSpecs, api *OpenAPIObject, logger *logger.Logger) InfoParser {
 	return &infoParser{
-		parser: parser,
-		Logger: logger,
+		Path:        path,
+		Flags:       flags,
+		PkgAndSpecs: specs,
+		OpenAPI:     api,
+		Logger:      logger,
 	}
 }
 
