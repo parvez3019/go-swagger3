@@ -4,6 +4,13 @@ import (
 	"fmt"
 	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/apis"
+	"github.com/parvez3019/go-swagger3/parser/gomod"
+	"github.com/parvez3019/go-swagger3/parser/info"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/parvez3019/go-swagger3/parser/module"
+	"github.com/parvez3019/go-swagger3/parser/schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"os"
@@ -14,18 +21,18 @@ import (
 type parser struct {
 	OpenAPI *OpenAPIObject
 
-	APIParser
-	InfoParser
-	GoModParser
-	ModuleParser
-	SchemaParser
+	apis.APIParser
+	info.InfoParser
+	gomod.GoModParser
+	module.ModuleParser
+	schema.SchemaParser
 
-	Utils
+	model.Utils
 }
 
 func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
 	return &parser{
-		Utils: Utils{
+		Utils: model.Utils{
 			Path:        getPaths(modulePath, mainFilePath, handlerPath),
 			Flags:       geFlags(debug, strict, schemaWithoutPkg),
 			PkgAndSpecs: initPkgAndSpecs(),
@@ -77,7 +84,7 @@ func (p *parser) Init() (*parser, error) {
 			return nil, err
 		}
 		for _, fn := range fns {
-			if isMainFile(fn) {
+			if utils.IsMainFile(fn) {
 				p.MainFilePath = fn
 				break
 			}
@@ -97,7 +104,7 @@ func (p *parser) Init() (*parser, error) {
 	p.Debugf("main file path: %s", p.MainFilePath)
 
 	// get module name from go.mod file
-	moduleName := getModuleNameFromGoMod(goModFilePath)
+	moduleName := utils.GetModuleNameFromGoMod(goModFilePath)
 	if moduleName == "" {
 		return nil, fmt.Errorf("cannot get module name from %s", goModFileInfo)
 	}
@@ -142,11 +149,11 @@ func (p *parser) Init() (*parser, error) {
 	}
 	p.Debugf("handler path: %s", p.HandlerPath)
 
-	p.SchemaParser = NewSchemaParser(p.Utils, p.OpenAPI)
-	p.APIParser = NewAPIParser(p.Utils, p.OpenAPI, p.SchemaParser)
-	p.InfoParser = NewInfoParser(p.Utils, p.OpenAPI)
-	p.GoModParser = NewGoModParser(p.Utils)
-	p.ModuleParser = NewModuleParser(p.Utils)
+	p.SchemaParser = schema.NewSchemaParser(p.Utils, p.OpenAPI)
+	p.APIParser = apis.NewAPIParser(p.Utils, p.OpenAPI, p.SchemaParser)
+	p.InfoParser = info.NewInfoParser(p.Utils, p.OpenAPI)
+	p.GoModParser = gomod.NewGoModParser(p.Utils)
+	p.ModuleParser = module.NewModuleParser(p.Utils)
 
 	return p, nil
 }
@@ -185,45 +192,6 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 	return *p.OpenAPI, nil
 }
 
-type Utils struct {
-	Path
-	Flags
-	*PkgAndSpecs
-
-	*logger.Logger
-}
-
-type Path struct {
-	ModulePath     string
-	ModuleName     string
-	MainFilePath   string
-	HandlerPath    string
-	GoModFilePath  string
-	GoModCachePath string
-}
-
-type PkgAndSpecs struct {
-	KnownPkgs     []pkg
-	KnownNamePkg  map[string]*pkg
-	KnownPathPkg  map[string]*pkg
-	KnownIDSchema map[string]*SchemaObject
-
-	TypeSpecs               map[string]map[string]*ast.TypeSpec
-	PkgPathAstPkgCache      map[string]map[string]*ast.Package
-	PkgNameImportedPkgAlias map[string]map[string][]string
-}
-
-type Flags struct {
-	RunInDebugMode   bool
-	RunInStrictMode  bool
-	SchemaWithoutPkg bool
-}
-
-type pkg struct {
-	Name string
-	Path string
-}
-
 func initOpenApiObject() *OpenAPIObject {
 	return &OpenAPIObject{
 		Version:  OpenAPIVersion,
@@ -237,27 +205,27 @@ func initOpenApiObject() *OpenAPIObject {
 	}
 }
 
-func geFlags(debug bool, strict bool, schemaWithoutPkg bool) Flags {
-	return Flags{
+func geFlags(debug bool, strict bool, schemaWithoutPkg bool) model.Flags {
+	return model.Flags{
 		RunInDebugMode:   debug,
 		RunInStrictMode:  strict,
 		SchemaWithoutPkg: schemaWithoutPkg,
 	}
 }
 
-func getPaths(modulePath string, mainFilePath string, handlerPath string) Path {
-	return Path{
+func getPaths(modulePath string, mainFilePath string, handlerPath string) model.Path {
+	return model.Path{
 		ModulePath:   modulePath,
 		MainFilePath: mainFilePath,
 		HandlerPath:  handlerPath,
 	}
 }
 
-func initPkgAndSpecs() *PkgAndSpecs {
-	return &PkgAndSpecs{
-		KnownPkgs:               make([]pkg, 0),
-		KnownNamePkg:            make(map[string]*pkg, 0),
-		KnownPathPkg:            make(map[string]*pkg, 0),
+func initPkgAndSpecs() *model.PkgAndSpecs {
+	return &model.PkgAndSpecs{
+		KnownPkgs:               make([]model.Pkg, 0),
+		KnownNamePkg:            make(map[string]*model.Pkg, 0),
+		KnownPathPkg:            make(map[string]*model.Pkg, 0),
 		KnownIDSchema:           make(map[string]*SchemaObject, 0),
 		TypeSpecs:               make(map[string]map[string]*ast.TypeSpec, 0),
 		PkgPathAstPkgCache:      make(map[string]map[string]*ast.Package, 0),

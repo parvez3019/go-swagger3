@@ -1,8 +1,9 @@
-package parser
+package info
 
 import (
 	"fmt"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
@@ -14,11 +15,11 @@ type InfoParser interface {
 }
 
 type infoParser struct {
-	Utils
+	model.Utils
 	OpenAPI *OpenAPIObject
 }
 
-func NewInfoParser(utils Utils, api *OpenAPIObject) InfoParser {
+func NewInfoParser(utils model.Utils, api *OpenAPIObject) InfoParser {
 	return &infoParser{
 		Utils:   utils,
 		OpenAPI: api,

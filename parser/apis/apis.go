@@ -1,8 +1,11 @@
-package parser
+package apis
 
 import (
 	"fmt"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/parvez3019/go-swagger3/parser/operations"
+	"github.com/parvez3019/go-swagger3/parser/schema"
 	"go/ast"
 	"go/token"
 	"strings"
@@ -15,17 +18,17 @@ type APIParser interface {
 type apiParser struct {
 	OpenAPI *OpenAPIObject
 
-	Utils
-	SchemaParser
-	OperationParser
+	model.Utils
+	schema.SchemaParser
+	operations.OperationParser
 }
 
-func NewAPIParser(utils Utils, api *OpenAPIObject, schemaParser SchemaParser) APIParser {
+func NewAPIParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.SchemaParser) APIParser {
 	return &apiParser{
 		Utils:           utils,
 		OpenAPI:         api,
 		SchemaParser:    schemaParser,
-		OperationParser: NewOperationParser(utils, api, schemaParser),
+		OperationParser: operations.NewOperationParser(utils, api, schemaParser),
 	}
 }
 
@@ -58,41 +61,52 @@ func (p *apiParser) parseImportStatements() error {
 			if p.RunInStrictMode {
 				return fmt.Errorf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
 			}
-
 			p.Debugf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
 			continue
 		}
 
 		p.PkgNameImportedPkgAlias[pkgName] = map[string][]string{}
 		for _, astPackage := range astPkgs {
-			for _, astFile := range astPackage.Files {
-				for _, astImport := range astFile.Imports {
-					importedPkgName := strings.Trim(astImport.Path.Value, "\"")
-					importedPkgAlias := ""
-
-					if astImport.Name != nil && astImport.Name.Name != "." && astImport.Name.Name != "_" {
-						importedPkgAlias = astImport.Name.String()
-						// p.debug(importedPkgAlias, importedPkgName)
-					} else {
-						s := strings.Split(importedPkgName, "/")
-						importedPkgAlias = s[len(s)-1]
-					}
-
-					exist := false
-					for _, v := range p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] {
-						if v == importedPkgName {
-							exist = true
-							break
-						}
-					}
-					if !exist {
-						p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] = append(p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias], importedPkgName)
-					}
-				}
-			}
+			p.parseImportStatementsFromPackage(astPackage, pkgName)
 		}
 	}
 	return nil
+}
+
+func (p *apiParser) parseImportStatementsFromPackage(astPackage *ast.Package, pkgName string) {
+	for _, astFile := range astPackage.Files {
+		p.parseImportStatementsFromFile(astFile, pkgName)
+	}
+}
+
+func (p *apiParser) parseImportStatementsFromFile(astFile *ast.File, pkgName string) {
+	for _, astImport := range astFile.Imports {
+		p.parseImportStatementFromImportSpec(astImport, pkgName)
+	}
+}
+
+func (p *apiParser) parseImportStatementFromImportSpec(astImport *ast.ImportSpec, pkgName string) {
+	importedPkgName := strings.Trim(astImport.Path.Value, "\"")
+	importedPkgAlias := ""
+
+	if astImport.Name != nil && astImport.Name.Name != "." && astImport.Name.Name != "_" {
+		importedPkgAlias = astImport.Name.String()
+		// p.debug(importedPkgAlias, importedPkgName)
+	} else {
+		s := strings.Split(importedPkgName, "/")
+		importedPkgAlias = s[len(s)-1]
+	}
+
+	exist := false
+	for _, v := range p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] {
+		if v == importedPkgName {
+			exist = true
+			break
+		}
+	}
+	if !exist {
+		p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] = append(p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias], importedPkgName)
+	}
 }
 
 func (p *apiParser) parseTypeSpecs() error {

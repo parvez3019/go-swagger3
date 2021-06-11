@@ -1,7 +1,8 @@
-package parser
+package gomod
 
 import (
 	"github.com/mikunalpha/go-module"
+	"github.com/parvez3019/go-swagger3/parser/model"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,10 +15,10 @@ type GoModParser interface {
 }
 
 type goModParser struct {
-	Utils
+	model.Utils
 }
 
-func NewGoModParser(utils Utils) GoModParser {
+func NewGoModParser(utils model.Utils) GoModParser {
 	return &goModParser{
 		Utils: utils,
 	}
@@ -45,7 +46,7 @@ func (p *goModParser) ParseGoMod() error {
 		pkgName := goMod.Requires[i].Path
 		pkgPath := filepath.Join(p.GoModCachePath, string(pathRunes)+"@"+goMod.Requires[i].Version)
 		pkgName = filepath.ToSlash(pkgName)
-		p.KnownPkgs = append(p.KnownPkgs, pkg{
+		p.KnownPkgs = append(p.KnownPkgs, model.Pkg{
 			Name: pkgName,
 			Path: pkgPath,
 		})
@@ -64,7 +65,7 @@ func (p *goModParser) ParseGoMod() error {
 				// p.debug(path)
 				name := filepath.Join(pkgName, strings.TrimPrefix(path, pkgPath))
 				name = filepath.ToSlash(name)
-				p.KnownPkgs = append(p.KnownPkgs, pkg{
+				p.KnownPkgs = append(p.KnownPkgs, model.Pkg{
 					Name: name,
 					Path: path,
 				})

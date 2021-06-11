@@ -1,6 +1,7 @@
-package parser
+package module
 
 import (
+	"github.com/parvez3019/go-swagger3/parser/model"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,10 +12,10 @@ type ModuleParser interface {
 }
 
 type moduleParser struct {
-	Utils
+	model.Utils
 }
 
-func NewModuleParser(utils Utils) ModuleParser {
+func NewModuleParser(utils model.Utils) ModuleParser {
 	return &moduleParser{
 		Utils: utils,
 	}
@@ -33,7 +34,7 @@ func (p *moduleParser) ParseModule() error {
 			// p.debug(path)
 			name := filepath.Join(p.ModuleName, strings.TrimPrefix(path, p.ModulePath))
 			name = filepath.ToSlash(name)
-			p.KnownPkgs = append(p.KnownPkgs, pkg{
+			p.KnownPkgs = append(p.KnownPkgs, model.Pkg{
 				Name: name,
 				Path: path,
 			})

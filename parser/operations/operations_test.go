@@ -1,9 +1,9 @@
-package parser
+package operations
 
 import (
 	"errors"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/mocks"
+	"github.com/parvez3019/go-swagger3/parser/schema"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,14 +11,14 @@ import (
 func Test_ParseHeader(t *testing.T) {
 	tests := []struct {
 		name               string
-		schemaParser       SchemaParser
+		schemaParser       schema.SchemaParser
 		wantErr            bool
 		errMsg             string
 		expectedParameters []oas.ParameterObject
 	}{
 		{
 			name:         "Should add parameters with ref",
-			schemaParser: setupUpSchemaParseMocks(getSchemaObject(), nil),
+			schemaParser: schema.SetupUpSchemaParseMocks(schema.GetSchemaObject(), nil),
 			wantErr:      false,
 			expectedParameters: []oas.ParameterObject{
 				{Ref: "#/components/parameters/ContentType"},
@@ -28,13 +28,13 @@ func Test_ParseHeader(t *testing.T) {
 		},
 		{
 			name:         "Should return error if fails parsing the schema",
-			schemaParser: setupUpSchemaParseMocks(getSchemaObject(), errors.New("someErr")),
+			schemaParser: schema.SetupUpSchemaParseMocks(schema.GetSchemaObject(), errors.New("someErr")),
 			wantErr:      true,
 			errMsg:       "someErr",
 		},
 		{
 			name:         "Should return error schema properties are nil",
-			schemaParser: setupUpSchemaParseMocks(&oas.SchemaObject{}, nil),
+			schemaParser: schema.SetupUpSchemaParseMocks(&oas.SchemaObject{}, nil),
 			wantErr:      true,
 			errMsg:       "NilSchemaProperties : parseHeaders can not parse Header schema comment",
 		},
@@ -51,12 +51,4 @@ func Test_ParseHeader(t *testing.T) {
 			assert.Equal(t, test.expectedParameters, operationObject.Parameters)
 		})
 	}
-}
-
-func setupUpSchemaParseMocks(schemaObject *oas.SchemaObject, err error) SchemaParser {
-	schemaParserMocks := &mocks.SchemaParser{}
-	schemaParserMocks.
-		On("ParseSchemaObject", "/test/path", "pkgName", "comment").
-		Return(schemaObject, err)
-	return schemaParserMocks
 }

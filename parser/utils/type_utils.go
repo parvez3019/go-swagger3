@@ -1,4 +1,4 @@
-package parser
+package utils
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-var goTypesOASFormats = map[string]string{
+var GoTypesOASFormats = map[string]string{
 	"bool":    "boolean",
 	"uint":    "int64",
 	"uint8":   "int64",
@@ -24,7 +24,7 @@ var goTypesOASFormats = map[string]string{
 	"string":  "string",
 }
 
-var basicGoTypes = map[string]bool{
+var BasicGoTypes = map[string]bool{
 	"bool":       true,
 	"uint":       true,
 	"uint8":      true,
@@ -47,7 +47,7 @@ var basicGoTypes = map[string]bool{
 	"error":      true,
 }
 
-var goTypesOASTypes = map[string]string{
+var GoTypesOASTypes = map[string]string{
 	"bool":    "boolean",
 	"uint":    "integer",
 	"uint8":   "integer",
@@ -64,7 +64,7 @@ var goTypesOASTypes = map[string]string{
 	"string":  "string",
 }
 
-func isMainFile(path string) bool {
+func IsMainFile(path string) bool {
 	f, err := os.Open(path)
 	if err != nil {
 		log.Fatal(err)
@@ -93,7 +93,15 @@ func isMainFile(path string) bool {
 	return isMainPackage && hasMainFunc
 }
 
-func getModuleNameFromGoMod(path string) string {
+func IsInterfaceType(typeName string) bool {
+	return strings.EqualFold(typeName, "interface{}")
+}
+
+func IsEnumType(name string) bool {
+	return strings.Contains(name, "Enum")
+}
+
+func GetModuleNameFromGoMod(path string) string {
 	f, err := os.Open(path)
 	if err != nil {
 		return ""
@@ -117,7 +125,7 @@ func getModuleNameFromGoMod(path string) string {
 	return moduleName
 }
 
-func isInStringList(list []string, s string) bool {
+func IsInStringList(list []string, s string) bool {
 	for i, _ := range list {
 		if list[i] == s {
 			return true
@@ -126,39 +134,39 @@ func isInStringList(list []string, s string) bool {
 	return false
 }
 
-func isBasicGoType(typeName string) bool {
-	_, ok := basicGoTypes[typeName]
+func IsBasicGoType(typeName string) bool {
+	_, ok := BasicGoTypes[typeName]
 	return ok
 }
 
-func isGoTypeOASType(typeName string) bool {
-	_, ok := goTypesOASTypes[typeName]
+func IsGoTypeOASType(typeName string) bool {
+	_, ok := GoTypesOASTypes[typeName]
 	return ok
 }
 
-func addSchemaRefLinkPrefix(name string) string {
+func AddSchemaRefLinkPrefix(name string) string {
 	if strings.HasPrefix(name, "#/components/schemas/") {
-		return replaceBackslash(name)
+		return ReplaceBackslash(name)
 	}
-	return replaceBackslash("#/components/schemas/" + name)
+	return ReplaceBackslash("#/components/schemas/" + name)
 }
 
-func addParametersRefLinkPrefix(name string) string {
+func AddParametersRefLinkPrefix(name string) string {
 	if strings.HasPrefix(name, "#/components/parameters/") {
-		return replaceBackslash(name)
+		return ReplaceBackslash(name)
 	}
-	return replaceBackslash("#/components/parameters/" + name)
+	return ReplaceBackslash("#/components/parameters/" + name)
 }
 
-func genSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
+func GenSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
 	typeNameParts := strings.Split(typeName, ".")
-	pkgName = replaceBackslash(pkgName)
+	pkgName = ReplaceBackslash(pkgName)
 	if withoutPkg {
 		return typeNameParts[len(typeNameParts)-1]
 	}
 	return strings.Join(append(strings.Split(pkgName, "/"), typeNameParts[len(typeNameParts)-1]), ".")
 }
 
-func replaceBackslash(origin string) string {
+func ReplaceBackslash(origin string) string {
 	return strings.ReplaceAll(origin, "\\", "/")
 }

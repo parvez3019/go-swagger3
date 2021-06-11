@@ -1,9 +1,12 @@
-package parser
+package operations
 
 import (
 	"fmt"
 	"github.com/iancoleman/orderedmap"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/parvez3019/go-swagger3/parser/schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 	"go/ast"
 	"net/http"
 	"regexp"
@@ -18,11 +21,11 @@ type OperationParser interface {
 type operationParser struct {
 	OpenAPI *OpenAPIObject
 
-	Utils
-	SchemaParser
+	model.Utils
+	schema.SchemaParser
 }
 
-func NewOperationParser(utils Utils, api *OpenAPIObject, schemaParser SchemaParser) OperationParser {
+func NewOperationParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.SchemaParser) OperationParser {
 	return &operationParser{
 		Utils:        utils,
 		OpenAPI:      api,
@@ -64,7 +67,7 @@ func (p *operationParser) ParseOperation(pkgPath, pkgName string, astComments []
 			if resource == "" {
 				resource = "others"
 			}
-			if !isInStringList(operation.Tags, resource) {
+			if !utils.IsInStringList(operation.Tags, resource) {
 				operation.Tags = append(operation.Tags, resource)
 			}
 		case "@route", "@router":
@@ -87,7 +90,7 @@ func (p *operationParser) parseHeaders(pkgPath string, pkgName string, operation
 	}
 	for _, key := range schema.Properties.Keys() {
 		operation.Parameters = append(operation.Parameters, ParameterObject{
-			Ref: addParametersRefLinkPrefix(key),
+			Ref: utils.AddParametersRefLinkPrefix(key),
 		})
 	}
 	return err
@@ -139,7 +142,7 @@ func (p *operationParser) parseParamComment(pkgPath, pkgName string, operation *
 		if err != nil {
 			return err
 		}
-		if isBasicGoType(typeName) {
+		if utils.IsBasicGoType(typeName) {
 			operation.RequestBody.Content[ContentTypeJson] = &MediaTypeObject{
 				Schema: SchemaObject{
 					Type: "string",
@@ -148,7 +151,7 @@ func (p *operationParser) parseParamComment(pkgPath, pkgName string, operation *
 		} else {
 			operation.RequestBody.Content[ContentTypeJson] = &MediaTypeObject{
 				Schema: SchemaObject{
-					Ref: addSchemaRefLinkPrefix(typeName),
+					Ref: utils.AddSchemaRefLinkPrefix(typeName),
 				},
 			}
 		}
@@ -164,9 +167,9 @@ func (p *operationParser) appendQueryParam(pkgPath string, pkgName string, opera
 	}
 	if goType == "time.Time" {
 		err = p.appendTimeParam(pkgPath, pkgName, operation, parameterObject, goType, err)
-	} else if isGoTypeOASType(goType) {
+	} else if utils.IsGoTypeOASType(goType) {
 		p.appendGoTypeParams(parameterObject, goType, operation)
-	} else if isEnumType(goType) {
+	} else if utils.IsEnumType(goType) {
 		p.appendEnumParamRef(goType, parameterObject, operation)
 	} else if strings.Contains(goType, "model.") {
 		err = p.appendModelSchemaRef(pkgPath, pkgName, operation, parameterObject, goType)
@@ -185,8 +188,8 @@ func (p *operationParser) appendTimeParam(pkgPath string, pkgName string, operat
 
 func (p *operationParser) appendGoTypeParams(parameterObject ParameterObject, goType string, operation *OperationObject) {
 	parameterObject.Schema = &SchemaObject{
-		Type:        goTypesOASTypes[goType],
-		Format:      goTypesOASFormats[goType],
+		Type:        utils.GoTypesOASTypes[goType],
+		Format:      utils.GoTypesOASFormats[goType],
 		Description: parameterObject.Description,
 	}
 	operation.Parameters = append(operation.Parameters, parameterObject)
@@ -199,7 +202,7 @@ func (p *operationParser) appendModelSchemaRef(pkgPath string, pkgName string, o
 		return err
 	}
 	parameterObject.Schema = &SchemaObject{
-		Ref:  addSchemaRefLinkPrefix(typeName),
+		Ref:  utils.AddSchemaRefLinkPrefix(typeName),
 		Type: typeName,
 	}
 	operation.Parameters = append(operation.Parameters, parameterObject)
@@ -212,7 +215,7 @@ func (p *operationParser) appendEnumParamRef(goType string, parameterObject Para
 		typeName = strings.Replace(typeName, "model.", "", -1)
 	}
 	parameterObject.Schema = &SchemaObject{
-		Ref: addSchemaRefLinkPrefix(typeName),
+		Ref: utils.AddSchemaRefLinkPrefix(typeName),
 	}
 	operation.Parameters = append(operation.Parameters, parameterObject)
 }
@@ -260,13 +263,13 @@ func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operatio
 
 		var s SchemaObject
 
-		if isBasicGoType(typeName) {
+		if utils.IsBasicGoType(typeName) {
 			s = SchemaObject{
 				Type: "string",
 			}
 		} else {
 			s = SchemaObject{
-				Ref: addSchemaRefLinkPrefix(typeName),
+				Ref: utils.AddSchemaRefLinkPrefix(typeName),
 			}
 		}
 
@@ -281,13 +284,13 @@ func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operatio
 		if err != nil {
 			return err
 		}
-		if isBasicGoType(typeName) {
+		if utils.IsBasicGoType(typeName) {
 			responseObject.Content[ContentTypeText] = &MediaTypeObject{
 				Schema: SchemaObject{
 					Type: "string",
 				},
 			}
-		} else if isInterfaceType(typeName) {
+		} else if utils.IsInterfaceType(typeName) {
 			responseObject.Content[ContentTypeJson] = &MediaTypeObject{
 				Schema: SchemaObject{
 					Type: "object",
@@ -296,7 +299,7 @@ func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operatio
 		} else {
 			responseObject.Content[ContentTypeJson] = &MediaTypeObject{
 				Schema: SchemaObject{
-					Ref: addSchemaRefLinkPrefix(typeName),
+					Ref: utils.AddSchemaRefLinkPrefix(typeName),
 				},
 			}
 		}
@@ -342,14 +345,6 @@ func (p *operationParser) parseRouteComment(operation *OperationObject, comment 
 	return nil
 }
 
-func isInterfaceType(typeName string) bool {
-	return strings.EqualFold(typeName, "interface{}")
-}
-
-func isEnumType(name string) bool {
-	return strings.Contains(name, "Enum")
-}
-
 func appendRequestBody(operation *OperationObject, parameterObject ParameterObject, goType string) {
 	if !(parameterObject.In == "file" || parameterObject.In == "form") {
 		return
@@ -369,10 +364,10 @@ func appendRequestBody(operation *OperationObject, parameterObject ParameterObje
 			Description: parameterObject.Description,
 		})
 	}
-	if isGoTypeOASType(goType) {
+	if utils.IsGoTypeOASType(goType) {
 		operation.RequestBody.Content[ContentTypeForm].Schema.Properties.Set(parameterObject.Name, &SchemaObject{
-			Type:        goTypesOASTypes[goType],
-			Format:      goTypesOASFormats[goType],
+			Type:        utils.GoTypesOASTypes[goType],
+			Format:      utils.GoTypesOASFormats[goType],
 			Description: parameterObject.Description,
 		})
 	}

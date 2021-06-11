@@ -1,9 +1,10 @@
-package parser
+package apis
 
 import (
 	"errors"
 	"github.com/iancoleman/orderedmap"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/schema"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,32 +12,32 @@ import (
 func Test_ParseHeaderParameters(t *testing.T) {
 	tests := []struct {
 		name               string
-		schemaParser       SchemaParser
+		schemaParser       schema.SchemaParser
 		wantErr            bool
 		errMsg             string
 		expectedParameters map[string]*oas.ParameterObject
 	}{
 		{
 			name:               "Should return header parameters",
-			schemaParser:       setupUpSchemaParseMocks(getSchemaObject(), nil),
+			schemaParser:       schema.SetupUpSchemaParseMocks(schema.GetSchemaObject(), nil),
 			wantErr:            false,
 			expectedParameters: getExpectedHeaderParameters(),
 		},
 		{
 			name:         "Should return error when failed parsing schema object",
-			schemaParser: setupUpSchemaParseMocks(nil, errors.New("someErr")),
+			schemaParser: schema.SetupUpSchemaParseMocks(nil, errors.New("someErr")),
 			wantErr:      true,
 			errMsg:       "someErr",
 		},
 		{
 			name:         "Should return error when schema properties are nil",
-			schemaParser: setupUpSchemaParseMocks(&oas.SchemaObject{}, nil),
+			schemaParser: schema.SetupUpSchemaParseMocks(&oas.SchemaObject{}, nil),
 			wantErr:      true,
 			errMsg:       "NilSchemaProperties: parseHeaderComment can not parse Header comment schema, comment : comment",
 		},
 		{
 			name: "Should return error when fails casting schema value to schema object",
-			schemaParser: setupUpSchemaParseMocks(&oas.SchemaObject{
+			schemaParser: schema.SetupUpSchemaParseMocks(&oas.SchemaObject{
 				Properties: getInvalidSchemaProperties(),
 			}, nil),
 			wantErr: true,
@@ -69,17 +70,6 @@ func assertHeaderParameters(t *testing.T, actualParam map[string]*oas.ParameterO
 	}
 }
 
-func getSchemaObject() *oas.SchemaObject {
-	properties := orderedmap.New()
-	properties.Set("ContentType", contentTypeHeaderSchema)
-	properties.Set("Version", versionHeaderSchema)
-	properties.Set("Authorization", authorizationHeaderSchema)
-	return &oas.SchemaObject{
-		Properties: properties,
-		Required:   []string{"ContentType", "Version"},
-	}
-}
-
 func getExpectedHeaderParameters() map[string]*oas.ParameterObject {
 	params := map[string]*oas.ParameterObject{}
 	params["ContentType"] = &oas.ParameterObject{
@@ -88,7 +78,7 @@ func getExpectedHeaderParameters() map[string]*oas.ParameterObject {
 		Required:    true,
 		Description: "Content Type Description",
 		Example:     "json",
-		Schema:      contentTypeHeaderSchema,
+		Schema:      schema.ContentTypeHeaderSchema,
 	}
 	params["Version"] = &oas.ParameterObject{
 		Name:        "Version",
@@ -96,7 +86,7 @@ func getExpectedHeaderParameters() map[string]*oas.ParameterObject {
 		Required:    true,
 		Description: "Version Description",
 		Example:     "101",
-		Schema:      versionHeaderSchema,
+		Schema:      schema.VersionHeaderSchema,
 	}
 	params["Authorization"] = &oas.ParameterObject{
 		Name:        "Authorization",
@@ -104,7 +94,7 @@ func getExpectedHeaderParameters() map[string]*oas.ParameterObject {
 		Required:    false,
 		Description: "Authorization Description",
 		Example:     "Bearer 123",
-		Schema:      authorizationHeaderSchema,
+		Schema:      schema.AuthorizationHeaderSchema,
 	}
 	return params
 }
@@ -113,28 +103,4 @@ func getInvalidSchemaProperties() *orderedmap.OrderedMap {
 	properties := orderedmap.New()
 	properties.Set("key", "value")
 	return properties
-}
-
-var contentTypeHeaderSchema = &oas.SchemaObject{
-	ID:          "ContentType",
-	FieldName:   "ContentTypeFieldName",
-	Type:        "string",
-	Description: "Content Type Description",
-	Example:     "json",
-}
-
-var versionHeaderSchema = &oas.SchemaObject{
-	ID:          "Version",
-	FieldName:   "VersionFieldName",
-	Type:        "int",
-	Description: "Version Description",
-	Example:     "101",
-}
-
-var authorizationHeaderSchema = &oas.SchemaObject{
-	ID:          "Authorization",
-	FieldName:   "AuthorizationFieldName",
-	Type:        "string",
-	Description: "Authorization Description",
-	Example:     "Bearer 123",
 }
