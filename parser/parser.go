@@ -21,11 +21,11 @@ import (
 type parser struct {
 	OpenAPI *OpenAPIObject
 
-	apis.APIParser
-	info.InfoParser
-	gomod.GoModParser
-	module.ModuleParser
-	schema.SchemaParser
+	apiParser    apis.Parser
+	infoParser   info.Parser
+	goModParser  gomod.Parser
+	moduleParser module.Parser
+	schemaParser schema.Parser
 
 	model.Utils
 }
@@ -149,11 +149,11 @@ func (p *parser) Init() (*parser, error) {
 	}
 	p.Debugf("handler path: %s", p.HandlerPath)
 
-	p.SchemaParser = schema.NewSchemaParser(p.Utils, p.OpenAPI)
-	p.APIParser = apis.NewAPIParser(p.Utils, p.OpenAPI, p.SchemaParser)
-	p.InfoParser = info.NewInfoParser(p.Utils, p.OpenAPI)
-	p.GoModParser = gomod.NewGoModParser(p.Utils)
-	p.ModuleParser = module.NewModuleParser(p.Utils)
+	p.schemaParser = schema.NewParser(p.Utils, p.OpenAPI)
+	p.apiParser = apis.NewParser(p.Utils, p.OpenAPI, p.schemaParser)
+	p.infoParser = info.NewParser(p.Utils, p.OpenAPI)
+	p.goModParser = gomod.NewParser(p.Utils)
+	p.moduleParser = module.NewParser(p.Utils)
 
 	return p, nil
 }
@@ -162,27 +162,27 @@ func (p *parser) Parse() (OpenAPIObject, error) {
 	log.Info("Parsing Initialized")
 	// parse basic info
 	log.Info("Parsing Info ...")
-	err := p.ParseInfo()
+	err := p.infoParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
 	// parse sub-package
 	log.Info("Parsing Modules ...")
-	err = p.ParseModule()
+	err = p.moduleParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
 	// parse go.mod info
 	log.Info("Parsing GoMod Info ...")
-	err = p.ParseGoMod()
+	err = p.goModParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
 	// parse APIs info
-	err = p.ParseAPIs()
+	err = p.apiParser.Parse()
 	log.Info("Parsing APIs ...")
 	if err != nil {
 		return OpenAPIObject{}, err

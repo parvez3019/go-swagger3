@@ -11,7 +11,7 @@ import (
 func Test_ParseHeader(t *testing.T) {
 	tests := []struct {
 		name               string
-		schemaParser       schema.SchemaParser
+		schemaParser       schema.Parser
 		wantErr            bool
 		errMsg             string
 		expectedParameters []oas.ParameterObject
@@ -41,7 +41,7 @@ func Test_ParseHeader(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			operationParser := operationParser{SchemaParser: test.schemaParser}
+			operationParser := parser{Parser: test.schemaParser}
 			operationObject := &oas.OperationObject{}
 			err := operationParser.parseHeaders("/test/path", "pkgName", operationObject, "comment")
 			if test.wantErr {

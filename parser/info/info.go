@@ -10,23 +10,23 @@ import (
 	"strings"
 )
 
-type InfoParser interface {
-	ParseInfo() error
+type Parser interface {
+	Parse() error
 }
 
-type infoParser struct {
+type parser struct {
 	model.Utils
 	OpenAPI *OpenAPIObject
 }
 
-func NewInfoParser(utils model.Utils, api *OpenAPIObject) InfoParser {
-	return &infoParser{
+func NewParser(utils model.Utils, api *OpenAPIObject) Parser {
+	return &parser{
 		Utils:   utils,
 		OpenAPI: api,
 	}
 }
 
-func (p *infoParser) ParseInfo() error {
+func (p *parser) Parse() error {
 	fileTree, err := goparser.ParseFile(token.NewFileSet(), p.MainFilePath, nil, goparser.ParseComments)
 	if err != nil {
 		return fmt.Errorf("can not parse general API information: %v", err)
@@ -50,13 +50,13 @@ func (p *infoParser) ParseInfo() error {
 	return p.validateServers()
 }
 
-func (p *infoParser) parseCommentGroups(commentGroup *ast.CommentGroup, oauthScopes map[string]map[string]string) {
+func (p *parser) parseCommentGroups(commentGroup *ast.CommentGroup, oauthScopes map[string]map[string]string) {
 	for _, comment := range strings.Split(commentGroup.Text(), "\n") {
 		p.parseComment(comment, oauthScopes)
 	}
 }
 
-func (p *infoParser) parseComment(comment string, oauthScopes map[string]map[string]string) {
+func (p *parser) parseComment(comment string, oauthScopes map[string]map[string]string) {
 	attribute, value, notPresent := p.parseAttributeAndValue(comment)
 	if notPresent {
 		return
@@ -69,7 +69,7 @@ func (p *infoParser) parseComment(comment string, oauthScopes map[string]map[str
 	p.parseSecurityScope(attribute, value, oauthScopes)
 }
 
-func (p *infoParser) parseAttributeAndValue(comment string) (string, string, bool) {
+func (p *parser) parseAttributeAndValue(comment string) (string, string, bool) {
 	attribute := strings.ToLower(strings.Split(comment, " ")[0])
 	if len(attribute) == 0 || attribute[0] != '@' {
 		return "", "", true
@@ -81,13 +81,13 @@ func (p *infoParser) parseAttributeAndValue(comment string) (string, string, boo
 	return attribute, value, false
 }
 
-func (p *infoParser) parseServerUrls(attribute string, value string) {
+func (p *parser) parseServerUrls(attribute string, value string) {
 	if attribute == "@server" {
 		p.parseServer(value)
 	}
 }
 
-func (p *infoParser) parseOpenApiInfo(attribute string, value string) {
+func (p *parser) parseOpenApiInfo(attribute string, value string) {
 	switch attribute {
 	case "@version":
 		p.OpenAPI.Info.Version = value
@@ -106,7 +106,7 @@ func (p *infoParser) parseOpenApiInfo(attribute string, value string) {
 	}
 }
 
-func (p *infoParser) parseContact(attribute, value string) {
+func (p *parser) parseContact(attribute, value string) {
 	if p.OpenAPI.Info.Contact == nil {
 		p.OpenAPI.Info.Contact = &ContactObject{}
 	}
@@ -120,27 +120,27 @@ func (p *infoParser) parseContact(attribute, value string) {
 	}
 }
 
-func (p *infoParser) parseLicenseName(value string) {
+func (p *parser) parseLicenseName(value string) {
 	if p.OpenAPI.Info.License == nil {
 		p.OpenAPI.Info.License = &LicenseObject{}
 	}
 	p.OpenAPI.Info.License.Name = value
 }
 
-func (p *infoParser) parseLicenseUrl(value string) {
+func (p *parser) parseLicenseUrl(value string) {
 	if p.OpenAPI.Info.License == nil {
 		p.OpenAPI.Info.License = &LicenseObject{}
 	}
 	p.OpenAPI.Info.License.URL = value
 }
 
-func (p *infoParser) parseServer(value string) {
+func (p *parser) parseServer(value string) {
 	fields := strings.Split(value, " ")
 	s := ServerObject{URL: fields[0], Description: value[len(fields[0]):]}
 	p.OpenAPI.Servers = append(p.OpenAPI.Servers, s)
 }
 
-func (p *infoParser) parseSecurity(attribute, value string) {
+func (p *parser) parseSecurity(attribute, value string) {
 	if attribute != "@security" {
 		return
 	}
@@ -151,13 +151,13 @@ func (p *infoParser) parseSecurity(attribute, value string) {
 	p.OpenAPI.Security = append(p.OpenAPI.Security, security)
 }
 
-func (p *infoParser) appendDefaultServer() {
+func (p *parser) appendDefaultServer() {
 	if len(p.OpenAPI.Servers) < 1 {
 		p.OpenAPI.Servers = append(p.OpenAPI.Servers, ServerObject{URL: "/", Description: "Default Server URL"})
 	}
 }
 
-func (p *infoParser) validateServers() error {
+func (p *parser) validateServers() error {
 	for i := range p.OpenAPI.Servers {
 		if p.OpenAPI.Servers[i].URL == "" {
 			return fmt.Errorf("servers[%d].url cannot not be empty", i)
@@ -166,7 +166,7 @@ func (p *infoParser) validateServers() error {
 	return nil
 }
 
-func (p *infoParser) validateInfo() error {
+func (p *parser) validateInfo() error {
 	if p.OpenAPI.Info.Title == "" {
 		return fmt.Errorf("info.title cannot not be empty")
 	}
@@ -176,7 +176,7 @@ func (p *infoParser) validateInfo() error {
 	return nil
 }
 
-func (p *infoParser) applySecurityScopeToSecuritySchemes(oauthScopes map[string]map[string]string) {
+func (p *parser) applySecurityScopeToSecuritySchemes(oauthScopes map[string]map[string]string) {
 	for scheme, _ := range p.OpenAPI.Components.SecuritySchemes {
 		if p.OpenAPI.Components.SecuritySchemes[scheme].Type == "oauth2" {
 			p.applySecurityScope(oauthScopes, scheme)
@@ -184,13 +184,13 @@ func (p *infoParser) applySecurityScopeToSecuritySchemes(oauthScopes map[string]
 	}
 }
 
-func (p *infoParser) applySecurityScope(oauthScopes map[string]map[string]string, scheme string) {
+func (p *parser) applySecurityScope(oauthScopes map[string]map[string]string, scheme string) {
 	if scopes, ok := oauthScopes[scheme]; ok {
 		p.OpenAPI.Components.SecuritySchemes[scheme].OAuthFlows.ApplyScopes(scopes)
 	}
 }
 
-func (p *infoParser) parseSecurityScope(attribute, value string, oauthScopes map[string]map[string]string) {
+func (p *parser) parseSecurityScope(attribute, value string, oauthScopes map[string]map[string]string) {
 	if attribute != "@securityscope" {
 		return
 	}
@@ -202,7 +202,7 @@ func (p *infoParser) parseSecurityScope(attribute, value string, oauthScopes map
 	oauthScopes[fields[0]][fields[1]] = strings.Join(fields[2:], " ")
 }
 
-func (p *infoParser) parseSecurityScheme(attribute, value string) {
+func (p *parser) parseSecurityScheme(attribute, value string) {
 	if attribute != "@securityscheme" {
 		return
 	}

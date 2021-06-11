@@ -12,7 +12,7 @@ import (
 func Test_ParseHeaderParameters(t *testing.T) {
 	tests := []struct {
 		name               string
-		schemaParser       schema.SchemaParser
+		schemaParser       schema.Parser
 		wantErr            bool
 		errMsg             string
 		expectedParameters map[string]*oas.ParameterObject
@@ -46,8 +46,8 @@ func Test_ParseHeaderParameters(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			apiParser := apiParser{
-				SchemaParser: test.schemaParser,
+			apiParser := parser{
+				schemaParser: test.schemaParser,
 				OpenAPI:      &oas.OpenAPIObject{Components: oas.ComponentsObject{Parameters: map[string]*oas.ParameterObject{}}},
 			}
 			err := apiParser.parseHeaderParameters("/test/path", "pkgName", "comment")

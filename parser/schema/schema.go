@@ -17,25 +17,25 @@ import (
 	"strings"
 )
 
-type SchemaParser interface {
+type Parser interface {
 	GetPkgAst(pkgPath string) (map[string]*ast.Package, error)
 	RegisterType(pkgPath, pkgName, typeName string) (string, error)
 	ParseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error)
 }
 
-type schemaParser struct {
+type parser struct {
 	model.Utils
 	OpenAPI *OpenAPIObject
 }
 
-func NewSchemaParser(utils model.Utils, openAPIObject *OpenAPIObject) SchemaParser {
-	return &schemaParser{
+func NewParser(utils model.Utils, openAPIObject *OpenAPIObject) Parser {
+	return &parser{
 		Utils:   utils,
 		OpenAPI: openAPIObject,
 	}
 }
 
-func (p *schemaParser) GetPkgAst(pkgPath string) (map[string]*ast.Package, error) {
+func (p *parser) GetPkgAst(pkgPath string) (map[string]*ast.Package, error) {
 	if cache, ok := p.PkgPathAstPkgCache[pkgPath]; ok {
 		return cache, nil
 	}
@@ -51,7 +51,7 @@ func (p *schemaParser) GetPkgAst(pkgPath string) (map[string]*ast.Package, error
 	return astPackages, nil
 }
 
-func (p *schemaParser) RegisterType(pkgPath, pkgName, typeName string) (string, error) {
+func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error) {
 	var registerTypeName string
 
 	if utils.IsBasicGoType(typeName) || utils.IsInterfaceType(typeName) {
@@ -72,7 +72,7 @@ func (p *schemaParser) RegisterType(pkgPath, pkgName, typeName string) (string, 
 	return registerTypeName, nil
 }
 
-func (p *schemaParser) ParseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error) {
+func (p *parser) ParseSchemaObject(pkgPath, pkgName, typeName string) (*SchemaObject, error) {
 	var typeSpec *ast.TypeSpec
 	var exist bool
 	var schemaObject SchemaObject
@@ -225,7 +225,7 @@ func (p *schemaParser) ParseSchemaObject(pkgPath, pkgName, typeName string) (*Sc
 	return &schemaObject, nil
 }
 
-func (p *schemaParser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
+func (p *parser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
 	pkgTypeSpecs, exist := p.TypeSpecs[pkgName]
 	if !exist {
 		return nil, false
@@ -237,7 +237,7 @@ func (p *schemaParser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, boo
 	return astTypeSpec, true
 }
 
-func (p *schemaParser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, structSchema *SchemaObject, astFields []*ast.Field) {
+func (p *parser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, structSchema *SchemaObject, astFields []*ast.Field) {
 	if astFields == nil {
 		return
 	}
@@ -505,7 +505,7 @@ func parseEnumValues(enumString string) interface{} {
 	return result
 }
 
-func (p *schemaParser) getTypeAsString(fieldType interface{}) string {
+func (p *parser) getTypeAsString(fieldType interface{}) string {
 	astArrayType, ok := fieldType.(*ast.ArrayType)
 	if ok {
 		return fmt.Sprintf("[]%v", p.getTypeAsString(astArrayType.Elt))

@@ -11,28 +11,28 @@ import (
 	"strings"
 )
 
-type APIParser interface {
-	ParseAPIs() error
+type Parser interface {
+	Parse() error
 }
 
-type apiParser struct {
+type parser struct {
 	OpenAPI *OpenAPIObject
 
 	model.Utils
-	schema.SchemaParser
-	operations.OperationParser
+	schemaParser    schema.Parser
+	operationParser operations.Parser
 }
 
-func NewAPIParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.SchemaParser) APIParser {
-	return &apiParser{
+func NewParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.Parser) Parser {
+	return &parser{
 		Utils:           utils,
 		OpenAPI:         api,
-		SchemaParser:    schemaParser,
-		OperationParser: operations.NewOperationParser(utils, api, schemaParser),
+		schemaParser:    schemaParser,
+		operationParser: operations.NewParser(utils, api, schemaParser),
 	}
 }
 
-func (p *apiParser) ParseAPIs() error {
+func (p *parser) Parse() error {
 	err := p.parseImportStatements()
 	if err != nil {
 		return err
@@ -51,12 +51,12 @@ func (p *apiParser) ParseAPIs() error {
 	return p.parsePaths()
 }
 
-func (p *apiParser) parseImportStatements() error {
+func (p *parser) parseImportStatements() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
 
-		astPkgs, err := p.GetPkgAst(pkgPath)
+		astPkgs, err := p.schemaParser.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.RunInStrictMode {
 				return fmt.Errorf("parseImportStatements: parse of %s package cause error: %s", pkgPath, err)
@@ -73,19 +73,19 @@ func (p *apiParser) parseImportStatements() error {
 	return nil
 }
 
-func (p *apiParser) parseImportStatementsFromPackage(astPackage *ast.Package, pkgName string) {
+func (p *parser) parseImportStatementsFromPackage(astPackage *ast.Package, pkgName string) {
 	for _, astFile := range astPackage.Files {
 		p.parseImportStatementsFromFile(astFile, pkgName)
 	}
 }
 
-func (p *apiParser) parseImportStatementsFromFile(astFile *ast.File, pkgName string) {
+func (p *parser) parseImportStatementsFromFile(astFile *ast.File, pkgName string) {
 	for _, astImport := range astFile.Imports {
 		p.parseImportStatementFromImportSpec(astImport, pkgName)
 	}
 }
 
-func (p *apiParser) parseImportStatementFromImportSpec(astImport *ast.ImportSpec, pkgName string) {
+func (p *parser) parseImportStatementFromImportSpec(astImport *ast.ImportSpec, pkgName string) {
 	importedPkgName := strings.Trim(astImport.Path.Value, "\"")
 	importedPkgAlias := ""
 
@@ -109,7 +109,7 @@ func (p *apiParser) parseImportStatementFromImportSpec(astImport *ast.ImportSpec
 	}
 }
 
-func (p *apiParser) parseTypeSpecs() error {
+func (p *parser) parseTypeSpecs() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
@@ -118,7 +118,7 @@ func (p *apiParser) parseTypeSpecs() error {
 		if !ok {
 			p.TypeSpecs[pkgName] = map[string]*ast.TypeSpec{}
 		}
-		astPkgs, err := p.GetPkgAst(pkgPath)
+		astPkgs, err := p.schemaParser.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.RunInStrictMode {
 				return fmt.Errorf("parseTypeSpecs: parse of %s package cause error: %s", pkgPath, err)
@@ -175,13 +175,13 @@ func (p *apiParser) parseTypeSpecs() error {
 	return nil
 }
 
-func (p *apiParser) parsePaths() error {
+func (p *parser) parsePaths() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
 		// p.debug(pkgName, "->", pkgPath)
 
-		astPkgs, err := p.GetPkgAst(pkgPath)
+		astPkgs, err := p.schemaParser.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.RunInStrictMode {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
@@ -196,7 +196,7 @@ func (p *apiParser) parsePaths() error {
 				for _, astDeclaration := range astFile.Decls {
 					if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
 						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.ParseOperation(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+							err = p.operationParser.Parse(pkgPath, pkgName, astFuncDeclaration.Doc.List)
 							if err != nil {
 								return err
 							}
@@ -210,13 +210,13 @@ func (p *apiParser) parsePaths() error {
 	return nil
 }
 
-func (p *apiParser) parseParameters() error {
+func (p *parser) parseParameters() error {
 	for i := range p.KnownPkgs {
 		pkgPath := p.KnownPkgs[i].Path
 		pkgName := p.KnownPkgs[i].Name
 		// p.debug(pkgName, "->", pkgPath)
 
-		astPkgs, err := p.GetPkgAst(pkgPath)
+		astPkgs, err := p.schemaParser.GetPkgAst(pkgPath)
 		if err != nil {
 			if p.RunInStrictMode {
 				return fmt.Errorf("parsePaths: parse of %s package cause error: %s", pkgPath, err)
@@ -246,7 +246,7 @@ func (p *apiParser) parseParameters() error {
 	return nil
 }
 
-func (p *apiParser) parseParameter(pkgPath string, pkgName string, astComments []*ast.Comment) error {
+func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*ast.Comment) error {
 	var err error
 	for _, astComment := range astComments {
 		comment := strings.TrimSpace(strings.TrimLeft(astComment.Text, "/"))
@@ -264,8 +264,8 @@ func (p *apiParser) parseParameter(pkgPath string, pkgName string, astComments [
 	return err
 }
 
-func (p *apiParser) parseEnums(pkgPath string, pkgName string, comment string) error {
-	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
+func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) error {
+	schema, err := p.schemaParser.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return fmt.Errorf("parseEnums can not parse enum schema %s", comment)
 	}
@@ -284,8 +284,8 @@ func (p *apiParser) parseEnums(pkgPath string, pkgName string, comment string) e
 	return nil
 }
 
-func (p *apiParser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
-	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
+func (p *parser) parseHeaderParameters(pkgPath string, pkgName string, comment string) error {
+	schema, err := p.schemaParser.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return err
 	}

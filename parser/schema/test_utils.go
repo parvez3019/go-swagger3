@@ -17,7 +17,7 @@ func GetSchemaObject() *oas.SchemaObject {
 	}
 }
 
-func SetupUpSchemaParseMocks(schemaObject *oas.SchemaObject, err error) SchemaParser {
+func SetupUpSchemaParseMocks(schemaObject *oas.SchemaObject, err error) Parser {
 	schemaParserMocks := &mocks.SchemaParser{}
 	schemaParserMocks.
 		On("ParseSchemaObject", "/test/path", "pkgName", "comment").

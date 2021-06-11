@@ -14,26 +14,26 @@ import (
 	"strings"
 )
 
-type OperationParser interface {
-	ParseOperation(pkgPath, pkgName string, astComments []*ast.Comment) error
+type Parser interface {
+	Parse(pkgPath, pkgName string, astComments []*ast.Comment) error
 }
 
-type operationParser struct {
+type parser struct {
 	OpenAPI *OpenAPIObject
 
 	model.Utils
-	schema.SchemaParser
+	schema.Parser
 }
 
-func NewOperationParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.SchemaParser) OperationParser {
-	return &operationParser{
-		Utils:        utils,
-		OpenAPI:      api,
-		SchemaParser: schemaParser,
+func NewParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.Parser) Parser {
+	return &parser{
+		Utils:   utils,
+		OpenAPI: api,
+		Parser:  schemaParser,
 	}
 }
 
-func (p *operationParser) ParseOperation(pkgPath, pkgName string, astComments []*ast.Comment) error {
+func (p *parser) Parse(pkgPath, pkgName string, astComments []*ast.Comment) error {
 	operation := &OperationObject{
 		Responses: map[string]*ResponseObject{},
 	}
@@ -80,7 +80,7 @@ func (p *operationParser) ParseOperation(pkgPath, pkgName string, astComments []
 	return nil
 }
 
-func (p *operationParser) parseHeaders(pkgPath string, pkgName string, operation *OperationObject, comment string) error {
+func (p *parser) parseHeaders(pkgPath string, pkgName string, operation *OperationObject, comment string) error {
 	schema, err := p.ParseSchemaObject(pkgPath, pkgName, comment)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func (p *operationParser) parseHeaders(pkgPath string, pkgName string, operation
 	return err
 }
 
-func (p *operationParser) parseParamComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
+func (p *parser) parseParamComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
 	// {name}  {in}  {goType}  {required}  {description}
 	// user    body  User      true        "Info of a user."
 	// f       file  ignored   true        "Upload a file."
@@ -160,7 +160,7 @@ func (p *operationParser) parseParamComment(pkgPath, pkgName string, operation *
 	return nil
 }
 
-func (p *operationParser) appendQueryParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
+func (p *parser) appendQueryParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
 	var err error
 	if parameterObject.In == "path" {
 		parameterObject.Required = true
@@ -177,7 +177,7 @@ func (p *operationParser) appendQueryParam(pkgPath string, pkgName string, opera
 	return err
 }
 
-func (p *operationParser) appendTimeParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string, err error) error {
+func (p *parser) appendTimeParam(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string, err error) error {
 	parameterObject.Schema, err = p.ParseSchemaObject(pkgPath, pkgName, goType)
 	if err != nil {
 		p.Debug("parseResponseComment cannot parse goType", goType)
@@ -186,7 +186,7 @@ func (p *operationParser) appendTimeParam(pkgPath string, pkgName string, operat
 	return err
 }
 
-func (p *operationParser) appendGoTypeParams(parameterObject ParameterObject, goType string, operation *OperationObject) {
+func (p *parser) appendGoTypeParams(parameterObject ParameterObject, goType string, operation *OperationObject) {
 	parameterObject.Schema = &SchemaObject{
 		Type:        utils.GoTypesOASTypes[goType],
 		Format:      utils.GoTypesOASFormats[goType],
@@ -195,7 +195,7 @@ func (p *operationParser) appendGoTypeParams(parameterObject ParameterObject, go
 	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 
-func (p *operationParser) appendModelSchemaRef(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
+func (p *parser) appendModelSchemaRef(pkgPath string, pkgName string, operation *OperationObject, parameterObject ParameterObject, goType string) error {
 	typeName, err := p.RegisterType(pkgPath, pkgName, goType)
 	if err != nil {
 		p.Debug("parse param model type failed", goType)
@@ -209,7 +209,7 @@ func (p *operationParser) appendModelSchemaRef(pkgPath string, pkgName string, o
 	return nil
 }
 
-func (p *operationParser) appendEnumParamRef(goType string, parameterObject ParameterObject, operation *OperationObject) {
+func (p *parser) appendEnumParamRef(goType string, parameterObject ParameterObject, operation *OperationObject) {
 	typeName := goType
 	if strings.Contains(goType, "model.") {
 		typeName = strings.Replace(typeName, "model.", "", -1)
@@ -220,7 +220,7 @@ func (p *operationParser) appendEnumParamRef(goType string, parameterObject Para
 	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 
-func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
+func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *OperationObject, comment string) error {
 	// {status}  {jsonType}  {goType}     {description}
 	// 201       object      models.User  "User Model"
 	re := regexp.MustCompile(`([\d]+)[\s]+([\w\{\}]+)[\s]+([\w\-\.\/\[\]{}]+)[^"]*(.*)?`)
@@ -308,7 +308,7 @@ func (p *operationParser) parseResponseComment(pkgPath, pkgName string, operatio
 	return nil
 }
 
-func (p *operationParser) parseRouteComment(operation *OperationObject, comment string) error {
+func (p *parser) parseRouteComment(operation *OperationObject, comment string) error {
 	sourceString := strings.TrimSpace(comment[len("@Router"):])
 
 	// /path [method]
