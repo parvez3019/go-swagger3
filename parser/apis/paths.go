@@ -22,20 +22,39 @@ func (p *parser) parsePaths() error {
 		}
 
 		for _, astPackage := range astPkgs {
-			for _, astFile := range astPackage.Files {
-				for _, astDeclaration := range astFile.Decls {
-					if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
-						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.operationParser.Parse(pkgPath, pkgName, astFuncDeclaration.Doc.List)
-							if err != nil {
-								return err
-							}
-						}
-					}
-				}
+			if err := p.parsePathFromPackage(astPackage, pkgPath, pkgName); err != nil {
+				return err
 			}
 		}
 	}
 
+	return nil
+}
+
+func (p *parser) parsePathFromPackage(astPackage *ast.Package, pkgPath string, pkgName string) error {
+	for _, astFile := range astPackage.Files {
+		if err := p.parsePathFromFile(astFile, pkgPath, pkgName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parser) parsePathFromFile(astFile *ast.File, pkgPath string, pkgName string) error {
+	for _, astDeclaration := range astFile.Decls {
+		if err := p.parsePathFromFuncDeclaration(astDeclaration, pkgPath, pkgName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parser) parsePathFromFuncDeclaration(astDeclaration ast.Decl, pkgPath string, pkgName string) error {
+	astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl)
+	if ok && astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
+		if err := p.operationParser.Parse(pkgPath, pkgName, astFuncDeclaration.Doc.List); err != nil {
+			return err
+		}
+	}
 	return nil
 }

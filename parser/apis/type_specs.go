@@ -27,48 +27,78 @@ func (p *parser) parseTypeSpecs() error {
 		}
 
 		for _, astPackage := range astPkgs {
-			for _, astFile := range astPackage.Files {
-				for _, astDeclaration := range astFile.Decls {
-					if astGenDeclaration, ok := astDeclaration.(*ast.GenDecl); ok && astGenDeclaration.Tok == token.TYPE {
-						// find type declaration
-						for _, astSpec := range astGenDeclaration.Specs {
-							if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
-								p.TypeSpecs[pkgName][typeSpec.Name.String()] = typeSpec
-							}
-						}
-					} else if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
-						// find type declaration in func, method
-						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil && astFuncDeclaration.Body != nil {
-							funcName := astFuncDeclaration.Name.String()
-							for _, astStmt := range astFuncDeclaration.Body.List {
-								if astDeclStmt, ok := astStmt.(*ast.DeclStmt); ok {
-									if astGenDeclaration, ok := astDeclStmt.Decl.(*ast.GenDecl); ok {
-										for _, astSpec := range astGenDeclaration.Specs {
-											if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
-												// type in func
-												if astFuncDeclaration.Recv == nil {
-													p.TypeSpecs[pkgName][strings.Join([]string{funcName, typeSpec.Name.String()}, "@")] = typeSpec
-													continue
-												}
-												// type in method
-												var recvTypeName string
-												if astStarExpr, ok := astFuncDeclaration.Recv.List[0].Type.(*ast.StarExpr); ok {
-													recvTypeName = fmt.Sprintf("%s", astStarExpr.X)
-												} else if astIdent, ok := astFuncDeclaration.Recv.List[0].Type.(*ast.Ident); ok {
-													recvTypeName = astIdent.String()
-												}
-												p.TypeSpecs[pkgName][strings.Join([]string{recvTypeName, funcName, typeSpec.Name.String()}, "@")] = typeSpec
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+			p.parseTypeSpecsFromPackage(astPackage, pkgName)
 		}
 	}
 
 	return nil
+}
+
+func (p *parser) parseTypeSpecsFromPackage(astPackage *ast.Package, pkgName string) {
+	for _, astFile := range astPackage.Files {
+		p.parseTypeSpecsFromFile(astFile, pkgName)
+	}
+}
+
+func (p *parser) parseTypeSpecsFromFile(astFile *ast.File, pkgName string) {
+	for _, astDeclaration := range astFile.Decls {
+		p.parseTypeSpecFromDeclaration(astDeclaration, pkgName)
+	}
+}
+
+func (p *parser) parseTypeSpecFromDeclaration(astDeclaration ast.Decl, pkgName string) {
+	if astGenDeclaration, ok := astDeclaration.(*ast.GenDecl); ok && astGenDeclaration.Tok == token.TYPE {
+		p.parseTypeSpecFromGenDeclaration(astGenDeclaration, pkgName)
+	} else if astFuncDeclaration, ok := astDeclaration.(*ast.FuncDecl); ok {
+		p.parseTypeSpecInFuncDeclaration(astFuncDeclaration, pkgName)
+	}
+}
+
+// parseTypeSpecFromGenDeclaration find type declaration
+func (p *parser) parseTypeSpecFromGenDeclaration(astGenDeclaration *ast.GenDecl, pkgName string) {
+	for _, astSpec := range astGenDeclaration.Specs {
+		if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
+			p.TypeSpecs[pkgName][typeSpec.Name.String()] = typeSpec
+		}
+	}
+}
+
+// parseTypeSpecInFuncDeclaration find type declaration in func, method
+func (p *parser) parseTypeSpecInFuncDeclaration(astFuncDeclaration *ast.FuncDecl, pkgName string) {
+	if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil && astFuncDeclaration.Body != nil {
+		funcName := astFuncDeclaration.Name.String()
+		for _, astStmt := range astFuncDeclaration.Body.List {
+			p.parseTypeSpecFromFunctionBlockStmt(astFuncDeclaration, pkgName, astStmt, funcName)
+		}
+	}
+}
+
+func (p *parser) parseTypeSpecFromFunctionBlockStmt(astFuncDeclaration *ast.FuncDecl, pkgName string, astStmt ast.Stmt, funcName string) {
+	if astDeclStmt, ok := astStmt.(*ast.DeclStmt); ok {
+		if astGenDeclaration, ok := astDeclStmt.Decl.(*ast.GenDecl); ok {
+			p.parseTypeSpecFromFunctionGenDeclaration(astFuncDeclaration, pkgName, astGenDeclaration, funcName)
+		}
+	}
+}
+
+func (p *parser) parseTypeSpecFromFunctionGenDeclaration(astFuncDeclaration *ast.FuncDecl, pkgName string, astGenDeclaration *ast.GenDecl, funcName string) {
+	for _, astSpec := range astGenDeclaration.Specs {
+		typeSpec, ok := astSpec.(*ast.TypeSpec)
+		if !ok {
+			continue
+		}
+		// type in func
+		if astFuncDeclaration.Recv == nil {
+			p.TypeSpecs[pkgName][strings.Join([]string{funcName, typeSpec.Name.String()}, "@")] = typeSpec
+			continue
+		}
+		// type in method
+		var recvTypeName string
+		if astStarExpr, ok := astFuncDeclaration.Recv.List[0].Type.(*ast.StarExpr); ok {
+			recvTypeName = fmt.Sprintf("%s", astStarExpr.X)
+		} else if astIdent, ok := astFuncDeclaration.Recv.List[0].Type.(*ast.Ident); ok {
+			recvTypeName = astIdent.String()
+		}
+		p.TypeSpecs[pkgName][strings.Join([]string{recvTypeName, funcName, typeSpec.Name.String()}, "@")] = typeSpec
+	}
 }
