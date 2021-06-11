@@ -210,19 +210,16 @@ func (p *parser) parseSecurityScheme(attribute, value string) {
 
 	var scheme *SecuritySchemeObject
 	if strings.Contains(fields[1], "oauth2") {
-		if oauthScheme, ok := p.OpenAPI.Components.SecuritySchemes[fields[0]]; ok {
-			scheme = oauthScheme
-		} else {
-			scheme = &SecuritySchemeObject{
-				Type:       "oauth2",
-				OAuthFlows: &SecuritySchemeOauthObject{},
-			}
-		}
+		scheme = p.parseOauth2Scheme(fields)
 	}
-
 	if scheme == nil {
 		scheme = &SecuritySchemeObject{Type: fields[1]}
 	}
+
+	p.OpenAPI.Components.SecuritySchemes[fields[0]] = p.parseSecuritySchemeFromFields(fields, scheme)
+}
+
+func (p *parser) parseSecuritySchemeFromFields(fields []string, scheme *SecuritySchemeObject) *SecuritySchemeObject {
 	switch fields[1] {
 	case "http":
 		scheme.Scheme = fields[2]
@@ -256,5 +253,15 @@ func (p *parser) parseSecurityScheme(attribute, value string) {
 			Scopes:   make(map[string]string, 0),
 		}
 	}
-	p.OpenAPI.Components.SecuritySchemes[fields[0]] = scheme
+	return scheme
+}
+
+func (p *parser) parseOauth2Scheme(fields []string) *SecuritySchemeObject {
+	if oauthScheme, ok := p.OpenAPI.Components.SecuritySchemes[fields[0]]; ok {
+		return oauthScheme
+	}
+	return &SecuritySchemeObject{
+		Type:       "oauth2",
+		OAuthFlows: &SecuritySchemeOauthObject{},
+	}
 }
