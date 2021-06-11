@@ -24,22 +24,44 @@ func (p *parser) parseParameters() error {
 		}
 
 		for _, astPackage := range astPkgs {
-			for _, astFile := range astPackage.Files {
-				for _, astDeclaration := range astFile.Decls {
-					// Parse Parameters
-					if astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl); ok {
-						if astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
-							err = p.parseParameter(pkgPath, pkgName, astFuncDeclaration.Doc.List)
-							if err != nil {
-								return err
-							}
-						}
-					}
-				}
+			err := p.parseParametersFromPackage(astPackage, pkgPath, pkgName)
+			if err != nil {
+				return err
 			}
 		}
 	}
 
+	return nil
+}
+
+func (p *parser) parseParametersFromPackage(astPackage *ast.Package, pkgPath string, pkgName string) error {
+	for _, astFile := range astPackage.Files {
+		err := p.parseParametersFromFile(astFile, pkgPath, pkgName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parser) parseParametersFromFile(astFile *ast.File, pkgPath string, pkgName string) error {
+	for _, astDeclaration := range astFile.Decls {
+		err := p.parseFuncDeclaration(astDeclaration, pkgPath, pkgName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *parser) parseFuncDeclaration(astDeclaration ast.Decl, pkgPath string, pkgName string) error {
+	astFuncDeclaration, ok := astDeclaration.(*ast.GenDecl)
+	if ok && astFuncDeclaration.Doc != nil && astFuncDeclaration.Doc.List != nil {
+		err := p.parseParameter(pkgPath, pkgName, astFuncDeclaration.Doc.List)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
