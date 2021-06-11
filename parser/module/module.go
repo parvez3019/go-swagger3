@@ -43,6 +43,5 @@ func (p *parser) Parse() error {
 		}
 		return nil
 	}
-	filepath.Walk(p.ModulePath, walker)
-	return nil
+	return filepath.Walk(p.ModulePath, walker)
 }
