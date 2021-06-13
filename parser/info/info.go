@@ -4,6 +4,7 @@ import (
 	"fmt"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/model"
+	log "github.com/sirupsen/logrus"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
@@ -26,7 +27,9 @@ func NewParser(utils model.Utils, api *OpenAPIObject) Parser {
 	}
 }
 
+// Parse parse basic info
 func (p *parser) Parse() error {
+	log.Info("Parsing Info ...")
 	fileTree, err := goparser.ParseFile(token.NewFileSet(), p.MainFilePath, nil, goparser.ParseComments)
 	if err != nil {
 		return fmt.Errorf("can not parse general API information: %v", err)

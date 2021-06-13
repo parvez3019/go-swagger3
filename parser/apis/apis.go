@@ -5,6 +5,7 @@ import (
 	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/operations"
 	"github.com/parvez3019/go-swagger3/parser/schema"
+	log "github.com/sirupsen/logrus"
 )
 
 type Parser interface {
@@ -28,7 +29,9 @@ func NewParser(utils model.Utils, api *oas.OpenAPIObject, schemaParser schema.Pa
 	}
 }
 
+// Parse parse APIs info
 func (p *parser) Parse() error {
+	log.Info("Parsing APIs ...")
 	err := p.parseImportStatements()
 	if err != nil {
 		return err

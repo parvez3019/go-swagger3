@@ -54,30 +54,22 @@ func (p *parser) Init() (*parser, error) {
 
 func (p *parser) Parse() (OpenAPIObject, error) {
 	log.Info("Parsing Initialized")
-	// parse basic info
-	log.Info("Parsing Info ...")
 	err := p.infoParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
-	// parse sub-package
-	log.Info("Parsing Modules ...")
 	err = p.moduleParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
-	// parse go.mod info
-	log.Info("Parsing GoMod Info ...")
 	err = p.goModParser.Parse()
 	if err != nil {
 		return OpenAPIObject{}, err
 	}
 
-	// parse APIs info
 	err = p.apiParser.Parse()
-	log.Info("Parsing APIs ...")
 	if err != nil {
 		return OpenAPIObject{}, err
 	}

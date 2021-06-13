@@ -2,6 +2,7 @@ package module
 
 import (
 	"github.com/parvez3019/go-swagger3/parser/model"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,9 @@ func NewParser(utils model.Utils) Parser {
 	}
 }
 
+// Parse parse sub-package
 func (p *parser) Parse() error {
+	log.Info("Parsing Modules ...")
 	walker := func(path string, info os.FileInfo, err error) error {
 		if info != nil && info.IsDir() {
 			if strings.HasPrefix(strings.Trim(strings.TrimPrefix(path, p.ModulePath), "/"), ".git") {
