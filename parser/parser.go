@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/apis"
@@ -10,12 +9,8 @@ import (
 	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/module"
 	"github.com/parvez3019/go-swagger3/parser/schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
 	"go/ast"
-	"os"
-	"os/user"
-	"path/filepath"
 )
 
 type parser struct {
@@ -44,110 +39,9 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 func (p *parser) Init() (*parser, error) {
 	p.Logger = logger.SetDebugMode(p.RunInDebugMode)
 
-	// check modulePath is exist
-	var err error
-	p.ModulePath, err = filepath.Abs(p.ModulePath)
-	if err != nil {
+	if err := p.verifyAndSetPaths(); err != nil {
 		return nil, err
 	}
-	moduleInfo, err := os.Stat(p.ModulePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, err
-		}
-		return nil, fmt.Errorf("cannot get information of %s: %s", p.ModulePath, err)
-	}
-	if !moduleInfo.IsDir() {
-		return nil, fmt.Errorf("modulePath should be a directory")
-	}
-	p.Debugf("module path: %s", p.ModulePath)
-
-	// check go.mod file is exist
-	goModFilePath := filepath.Join(p.ModulePath, "go.mod")
-	goModFileInfo, err := os.Stat(goModFilePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, err
-		}
-		return nil, fmt.Errorf("cannot get information of %s: %s", goModFilePath, err)
-	}
-	if goModFileInfo.IsDir() {
-		return nil, fmt.Errorf("%s should be a file", goModFilePath)
-	}
-	p.GoModFilePath = goModFilePath
-	p.Debugf("go.mod file path: %s", p.GoModFilePath)
-
-	// check mainFilePath is exist
-	if p.MainFilePath == "" {
-		fns, err := filepath.Glob(filepath.Join(p.ModulePath, "*.go"))
-		if err != nil {
-			return nil, err
-		}
-		for _, fn := range fns {
-			if utils.IsMainFile(fn) {
-				p.MainFilePath = fn
-				break
-			}
-		}
-	} else {
-		mainFileInfo, err := os.Stat(p.MainFilePath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil, err
-			}
-			return nil, fmt.Errorf("cannot get information of %s: %s", p.MainFilePath, err)
-		}
-		if mainFileInfo.IsDir() {
-			return nil, fmt.Errorf("mainFilePath should not be a directory")
-		}
-	}
-	p.Debugf("main file path: %s", p.MainFilePath)
-
-	// get module name from go.mod file
-	moduleName := utils.GetModuleNameFromGoMod(goModFilePath)
-	if moduleName == "" {
-		return nil, fmt.Errorf("cannot get module name from %s", goModFileInfo)
-	}
-	p.ModuleName = moduleName
-	p.Debugf("module name: %s", p.ModuleName)
-
-	// check go module cache path is exist ($GOPATH/pkg/mod)
-	goPath := os.Getenv("GOPATH")
-	if goPath == "" {
-		current, err := user.Current()
-		if err != nil {
-			return nil, fmt.Errorf("cannot get current user: %s", err)
-		}
-		goPath = filepath.Join(current.HomeDir, "go")
-	}
-	goModCachePath := filepath.Join(goPath, "pkg", "mod")
-	goModCacheInfo, err := os.Stat(goModCachePath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, err
-		}
-		return nil, fmt.Errorf("cannot get information of %s: %s", goModCachePath, err)
-	}
-	if !goModCacheInfo.IsDir() {
-		return nil, fmt.Errorf("%s should be a directory", goModCachePath)
-	}
-	p.GoModCachePath = goModCachePath
-	p.Debugf("go module cache path: %s", p.GoModCachePath)
-
-	if p.HandlerPath != "" {
-		p.HandlerPath, err = filepath.Abs(p.HandlerPath)
-		if err != nil {
-			return nil, err
-		}
-		_, err := os.Stat(p.HandlerPath)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil, err
-			}
-			return nil, fmt.Errorf("cannot get information of %s: %s", p.HandlerPath, err)
-		}
-	}
-	p.Debugf("handler path: %s", p.HandlerPath)
 
 	p.schemaParser = schema.NewParser(p.Utils, p.OpenAPI)
 	p.apiParser = apis.NewParser(p.Utils, p.OpenAPI, p.schemaParser)
