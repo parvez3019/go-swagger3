@@ -22,11 +22,11 @@ You can document your service by placing annotations inside your godoc at variou
 
 The service description comments can be located in any of your .go files. They provide general information about the service you are documenting.
 
-```go
+``` go
 // @Version 1.0.0
 // @Title Backend API
 // @Description API usually works as expected. But sometimes its not true.
-// @ContactName Abcd
+// @ContactName Parvez
 // @ContactEmail abce@email.com
 // @ContactURL http://someurl.oxox
 // @TermsOfServiceUrl http://someurl.oxox
@@ -63,14 +63,14 @@ Any text that is present after the last parameter wil be used as the description
 Once all security schemes have been defined, they must be configured. This is done with the `@Security` comment.
 Depending on the `type` of the scheme, scopes (see below) may be supported. *At the moment, it is only possible to configure security for the entire service*.
 
-```go
+``` go
 // @Security MyApiAuth read_user write_user
 ```
 
 ##### Scopes
 For OAuth2 security schemes, it is possible to define scopes using the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
 
-```go
+``` go
 // @SecurityScope MyApiAuth read_user Read a user from the system
 // @SecurityScope MyApiAuth write_user Write a user to the system
 ```
@@ -82,11 +82,11 @@ By adding comments to your handler func godoc, you can document individual actio
 ``` go
 type User struct {
   ID   uint64 `json:"id" example:"100" description:"User identity"`
-  Name string `json:"name" example:"Mikun"` 
+  Name string `json:"name" example:"Parvez"` 
 }
 
 type UsersResponse struct {
-  Data []Users `json:"users" example:"[{\"id\":100, \"name\":\"Mikun\"}]"`
+  Data []Users `json:"users" example:"[{\"id\":100, \"name\":\"Parvez\"}]"`
 }
 
 type Error struct {
@@ -153,7 +153,7 @@ func PostUser() {
 
 One can also override example for an object with `override-example` key in struct
 eg -
-```go
+``` go
 type Request struct {
     version  model.Version `"json:"Version" override-example:"11.0.0"`
 }
@@ -177,7 +177,7 @@ type Request struct {
 - Parses parameters from the type and keep it up component section for reference
 
 #### Response
-```
+``` json
 @Success  {stauts}  {jsonType}  {goType}       {description}
 @Success  200       object      UsersResponse  "UsersResponse JSON"
 
@@ -190,7 +190,7 @@ type Request struct {
 - {description}: The description of the response. Must be quoted.
 
 #### Resource & Tag
-```
+``` json
 @Resource {resource}
 @Resource users
 
@@ -202,7 +202,7 @@ type Request struct {
 
 #### Route
 
-```
+``` json
 @Route {path}    {method}
 @Route /api/user [post]
 ```
@@ -237,7 +237,7 @@ type Request struct {
 ### Documentation Generation
 
 Go to the folder where is main.go in
-```
+``` shell
 // go.mod and main file are in the same directory
 go-swagger3 --module-path . --output oas.json
 
