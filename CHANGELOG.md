@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update readMe
 - Create parse schema interface and inject in parser
 - Add unit test for parse header params
+- Add parsing of type spec from list of alias
+- Add type spec schema parsing from multiple alias import
 
 ### Merged Changes
  - https://github.com/mikunalpha/goas
