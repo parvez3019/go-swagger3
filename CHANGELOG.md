@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### Added - 12-June-2021
+- Refactor schema parse into segregation of basic and custom type
+
+#### Added - 10-June-2021
+- Segregate Parser into different modules ie apis,schema, goMod, operations etc
+- Create interfaces for dependency injection in parser for testing
 
 #### Added - 7-June-2021
 - Add yaml spec generation feature
