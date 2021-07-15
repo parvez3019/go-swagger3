@@ -1,20 +1,46 @@
 # go-swagger3
-The project is based on  
-- [mikunalpha/goas](https://github.com/mikunalpha/goas) repository.  
 
 Generate [OpenAPI Specification](https://swagger.io/specification) json file with comments in Go.
 
-## Limit
-- Only support go module.
-- Anonymous struct field is not supported.
+### Table of content
 
-## Install
+- [1. Install](#1-install)
+- [2. Documentation Generation](#2-documentation-generation)
+- [3. Usage](#3-usage)
+    - [Service Description](#service-description)
+    - [Handler functions](#handler-functions)
+    - [Title And Description](#title-and-description)
+    - [Parameter](#parameter)
+    - [Header](#header)
+    - [Header Parameters](#header-parameters)
+    - [Response](#response)
+    - [Resource & Tag](#resource--tag)
+    - [Route](#route)
+    - [Enums](#enums)
+- [4. Security](#4-security)
+- [5. Limitations](#5-limitations)
+- [6. References](#6-references)
+
+## 1. Install
 
 ```
 go get -u github.com/parvez3019/go-swagger3
 ```
 
-## Usage
+
+### 2. Documentation Generation
+
+Go to the folder where is main.go in
+
+``` shell
+// go.mod and main file are in the same directory
+go-swagger3 --module-path . --output oas.json
+
+// go.mod and main file are in the different directory
+go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
+```
+
+## 3. Usage
 
 You can document your service by placing annotations inside your godoc at various places in your code.
 
@@ -38,44 +64,7 @@ The service description comments can be located in any of your .go files. They p
 // @SecurityScheme AuthorizationHeader http bearer Input your token
 ```
 
-#### Security
-
-If authorization is required, you must define security schemes and then apply those to the API.
-A scheme is defined using `@SecurityScheme [name] [type] [parameters]` and applied by adding `@Security [scheme-name] [scope1] [scope2] [...]`. 
-
-All examples in this section use `MyApiAuth` as the name. This name can be anything you chose; multiple named schemes are supported.
-Each scheme must have its own name, except for OAuth2 schemes - OAuth2 supports multiple schemes by the same name.
-
-A number of different types is supported, they all have different parameters:
-
-|Type|Description|Parameters|Example|
-|---|---|---|---|
-|HTTP|A HTTP Authentication scheme using the `Authorization` header|scheme: any [HTTP Authentication scheme](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)|`@SecurityScheme MyApiAuth basic`|
-|APIKey|Authorization by passing an API Key along with the request|in: Location of the API Key, options are `header`, `query` and `cookie`. name: The name of the field where the API Key must be set|`@SecurityScheme MyApiAuth apiKey header X-MyCustomHeader`|
-|OpenIdConnect|Delegating security to a known OpenId server|url: The URL of the OpenId server|`@SecurityScheme MyApiAuth openIdConnect https://example.com/.well-known/openid-configuration`|
-|OAuth2AuthCode|Using the "Authentication Code" flow of OAuth2|authorizationUrl, tokenUrl|`@SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token`| 
-|OAuth2Implicit|Using the "Implicit" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2Implicit /oauth/authorize| 
-|OAuth2ResourceOwnerCredentials|Using the "Resource Owner Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ResourceOwnerCredentials /oauth/token| 
-|OAuth2ClientCredentials|Using the "Client Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ClientCredentials /oauth/token| 
-
-Any text that is present after the last parameter wil be used as the description. For instance `@SecurityScheme MyApiAuth basic Login with your admin credentials`.
-
-Once all security schemes have been defined, they must be configured. This is done with the `@Security` comment.
-Depending on the `type` of the scheme, scopes (see below) may be supported. *At the moment, it is only possible to configure security for the entire service*.
-
-``` go
-// @Security MyApiAuth read_user write_user
-```
-
-##### Scopes
-For OAuth2 security schemes, it is possible to define scopes using the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
-
-``` go
-// @SecurityScope MyApiAuth read_user Read a user from the system
-// @SecurityScope MyApiAuth write_user Write a user to the system
-```
-
-### Handler funcs
+### Handler Functions
 
 By adding comments to your handler func godoc, you can document individual actions as well as their input and output.
 
@@ -129,7 +118,7 @@ func PostUser() {
 }
 ```
 
-#### Title & Description
+#### Title And Description
 ```
 @Title {title}
 @Title Get user list of a group.
@@ -166,8 +155,7 @@ type Request struct {
 ```
 - Header query param for endpoints, parses the query param from the model
 
-
-#### HeaderParameters
+#### Header Parameters
 ```
 @Param              {goType}
 @HeaderParameters   RequestHeaders
@@ -234,13 +222,54 @@ type Request struct {
 
 ```
 
-### Documentation Generation
+### 4. Security
 
-Go to the folder where is main.go in
-``` shell
-// go.mod and main file are in the same directory
-go-swagger3 --module-path . --output oas.json
+If authorization is required, you must define security schemes and then apply those to the API. A scheme is defined
+using `@SecurityScheme [name] [type] [parameters]` and applied by
+adding `@Security [scheme-name] [scope1] [scope2] [...]`.
 
-// go.mod and main file are in the different directory
-go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
+All examples in this section use `MyApiAuth` as the name. This name can be anything you chose; multiple named schemes
+are supported. Each scheme must have its own name, except for OAuth2 schemes - OAuth2 supports multiple schemes by the
+same name.
+
+A number of different types is supported, they all have different parameters:
+
+|Type|Description|Parameters|Example|
+|---|---|---|---|
+|HTTP|A HTTP Authentication scheme using the `Authorization` header|scheme: any [HTTP Authentication scheme](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)|`@SecurityScheme MyApiAuth basic`|
+|APIKey|Authorization by passing an API Key along with the request|in: Location of the API Key, options are `header`, `query` and `cookie`. name: The name of the field where the API Key must be set|`@SecurityScheme MyApiAuth apiKey header X-MyCustomHeader`|
+|OpenIdConnect|Delegating security to a known OpenId server|url: The URL of the OpenId server|`@SecurityScheme MyApiAuth openIdConnect https://example.com/.well-known/openid-configuration`|
+|OAuth2AuthCode|Using the "Authentication Code" flow of OAuth2|authorizationUrl, tokenUrl|`@SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token`| 
+|OAuth2Implicit|Using the "Implicit" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2Implicit /oauth/authorize| 
+|OAuth2ResourceOwnerCredentials|Using the "Resource Owner Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ResourceOwnerCredentials /oauth/token| 
+|OAuth2ClientCredentials|Using the "Client Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ClientCredentials /oauth/token| 
+
+Any text that is present after the last parameter wil be used as the description. For
+instance `@SecurityScheme MyApiAuth basic Login with your admin credentials`.
+
+Once all security schemes have been defined, they must be configured. This is done with the `@Security` comment.
+Depending on the `type` of the scheme, scopes (see below) may be supported. *At the moment, it is only possible to
+configure security for the entire service*.
+
+``` go
+// @Security MyApiAuth read_user write_user
 ```
+
+#### Scopes
+
+For OAuth2 security schemes, it is possible to define scopes using
+the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
+
+``` go
+// @SecurityScope MyApiAuth read_user Read a user from the system
+// @SecurityScope MyApiAuth write_user Write a user to the system
+```
+
+### 5. Limitations
+
+- Only support go module.
+- Anonymous struct field is not supported.
+
+### 6. References
+
+- The project is based on [mikunalpha/goas](https://github.com/mikunalpha/goas) repository.
