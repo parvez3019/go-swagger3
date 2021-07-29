@@ -93,6 +93,76 @@
   },
   "components": {
     "schemas": {
+      "Filter": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "integer"
+          },
+          "district_code": {
+            "type": "string"
+          }
+        }
+      },
+      "GetRestaurantsResponse": {
+        "type": "object",
+        "properties": {
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "menus": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Headers": {
+        "type": "object",
+        "properties": {
+          "Client-Version": {
+            "type": "string",
+            "description": "Client Version"
+          },
+          "Client-Language": {
+            "$ref": "#/components/schemas/LanguageEnum"
+          },
+          "Client-Platform": {
+            "type": "string",
+            "description": "Available values : android, ios, web",
+            "example": "android"
+          }
+        }
+      },
       "LanguageEnum": {
         "type": "string",
         "example": "en-in",
@@ -110,6 +180,14 @@
           "tr"
         ]
       },
+      "Menu": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
       "OrderByEnum": {
         "type": "string",
         "example": "popular",
@@ -119,6 +197,34 @@
           "new",
           "highest-rated"
         ]
+      },
+      "Restaurant": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "menus": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
       },
       "github.com.parvez3019.go-swagger3.model.Filter": {
         "type": "object",
@@ -156,6 +262,17 @@
                 },
                 "type": {
                   "type": "string"
+                },
+                "menus": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
                 }
               }
             }

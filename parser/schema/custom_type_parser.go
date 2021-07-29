@@ -88,6 +88,16 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 		if astStructType.Fields != nil {
 			p.parseSchemaPropertiesFromStructFields(pkgPath, pkgName, &schemaObject, astStructType.Fields.List)
 		}
+		typeNameParts := strings.Split(typeName, ".")
+		if len(typeNameParts) > 1 {
+			typeName = typeNameParts[len(typeNameParts)-1]
+		}
+		if !utils.IsBasicGoType(typeName) {
+			_, err := p.RegisterType(pkgPath, pkgName, typeName)
+			if err != nil {
+				p.Debugf("ParseSchemaObject parse array items err: %s", err.Error())
+			}
+		}
 	} else if astArrayType, ok := typeSpec.Type.(*ast.ArrayType); ok {
 		schemaObject.Type = "array"
 		schemaObject.Items = &SchemaObject{}

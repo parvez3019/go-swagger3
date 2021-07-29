@@ -50,7 +50,11 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 
 	if utils.IsBasicGoType(typeName) || utils.IsInterfaceType(typeName) {
 		registerTypeName = typeName
-	} else if _, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
+	} else if schemaObject, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
+		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)]
+		if !ok {
+			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)] = schemaObject
+		}
 		return utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
 	} else {
 		schemaObject, err := p.ParseSchemaObject(pkgPath, pkgName, typeName)

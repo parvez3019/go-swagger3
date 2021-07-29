@@ -27,6 +27,12 @@ type Restaurant struct {
 	City   string `json:"city"`
 	Rating string `json:"rating"`
 	Type   string `json:"type"`
+	Menus  []Menu `json:"menus"`
+}
+
+// Menu represents menu model
+type Menu struct {
+	Name string `json:"name"`
 }
 
 // GetRestaurantsResponse represents the list of restaurants response
