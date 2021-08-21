@@ -89,10 +89,86 @@
           }
         ]
       }
+    },
+    "/user": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create User",
+        "description": " Creates \u0026 Returns an User based on the request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Version"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Language"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Platform"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "email_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateUserResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
       "Filter": {
         "type": "object",
         "properties": {
@@ -223,6 +299,43 @@
                 }
               }
             }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer"
+          },
+          "email_id": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
           }
         }
       },

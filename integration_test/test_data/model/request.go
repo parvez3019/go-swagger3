@@ -39,3 +39,19 @@ type Menu struct {
 type GetRestaurantsResponse struct {
 	Restaurants []Restaurant `json:"restaurants"`
 }
+
+// CreateUserRequest represents the model for creating user request
+type CreateUserRequest struct {
+	FirstName string   `json:"first_name"`
+	LastName  string   `json:"last_name"`
+	Age       int      `json:"age"`
+	EmailID   string   `json:"email_id"`
+	UserName  string   `json:"user_name"`
+	Password  string   `json:"password"`
+	Roles     []string `json:"roles"`
+}
+
+// CreateUserResponse represents the model for create user response
+type CreateUserResponse struct {
+	UserID string `json:"user_id"`
+}
