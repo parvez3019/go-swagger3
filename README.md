@@ -273,6 +273,6 @@ the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
 ### 6. References
 
 - The project is based on the following repositories -
-- [mikunalpha/goas](https://github.com/mikunalpha/goas)
 - [yvasiyarov/swagger](https://github.com/yvasiyarov/swagger)
 - [uudashr/go-module](https://github.com/uudashr/go-module)
+- [mikunalpha/goas](https://github.com/mikunalpha/goas)
