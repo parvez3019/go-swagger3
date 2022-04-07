@@ -38,7 +38,12 @@ go-swagger3 --module-path . --output oas.json
 
 // go.mod and main file are in the different directory
 go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
+
+// in case you get 'command not found: go-swagger3' error, please export add GOPATH/bin to PATH
+export PATH="$HOME/go/bin:$PATH"
 ```
+
+
 
 ## 3. Usage
 
