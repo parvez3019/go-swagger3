@@ -2,39 +2,67 @@ package operations
 
 import (
 	"fmt"
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	"regexp"
 	"strconv"
 	"strings"
+
+	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 )
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {
 	// {status}  {jsonType}  {goType}     {description}
 	// 201       object      models.User  "User Model"
-	re := regexp.MustCompile(`([\d]+)[\s]+([\w\{\}]+)[\s]+([\w\-\.\/\[\]{}]+)[^"]*(.*)?`)
+	// for cases of empty return payload
+	// {status} {description}
+	// 204 "User Model"
+	// for cases of simple types
+	// 200 {string} string "..."
+	re := regexp.MustCompile(`(?P<status>[\d]+)[\s]*(?P<jsonType>[\w\{\}]+)?[\s]+(?P<goType>[\w\-\.\/\[\]]+)?[^"]*(?P<description>.*)?`)
 	matches := re.FindStringSubmatch(comment)
-	if len(matches) != 5 {
+	if len(matches) <= 2 {
 		return fmt.Errorf("parseResponseComment can not parse response comment \"%s\"", comment)
 	}
 
 	status := matches[1]
-	_, err := strconv.Atoi(matches[1])
+	statusInt, err := strconv.Atoi(matches[1])
 	if err != nil {
 		return fmt.Errorf("parseResponseComment: http status must be int, but got %s", status)
 	}
-	switch matches[2] {
-	case "object", "array", "{object}", "{array}":
-	default:
-		return fmt.Errorf("parseResponseComment: invalid jsonType %s", matches[2])
+	if !utils.IsValidHTTPStatusCode(statusInt) {
+		return fmt.Errorf("parseResponseComment: Invalid http status code %s", status)
 	}
+
 	responseObject := &oas.ResponseObject{
 		Content: map[string]*oas.MediaTypeObject{},
 	}
 	responseObject.Description = strings.Trim(matches[4], "\"")
 
-	re = regexp.MustCompile(`\[\w*\]`)
-	goType := re.ReplaceAllString(matches[3], "[]")
+	switch matches[2] {
+
+	case "object", "array", "{object}", "{array}":
+		err = p.complexResponseObject(pkgPath, pkgName, matches[3], responseObject)
+	case "{string}", "{integer}", "{boolean}", "string", "integer", "boolean":
+		err = p.simpleResponseObject(matches[2], responseObject)
+	case "":
+
+	default:
+		return fmt.Errorf("parseResponseComment: invalid jsonType %s", matches[2])
+	}
+
+	if err != nil {
+		return err
+	}
+
+	operation.Responses[status] = responseObject
+	return nil
+}
+
+// function to parse cases of jsonType in case "object", "array", "{object}", "{array}":
+func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObject *oas.ResponseObject) error {
+
+	re := regexp.MustCompile(`\[\w*\]`)
+	goType := re.ReplaceAllString(typ, "[]")
 	if strings.HasPrefix(goType, "map[]") {
 		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
@@ -69,7 +97,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.Op
 			},
 		}
 	} else {
-		typeName, err := p.RegisterType(pkgPath, pkgName, matches[3])
+		typeName, err := p.RegisterType(pkgPath, pkgName, typ)
 		if err != nil {
 			return err
 		}
@@ -93,6 +121,15 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.Op
 			}
 		}
 	}
-	operation.Responses[status] = responseObject
+	return nil
+}
+
+func (p *parser) simpleResponseObject(jsonType string, responseObject *oas.ResponseObject) error {
+	formattedType := jsonType
+	if strings.HasPrefix(jsonType, "{") && strings.HasSuffix(jsonType, "}") {
+		formattedType = jsonType[1 : len(jsonType)-1]
+	}
+
+	responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Type: formattedType}}
 	return nil
 }
