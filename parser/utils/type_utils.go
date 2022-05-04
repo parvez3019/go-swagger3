@@ -170,3 +170,7 @@ func GenSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
 func ReplaceBackslash(origin string) string {
 	return strings.ReplaceAll(origin, "\\", "/")
 }
+
+func IsValidHTTPStatusCode(statusCode int) bool {
+	return statusCode < 600 && statusCode > 99
+}
