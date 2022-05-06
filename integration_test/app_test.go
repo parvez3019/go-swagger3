@@ -2,12 +2,13 @@ package integration_test
 
 import (
 	"fmt"
-	"github.com/parvez3019/go-swagger3/parser"
-	"github.com/parvez3019/go-swagger3/writer"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/parvez3019/go-swagger3/parser"
+	"github.com/parvez3019/go-swagger3/writer"
+	"github.com/stretchr/testify/assert"
 )
 
 // Characterisation test for the refactoring
@@ -34,6 +35,7 @@ func createSpecFile() error {
 		"test_data",
 		"test_data/server/main.go",
 		"",
+		nil,
 		false,
 		false,
 		false,
