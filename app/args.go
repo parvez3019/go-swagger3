@@ -9,6 +9,7 @@ type args struct {
 	mainFilePath     string
 	handlerPath      string
 	output           string
+	banStrings       []string
 	debug            bool
 	strict           bool
 	schemaWithoutPkg bool
@@ -22,6 +23,7 @@ func LoadArgs(c *cli.Context) *args {
 		mainFilePath:     c.GlobalString("main-file-path"),
 		handlerPath:      c.GlobalString("handler-path"),
 		output:           c.GlobalString("output"),
+		banStrings:       c.GlobalStringSlice("hide-refs"),
 		debug:            c.GlobalBool("debug"),
 		strict:           c.GlobalBool("strict"),
 		schemaWithoutPkg: c.GlobalBool("schema-without-pkg"),
@@ -49,6 +51,11 @@ var flags = []cli.Flag{
 		Name:  "output",
 		Value: "oas.json",
 		Usage: "output file",
+	},
+	cli.StringSliceFlag{
+		Name:  "hide-refs",
+		Value: nil,
+		Usage: "Hide refs prefixes in custom types",
 	},
 	cli.BoolFlag{
 		Name:  "debug",

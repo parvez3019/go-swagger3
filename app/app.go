@@ -34,6 +34,7 @@ func action(c *cli.Context) error {
 		args.modulePath,
 		args.mainFilePath,
 		args.handlerPath,
+		args.banStrings,
 		args.debug,
 		args.strict,
 		args.schemaWithoutPkg,
