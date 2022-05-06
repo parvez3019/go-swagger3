@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"strings"
+
 	"github.com/iancoleman/orderedmap"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/utils"
-	"strings"
 )
 
 func (p *parser) parseBasicTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error, bool) {
@@ -45,7 +46,7 @@ func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string,
 	itemTypeName := typeName[2:]
 	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 	if ok {
-		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
+		schemaObject.Items = &SchemaObject{Ref: p.masker.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true
 	}
 	schemaObject.Items, err = p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
@@ -60,7 +61,7 @@ func (p *parser) parseMapType(pkgPath string, pkgName string, typeName string, s
 	itemTypeName := typeName[5:]
 	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 	if ok {
-		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
+		schemaObject.Items = &SchemaObject{Ref: p.masker.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true
 	}
 	schemaProperty, err := p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)

@@ -2,11 +2,12 @@ package operations
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/iancoleman/orderedmap"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/utils"
-	"regexp"
-	"strings"
 )
 
 func (p *parser) parseParamComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {
@@ -60,7 +61,7 @@ func (p *parser) parseGoBasicTypeOrStructType(pkgPath string, pkgName string, op
 		operation.RequestBody.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Type: "string"}}
 		return nil
 	}
-	operation.RequestBody.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(typeName)}}
+	operation.RequestBody.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Ref: p.masker.AddSchemaRefLinkPrefix(typeName)}}
 	return nil
 }
 
@@ -121,7 +122,7 @@ func (p *parser) appendModelSchemaRef(pkgPath string, pkgName string, operation 
 		return err
 	}
 	parameterObject.Schema = &oas.SchemaObject{
-		Ref:  utils.AddSchemaRefLinkPrefix(typeName),
+		Ref:  p.masker.AddSchemaRefLinkPrefix(typeName),
 		Type: typeName,
 	}
 	operation.Parameters = append(operation.Parameters, parameterObject)
@@ -132,7 +133,7 @@ func (p *parser) appendEnumParamRef(goType string, parameterObject oas.Parameter
 	if strings.Contains(goType, "model.") {
 		goType = strings.Replace(goType, "model.", "", -1)
 	}
-	parameterObject.Schema = &oas.SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(goType)}
+	parameterObject.Schema = &oas.SchemaObject{Ref: p.masker.AddSchemaRefLinkPrefix(goType)}
 	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 

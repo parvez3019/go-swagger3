@@ -5,6 +5,7 @@ import (
 	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/operations"
 	"github.com/parvez3019/go-swagger3/parser/schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,14 +19,17 @@ type parser struct {
 	model.Utils
 	schemaParser    schema.Parser
 	operationParser operations.Parser
+
+	masker utils.Masker
 }
 
-func NewParser(utils model.Utils, api *oas.OpenAPIObject, schemaParser schema.Parser) Parser {
+func NewParser(utils model.Utils, api *oas.OpenAPIObject, schemaParser schema.Parser, masker *utils.Masker) Parser {
 	return &parser{
 		Utils:           utils,
 		OpenAPI:         api,
 		schemaParser:    schemaParser,
-		operationParser: operations.NewParser(utils, api, schemaParser),
+		operationParser: operations.NewParser(utils, api, schemaParser, masker),
+		masker:          *masker,
 	}
 }
 
@@ -49,4 +53,3 @@ func (p *parser) Parse() error {
 
 	return p.parsePaths()
 }
-

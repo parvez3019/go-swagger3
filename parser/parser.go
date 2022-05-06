@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"go/ast"
+
 	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/apis"
@@ -9,8 +11,8 @@ import (
 	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/module"
 	"github.com/parvez3019/go-swagger3/parser/schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
-	"go/ast"
 )
 
 type parser struct {
@@ -23,9 +25,11 @@ type parser struct {
 	schemaParser schema.Parser
 
 	model.Utils
+
+	banStrings []string
 }
 
-func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
+func NewParser(modulePath, mainFilePath, handlerPath string, banStrings []string, debug, strict, schemaWithoutPkg bool) *parser {
 	return &parser{
 		Utils: model.Utils{
 			Path:        getPaths(modulePath, mainFilePath, handlerPath),
@@ -33,6 +37,8 @@ func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, sche
 			PkgAndSpecs: initPkgAndSpecs(),
 		},
 		OpenAPI: initOpenApiObject(),
+
+		banStrings: banStrings,
 	}
 }
 
@@ -43,8 +49,13 @@ func (p *parser) Init() (*parser, error) {
 		return nil, err
 	}
 
-	p.schemaParser = schema.NewParser(p.Utils, p.OpenAPI)
-	p.apiParser = apis.NewParser(p.Utils, p.OpenAPI, p.schemaParser)
+	var masker utils.Masker
+	if p.banStrings != nil {
+		masker = *utils.NewMasker(p.banStrings)
+	}
+
+	p.schemaParser = schema.NewParser(p.Utils, p.OpenAPI, &masker)
+	p.apiParser = apis.NewParser(p.Utils, p.OpenAPI, p.schemaParser, &masker)
 	p.infoParser = info.NewParser(p.Utils, p.OpenAPI)
 	p.goModParser = gomod.NewParser(p.Utils)
 	p.moduleParser = module.NewParser(p.Utils)

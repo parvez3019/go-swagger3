@@ -3,14 +3,15 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iancoleman/orderedmap"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
-	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/iancoleman/orderedmap"
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error) {
@@ -108,7 +109,7 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 			if err != nil {
 				p.Debugf("ParseSchemaObject parse array items err: %s", err.Error())
 			} else {
-				schemaObject.Items.Ref = utils.AddSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
+				schemaObject.Items.Ref = p.masker.AddSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
 			}
 		} else if utils.IsGoTypeOASType(typeAsString) {
 			schemaObject.Items.Type = utils.GoTypesOASTypes[typeAsString]
@@ -125,7 +126,7 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 			if err != nil {
 				p.Debugf("ParseSchemaObject parse array items err: %s", err.Error())
 			} else {
-				propertySchema.Ref = utils.AddSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
+				propertySchema.Ref = p.masker.AddSchemaRefLinkPrefix(schemaItemsSchemeaObjectID)
 			}
 		} else if utils.IsGoTypeOASType(typeAsString) {
 			propertySchema.Type = utils.GoTypesOASTypes[typeAsString]
@@ -200,7 +201,7 @@ astFieldsLoop:
 						fieldSchema.Items = schema.Items
 					}
 				}
-				fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(fieldSchemaSchemeaObjectID)
+				fieldSchema.Ref = p.masker.AddSchemaRefLinkPrefix(fieldSchemaSchemeaObjectID)
 			}
 		} else if utils.IsGoTypeOASType(typeAsString) {
 			fieldSchema.Type = utils.GoTypesOASTypes[typeAsString]
@@ -311,7 +312,7 @@ astFieldsLoop:
 			}
 
 			if ref := astFieldTag.Get("$ref"); ref != "" {
-				fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(ref)
+				fieldSchema.Ref = p.masker.AddSchemaRefLinkPrefix(ref)
 				fieldSchema.Type = "" // remove default type in case of reference link
 			}
 
@@ -366,7 +367,7 @@ astFieldsLoop:
 						fieldSchema.Items = schema.Items
 					}
 				}
-				fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(fieldSchemaSchemeaObjectID)
+				fieldSchema.Ref = p.masker.AddSchemaRefLinkPrefix(fieldSchemaSchemeaObjectID)
 			}
 		} else if utils.IsGoTypeOASType(typeAsString) {
 			fieldSchema.Type = utils.GoTypesOASTypes[typeAsString]

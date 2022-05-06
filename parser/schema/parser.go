@@ -1,14 +1,15 @@
 package schema
 
 import (
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/model"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	"go/ast"
 	goParser "go/parser"
 	"go/token"
 	"os"
 	"strings"
+
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 )
 
 type Parser interface {
@@ -20,12 +21,15 @@ type Parser interface {
 type parser struct {
 	model.Utils
 	OpenAPI *OpenAPIObject
+
+	masker *utils.Masker
 }
 
-func NewParser(utils model.Utils, openAPIObject *OpenAPIObject) Parser {
+func NewParser(utils model.Utils, openAPIObject *OpenAPIObject, masker *utils.Masker) Parser {
 	return &parser{
 		Utils:   utils,
 		OpenAPI: openAPIObject,
+		masker:  masker,
 	}
 }
 
@@ -51,9 +55,9 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 	if utils.IsBasicGoType(typeName) || utils.IsInterfaceType(typeName) {
 		registerTypeName = typeName
 	} else if schemaObject, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
-		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)]
+		_, ok := p.OpenAPI.Components.Schemas[p.masker.ReplaceBackslash(typeName)]
 		if !ok {
-			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)] = schemaObject
+			p.OpenAPI.Components.Schemas[p.masker.ReplaceBackslash(typeName)] = schemaObject
 		}
 		return utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
 	} else {
@@ -62,9 +66,9 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 			return "", err
 		}
 		registerTypeName = schemaObject.ID
-		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)]
+		_, ok := p.OpenAPI.Components.Schemas[p.masker.ReplaceBackslash(registerTypeName)]
 		if !ok {
-			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)] = schemaObject
+			p.OpenAPI.Components.Schemas[p.masker.ReplaceBackslash(registerTypeName)] = schemaObject
 		}
 	}
 	return registerTypeName, nil

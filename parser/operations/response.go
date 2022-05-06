@@ -86,7 +86,7 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 			}
 		} else {
 			s = oas.SchemaObject{
-				Ref: utils.AddSchemaRefLinkPrefix(typeName),
+				Ref: p.masker.AddSchemaRefLinkPrefix(typeName),
 			}
 		}
 
@@ -116,7 +116,7 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 		} else {
 			responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{
 				Schema: oas.SchemaObject{
-					Ref: utils.AddSchemaRefLinkPrefix(typeName),
+					Ref: p.masker.AddSchemaRefLinkPrefix(typeName),
 				},
 			}
 		}

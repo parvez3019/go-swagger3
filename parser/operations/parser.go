@@ -1,11 +1,13 @@
 package operations
 
 import (
+	"go/ast"
+	"strings"
+
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/schema"
-	"go/ast"
-	"strings"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 )
 
 type Parser interface {
@@ -17,13 +19,16 @@ type parser struct {
 
 	model.Utils
 	schema.Parser
+
+	masker *utils.Masker
 }
 
-func NewParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.Parser) Parser {
+func NewParser(utils model.Utils, api *OpenAPIObject, schemaParser schema.Parser, masker *utils.Masker) Parser {
 	return &parser{
 		Utils:   utils,
 		OpenAPI: api,
 		Parser:  schemaParser,
+		masker:  masker,
 	}
 }
 
