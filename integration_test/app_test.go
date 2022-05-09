@@ -13,7 +13,7 @@ import (
 
 // Characterisation test for the refactoring
 func Test_ShouldGenerateExpectedSpec(t *testing.T) {
-	if err := createSpecFile(); err != nil {
+	if err := createSpecFile(nil); err != nil {
 		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
 	}
 	actual := LoadJSONAsString("test_data/spec/actual.json")
@@ -21,6 +21,16 @@ func Test_ShouldGenerateExpectedSpec(t *testing.T) {
 	assert.Equal(t, LoadJSONAsString("test_data/spec/expected.json"), actual)
 }
 
+func Test_ShouldGenerateExpectedSpecHideRef(t *testing.T) {
+	banStrings := []string{"github.com.parvez3019.go-swagger3."}
+	if err := createSpecFile(banStrings); err != nil {
+		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
+	}
+	actual := LoadJSONAsString("test_data/spec/actual.json")
+	actual += "\n" // append new line for test
+	assert.Equal(t, LoadJSONAsString("test_data/spec/expectedHidenRef.json"), actual)
+
+}
 func LoadJSONAsString(path string) string {
 	file, err := os.Open(path)
 	if err != nil {
@@ -30,12 +40,13 @@ func LoadJSONAsString(path string) string {
 	return string(content)
 }
 
-func createSpecFile() error {
+func createSpecFile(banStrings []string) error {
+
 	p, err := parser.NewParser(
 		"test_data",
 		"test_data/server/main.go",
 		"",
-		nil,
+		banStrings,
 		false,
 		false,
 		false,
