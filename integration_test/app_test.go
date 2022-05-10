@@ -36,7 +36,7 @@ func createSpecFile() error {
 		"",
 		false,
 		false,
-		false,
+		true,
 	).Init()
 
 	if err != nil {
