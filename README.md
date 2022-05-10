@@ -39,13 +39,18 @@ Go to the folder where is main.go in
 
 ``` shell
 // go.mod and main file are in the same directory
-go-swagger3 --module-path . --output oas.json
+go-swagger3 --module-path . --output oas.json --schema-without-pkg --generate-yaml true
 
 // go.mod and main file are in the different directory
-go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
+go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
 
 // in case you get 'command not found: go-swagger3' error, please export add GOPATH/bin to PATH
 export PATH="$HOME/go/bin:$PATH"
+
+Notes - 
+- Pass schema-without-pkg flag as true if you want to generate schemas without package names
+- Pass generate-yaml as trus if you want to generate yaml spec file instead of json
+
 ```
 
 
