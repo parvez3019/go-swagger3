@@ -29,7 +29,7 @@ Generate [OpenAPI Specification](https://swagger.io/specification) json file wit
 ## 1. Install
 
 ```
-go get -u github.com/parvez3019/go-swagger3
+go install github.com/parvez3019/go-swagger3@latest
 ```
 
 
