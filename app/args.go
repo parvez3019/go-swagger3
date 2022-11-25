@@ -1,6 +1,10 @@
 package app
 
-import "github.com/urfave/cli"
+import (
+	"strings"
+
+	"github.com/urfave/cli"
+)
 
 type args struct {
 	flags []cli.Flag
@@ -16,7 +20,7 @@ type args struct {
 }
 
 func LoadArgs(c *cli.Context) *args {
-	return &args{
+	appArgs := args{
 		flags:            flags,
 		modulePath:       c.GlobalString("module-path"),
 		mainFilePath:     c.GlobalString("main-file-path"),
@@ -27,6 +31,11 @@ func LoadArgs(c *cli.Context) *args {
 		schemaWithoutPkg: c.GlobalBool("schema-without-pkg"),
 		generateYaml:     c.GlobalBool("generate-yaml"),
 	}
+	if appArgs.generateYaml && strings.HasSuffix(appArgs.output, ".json") {
+		appArgs.output = strings.TrimSuffix(appArgs.output, ".json") + ".yml"
+	}
+	return &appArgs
+
 }
 
 var flags = []cli.Flag{
