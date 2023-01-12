@@ -5,7 +5,7 @@ Click here for [Youtube Demo Link](https://www.youtube.com/watch?v=GLM9c5j8g7I)
 
 # go-swagger3
 
-Generate [OpenAPI Specification](https://swagger.io/specification) json file with comments in Go.
+Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with comments in Go.
 
 ### Table of content
 
