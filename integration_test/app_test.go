@@ -2,22 +2,40 @@ package integration_test
 
 import (
 	"fmt"
-	"github.com/parvez3019/go-swagger3/parser"
-	"github.com/parvez3019/go-swagger3/writer"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/nsf/jsondiff"
+
+	"github.com/parvez3019/go-swagger3/parser"
+	"github.com/parvez3019/go-swagger3/writer"
+	"github.com/stretchr/testify/assert"
 )
 
 // Characterisation test for the refactoring
 func Test_ShouldGenerateExpectedSpec(t *testing.T) {
-	if err := createSpecFile(); err != nil {
+	if err := createSpecFile(false, true); err != nil {
 		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
 	}
-	actual := LoadJSONAsString("test_data/spec/actual.json")
-	actual += "\n" // append new line for test
-	assert.Equal(t, LoadJSONAsString("test_data/spec/expected.json"), actual)
+	diff, _ := jsondiff.Compare([]byte(LoadJSONAsString("test_data/spec/expected.json")),
+		[]byte(LoadJSONAsString("test_data/spec/actual.json")), &jsondiff.Options{})
+
+	// assert the diff is FullMatch
+	assert.Equal(t, jsondiff.FullMatch, diff)
+
+}
+
+func Test_GenerateExpectedSpecWithPkg(t *testing.T) {
+	if err := createSpecFile(false, false); err != nil {
+		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
+	}
+	diff, _ := jsondiff.Compare([]byte(LoadJSONAsString("test_data/spec/expected_with_pkg.json")),
+		[]byte(LoadJSONAsString("test_data/spec/actual.json")), &jsondiff.Options{})
+
+	// assert the diff is FullMatch
+	assert.Equal(t, jsondiff.FullMatch, diff)
+
 }
 
 func LoadJSONAsString(path string) string {
@@ -29,14 +47,14 @@ func LoadJSONAsString(path string) string {
 	return string(content)
 }
 
-func createSpecFile() error {
+func createSpecFile(generateYaml bool, schemaWithoutPkg bool) error {
 	p, err := parser.NewParser(
 		"test_data",
 		"test_data/server/main.go",
 		"",
 		false,
 		false,
-		true,
+		schemaWithoutPkg,
 	).Init()
 
 	if err != nil {
@@ -48,5 +66,5 @@ func createSpecFile() error {
 	}
 
 	fw := writer.NewFileWriter()
-	return fw.Write(openApiObject, "test_data/spec/actual.json", false)
+	return fw.Write(openApiObject, "test_data/spec/actual.json", generateYaml, schemaWithoutPkg)
 }
