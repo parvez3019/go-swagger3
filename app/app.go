@@ -48,5 +48,5 @@ func action(c *cli.Context) error {
 	}
 
 	fw := writer.NewFileWriter()
-	return fw.Write(openApiObject, args.output, args.generateYaml)
+	return fw.Write(openApiObject, args.output, args.generateYaml, args.schemaWithoutPkg)
 }
