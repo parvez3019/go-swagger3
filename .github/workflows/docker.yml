@@ -22,6 +22,14 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
 
+      - name: Get tag name
+        uses: actions/github-script@v4
+        id: get_tag_name
+        with:
+          script: |
+            const tag = context.payload.ref.replace('refs/tags/', '');
+            return { tag: tag };
+
       - name: Build and tag Docker image
         id: docker_build
         uses: docker/build-push-action@v2
@@ -30,4 +38,4 @@ jobs:
           push: true
           tags: |
             ${{ env.DOCKER_USERNAME }}/go-swagger3:latest
-            ${{ env.DOCKER_USERNAME }}/go-swagger3:${{ env.GIT_TAG }}
+            ${{ env.DOCKER_USERNAME }}/go-swagger3:${{ steps.get_tag_name.outputs.tag }}
