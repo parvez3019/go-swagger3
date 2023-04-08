@@ -32,11 +32,6 @@ jobs:
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
-      
-      - name: somethin
-        run: |
-          echo "Get tag name  ${{ steps.get_tag_name.outputs.tag }}"
-          echo  ${{ steps.meta.outputs.tags }}
           
       - name: Build and tag Docker image
         id: docker_build
