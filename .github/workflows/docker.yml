@@ -16,34 +16,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_USERNAME }}/go-swagger3
+          flavor: latest=true
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
-
-      - name: Get tag name
-        uses: actions/github-script@v4
-        id: get_tag_name
-        with:
-          script: |
-            const tag = context.payload.ref.replace('refs/tags/', '');
-            return { tag: tag };
-      - name: somethin
-        run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-
+      
       - name: somethin
         run: |
           echo "Get tag name  ${{ steps.get_tag_name.outputs.tag }}"
           echo ${{ env.GIT_TAG }}
-          echo ${{ GIT_TAG }}
+          echo ${{ GIT_TAG }} ${{ steps.meta.outputs.tags }}
           
       - name: Build and tag Docker image
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
-          push: true
-          tags: |
-            ${{ env.DOCKER_USERNAME }}/go-swagger3:latest
-            ${{ env.DOCKER_USERNAME }}/go-swagger3:${{ env.GIT_TAG }}
+          push: ${{ github.ref_type == 'tag' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
