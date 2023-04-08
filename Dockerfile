@@ -20,9 +20,9 @@ RUN apk update && apk add upx ca-certificates openssl && update-ca-certificates
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /bin/swagger .
 RUN upx -9 /bin/swagger
 
-FROM golang:alpine
+FROM gcr.io/distroless/static:nonroot
 
 COPY --from=builder bin/swagger /usr/bin/swagger
 
 ENTRYPOINT ["/usr/bin/swagger"]
-CMD ["--help"]
+
