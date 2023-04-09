@@ -34,7 +34,7 @@ go install github.com/parvez3019/go-swagger3@latest
 
 
 ### 2. Documentation Generation
-
+#### Using binary
 Go to the folder where is main.go in
 
 ``` shell
@@ -52,6 +52,21 @@ Notes -
 - Pass generate-yaml as trus if you want to generate yaml spec file instead of json
 
 ```
+
+#### Using docker
+``` shell
+// go.mod and main file are in the same directory
+docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --output oas.json --schema-without-pkg --generate-yaml true
+
+// go.mod and main file are in the different directory
+docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
+
+Notes - 
+- Pass schema-without-pkg flag as true if you want to generate schemas without package names
+- Pass generate-yaml as trus if you want to generate yaml spec file instead of json
+
+```
+
 
 
 
