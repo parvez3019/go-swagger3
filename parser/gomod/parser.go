@@ -1,14 +1,16 @@
 package gomod
 
 import (
-	"github.com/mikunalpha/go-module"
-	"github.com/parvez3019/go-swagger3/parser/model"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"golang.org/x/mod/modfile"
 )
 
 type Parser interface {
@@ -32,12 +34,12 @@ func (p *parser) Parse() error {
 	if err != nil {
 		return err
 	}
-	goMod, err := module.Parse(b)
+	file, err := modfile.Parse(p.GoModFilePath, b, nil)
 	if err != nil {
 		return err
 	}
-	for i := range goMod.Requires {
-		if err = p.parseGoModFilePackages(goMod.Requires[i].Path, goMod.Requires[i].Version); err != nil {
+	for i := range file.Require {
+		if err = p.parseGoModFilePackages(file.Require[i].Mod.Path, file.Require[i].Mod.Version); err != nil {
 			return err
 		}
 	}
