@@ -11,6 +11,7 @@ import (
 // @Param offset query int32 false "offset limit count"
 // @Param order_by query model.OrderByEnum false "order restaurants list"
 // @Param filter query model.Filter false "In json format"
+// @Param extra.field query string false "extra field"
 // @Success 200 {object} model.GetRestaurantsResponse
 // @Router /restaurants [get]
 func GetRestaurants() {
