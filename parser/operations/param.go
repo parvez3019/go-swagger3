@@ -2,18 +2,19 @@ package operations
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/iancoleman/orderedmap"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/utils"
-	"regexp"
-	"strings"
 )
 
 func (p *parser) parseParamComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {
 	// {name}  {in}  {goType}  {required}  {description}
 	// user    body  User      true        "Info of a user."
 	// f       file  ignored   true        "Upload a file."
-	re := regexp.MustCompile(`([-\w]+)[\s]+([\w]+)[\s]+([\w./\[\]]+)[\s]+([\w]+)[\s]+"([^"]+)"`)
+	re := regexp.MustCompile(`([-.\w]+)[\s]+([\w]+)[\s]+([\w./\[\]]+)[\s]+([\w]+)[\s]+"([^"]+)"`)
 	matches := re.FindStringSubmatch(comment)
 	if len(matches) != 6 {
 		return fmt.Errorf("parseParamComment can not parse param comment \"%s\"", comment)
