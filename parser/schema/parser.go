@@ -1,14 +1,15 @@
 package schema
 
 import (
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/model"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	"go/ast"
 	goParser "go/parser"
 	"go/token"
 	"os"
 	"strings"
+
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 )
 
 type Parser interface {
@@ -54,6 +55,7 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)]
 		if !ok {
 			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)] = schemaObject
+			p.OpenAPI.Components.Schemas[schemaObject.ID] = schemaObject
 		}
 		return utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
 	} else {
@@ -65,6 +67,7 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)]
 		if !ok {
 			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)] = schemaObject
+			p.OpenAPI.Components.Schemas[schemaObject.ID] = schemaObject
 		}
 	}
 	return registerTypeName, nil
