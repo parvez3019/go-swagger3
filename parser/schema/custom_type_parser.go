@@ -3,14 +3,15 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iancoleman/orderedmap"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
-	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/iancoleman/orderedmap"
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error) {
@@ -187,6 +188,8 @@ astFieldsLoop:
 				p.Debug(err)
 				return
 			}
+		} else if strings.HasPrefix(typeAsString, "struct{}") {
+			p.parseSchemaPropertiesFromStructFields(pkgPath, pkgName, fieldSchema, astField.Type.(*ast.StructType).Fields.List)
 		} else if !utils.IsBasicGoType(typeAsString) {
 			fieldSchemaSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {
@@ -308,6 +311,10 @@ astFieldsLoop:
 
 			if desc := astFieldTag.Get("description"); desc != "" {
 				fieldSchema.Description = desc
+			} else {
+				if astField.Comment != nil {
+					fieldSchema.Description = strings.TrimSpace(strings.Trim(astField.Comment.List[0].Text, "//"))
+				}
 			}
 
 			if ref := astFieldTag.Get("$ref"); ref != "" {
@@ -319,7 +326,11 @@ astFieldsLoop:
 				fieldSchema.Enum = parseEnumValues(enumValues)
 			}
 		}
-
+		if fieldSchema.Description == "" {
+			if astField.Comment != nil {
+				fieldSchema.Description = strings.TrimSpace(strings.Trim(astField.Comment.List[0].Text, "//"))
+			}
+		}
 		structSchema.Properties.Set(name, fieldSchema)
 	}
 	for _, astField := range astFields {
@@ -440,7 +451,10 @@ func (p *parser) getTypeAsString(fieldType interface{}) string {
 
 		return packageNameIdent.Name + "." + astSelectorExpr.Sel.Name
 	}
-
+	_, ok = fieldType.(*ast.StructType)
+	if ok {
+		return "struct{}"
+	}
 	return fmt.Sprint(fieldType)
 }
 

@@ -16,3 +16,5 @@
 
 # build file
 go-swagger3
+#Vscode
+.vscode
