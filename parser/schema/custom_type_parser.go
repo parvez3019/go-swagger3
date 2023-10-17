@@ -156,12 +156,6 @@ func (p *parser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, 
 	if structSchema.DisabledFieldNames == nil {
 		structSchema.DisabledFieldNames = map[string]struct{}{}
 	}
-	if structSchema.ID == "eva.domain.admin.request.CreateProject" {
-		println(structSchema.ID)
-	}
-	if structSchema.ID == "eva.domain.admin.response.Project" {
-		println(structSchema.ID)
-	}
 astFieldsLoop:
 	for _, astField := range astFields {
 		if len(astField.Names) == 0 {
