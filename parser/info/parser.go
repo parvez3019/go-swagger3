@@ -2,13 +2,14 @@ package info
 
 import (
 	"fmt"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/model"
-	log "github.com/sirupsen/logrus"
 	"go/ast"
 	goparser "go/parser"
 	"go/token"
 	"strings"
+
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
+	log "github.com/sirupsen/logrus"
 )
 
 type Parser interface {
@@ -92,13 +93,13 @@ func (p *parser) parseServerUrls(attribute string, value string) {
 
 func (p *parser) parseOpenApiInfo(attribute string, value string) {
 	switch attribute {
-	case "@version":
+	case "@info.version", "@version":
 		p.OpenAPI.Info.Version = value
-	case "@title":
+	case "@info.title", "@title":
 		p.OpenAPI.Info.Title = value
-	case "@description":
+	case "@info.description", "@info.desc", "@desc", "@description":
 		p.OpenAPI.Info.Description = value
-	case "@termsofserviceurl":
+	case "@info.termsofserviceurl":
 		p.OpenAPI.Info.TermsOfService = value
 	case "@contactname", "@contactemail", "contacturl":
 		p.parseContact(attribute, value)
