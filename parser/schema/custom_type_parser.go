@@ -156,6 +156,12 @@ func (p *parser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, 
 	if structSchema.DisabledFieldNames == nil {
 		structSchema.DisabledFieldNames = map[string]struct{}{}
 	}
+	if structSchema.ID == "eva.domain.admin.request.CreateProject" {
+		println(structSchema.ID)
+	}
+	if structSchema.ID == "eva.domain.admin.response.Project" {
+		println(structSchema.ID)
+	}
 astFieldsLoop:
 	for _, astField := range astFields {
 		if len(astField.Names) == 0 {
@@ -164,12 +170,29 @@ astFieldsLoop:
 		fieldSchema := &SchemaObject{}
 		typeAsString := p.getTypeAsString(astField.Type)
 		typeAsString = strings.TrimLeft(typeAsString, "*")
-		if strings.HasPrefix(typeAsString, "[]") {
+		if typeAsString == "[]struct{}" {
+			array := astField.Type.(*ast.ArrayType)
+			fieldSchema.Type = "array"
+			fieldSchema.Items = &SchemaObject{}
+			item := array.Elt.(*ast.StructType)
+			p.parseSchemaPropertiesFromStructFields(pkgPath, pkgName, fieldSchema.Items, item.Fields.List)
+		} else if strings.HasPrefix(typeAsString, "[]") {
 			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
 				p.Debug(err)
 				return
 			}
+		} else if typeAsString == "map[]struct{}" {
+			mapType := astField.Type.(*ast.MapType)
+			fieldSchema.Type = "object"
+
+			fieldSchema.Properties = orderedmap.New()
+			schemaProperty := &SchemaObject{Type: "object", Properties: orderedmap.New()}
+			fieldSchema.Properties.Set("key", schemaProperty)
+			// 处理value
+			value := mapType.Value.(*ast.StructType)
+			p.parseSchemaPropertiesFromStructFields(pkgPath, pkgName, schemaProperty, value.Fields.List)
+
 		} else if strings.HasPrefix(typeAsString, "map[]") {
 			fieldSchema, err = p.ParseSchemaObject(pkgPath, pkgName, typeAsString)
 			if err != nil {
@@ -364,6 +387,8 @@ astFieldsLoop:
 				p.Debug(err)
 				return
 			}
+		} else if strings.HasPrefix(typeAsString, "struct{}") {
+			p.parseSchemaPropertiesFromStructFields(pkgPath, pkgName, fieldSchema, astField.Type.(*ast.StructType).Fields.List)
 		} else if !utils.IsBasicGoType(typeAsString) {
 			fieldSchemaSchemeaObjectID, err := p.RegisterType(pkgPath, pkgName, typeAsString)
 			if err != nil {

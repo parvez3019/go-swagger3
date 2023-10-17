@@ -1,10 +1,11 @@
 package schema
 
 import (
+	"strings"
+
 	"github.com/iancoleman/orderedmap"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/utils"
-	"strings"
 )
 
 func (p *parser) parseBasicTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error, bool) {
@@ -32,6 +33,10 @@ func (p *parser) parseBasicGoType(schemaObject SchemaObject, typeName string) (*
 
 func (p *parser) parseInterfaceType() (*SchemaObject, error, bool) {
 	return &SchemaObject{Type: "object"}, nil, true
+}
+
+func (p *parser) parseAnonymousStructType() (*SchemaObject, error, bool) {
+	return &SchemaObject{Type: "object"}, nil, false
 }
 
 func (p *parser) parseTimeType(schemaObject SchemaObject) (*SchemaObject, error, bool) {
