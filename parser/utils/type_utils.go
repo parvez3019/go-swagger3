@@ -126,7 +126,7 @@ func GetModuleNameFromGoMod(path string) string {
 }
 
 func IsInStringList(list []string, s string) bool {
-	for i, _ := range list {
+	for i := range list {
 		if list[i] == s {
 			return true
 		}
@@ -158,12 +158,9 @@ func AddParametersRefLinkPrefix(name string) string {
 	return ReplaceBackslash("#/components/parameters/" + name)
 }
 
-func GenSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
+func GenSchemaObjectID(pkgName, typeName string) string {
 	typeNameParts := strings.Split(typeName, ".")
 	pkgName = ReplaceBackslash(pkgName)
-	if withoutPkg {
-		return typeNameParts[len(typeNameParts)-1]
-	}
 	return strings.Join(append(strings.Split(pkgName, "/"), typeNameParts[len(typeNameParts)-1]), ".")
 }
 

@@ -48,7 +48,7 @@ func (p *parser) parseTimeType(schemaObject SchemaObject) (*SchemaObject, error,
 func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject, err error) (*SchemaObject, error, bool) {
 	schemaObject.Type = "array"
 	itemTypeName := typeName[2:]
-	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
+	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName)]
 	if ok {
 		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true
@@ -63,7 +63,7 @@ func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string,
 func (p *parser) parseMapType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject) (*SchemaObject, error, bool) {
 	schemaObject.Type = "object"
 	itemTypeName := typeName[5:]
-	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
+	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName)]
 	if ok {
 		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true

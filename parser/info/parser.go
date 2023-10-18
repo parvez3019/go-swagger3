@@ -181,7 +181,7 @@ func (p *parser) validateInfo() error {
 }
 
 func (p *parser) applySecurityScopeToSecuritySchemes(oauthScopes map[string]map[string]string) {
-	for scheme, _ := range p.OpenAPI.Components.SecuritySchemes {
+	for scheme := range p.OpenAPI.Components.SecuritySchemes {
 		if p.OpenAPI.Components.SecuritySchemes[scheme].Type == "oauth2" {
 			p.applySecurityScope(oauthScopes, scheme)
 		}

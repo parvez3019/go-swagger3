@@ -1,9 +1,11 @@
 package openApi3Schema
 
-import "github.com/iancoleman/orderedmap"
+import (
+	"github.com/iancoleman/orderedmap"
+)
 
 const (
-	OpenAPIVersion = "3.0.0"
+	OpenAPIVersion = "3.0.3"
 
 	ContentTypeText = "text/plain"
 	ContentTypeJson = "application/json"

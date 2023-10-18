@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"go/ast"
+
 	"github.com/parvez3019/go-swagger3/logger"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/apis"
@@ -10,7 +12,6 @@ import (
 	"github.com/parvez3019/go-swagger3/parser/module"
 	"github.com/parvez3019/go-swagger3/parser/schema"
 	log "github.com/sirupsen/logrus"
-	"go/ast"
 )
 
 type parser struct {
@@ -25,11 +26,11 @@ type parser struct {
 	model.Utils
 }
 
-func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict, schemaWithoutPkg bool) *parser {
+func NewParser(modulePath, mainFilePath, handlerPath string, debug, strict bool) *parser {
 	return &parser{
 		Utils: model.Utils{
 			Path:        getPaths(modulePath, mainFilePath, handlerPath),
-			Flags:       geFlags(debug, strict, schemaWithoutPkg),
+			Flags:       geFlags(debug, strict),
 			PkgAndSpecs: initPkgAndSpecs(),
 		},
 		OpenAPI: initOpenApiObject(),
@@ -91,11 +92,10 @@ func initOpenApiObject() *OpenAPIObject {
 	}
 }
 
-func geFlags(debug bool, strict bool, schemaWithoutPkg bool) model.Flags {
+func geFlags(debug bool, strict bool) model.Flags {
 	return model.Flags{
-		RunInDebugMode:   debug,
-		RunInStrictMode:  strict,
-		SchemaWithoutPkg: schemaWithoutPkg,
+		RunInDebugMode:  debug,
+		RunInStrictMode: strict,
 	}
 }
 

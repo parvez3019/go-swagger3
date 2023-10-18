@@ -27,7 +27,7 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 			log.Fatalf("Can not find definition of %s ast.TypeSpec. Current package %s", typeName, pkgName)
 		}
 		schemaObject.PkgName = pkgName
-		schemaObject.ID = utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)
+		schemaObject.ID = utils.GenSchemaObjectID(pkgName, typeName)
 		p.KnownIDSchema[schemaObject.ID] = &schemaObject
 	} else {
 		guessPkgName := strings.Join(typeNameParts[:len(typeNameParts)-1], "/")
@@ -74,7 +74,7 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 			}
 
 			schemaObject.PkgName = guessPkgName
-			schemaObject.ID = utils.GenSchemaObjectID(guessPkgName, guessTypeName, p.SchemaWithoutPkg)
+			schemaObject.ID = utils.GenSchemaObjectID(guessPkgName, guessTypeName)
 			p.KnownIDSchema[schemaObject.ID] = &schemaObject
 		}
 		pkgPath, pkgName = guessPkgPath, guessPkgName
@@ -337,16 +337,25 @@ astFieldsLoop:
 			if ref := astFieldTag.Get("$ref"); ref != "" {
 				fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(ref)
 				fieldSchema.Type = "" // remove default type in case of reference link
+				fieldSchema.Description = ""
 			}
 
 			if enumValues := astFieldTag.Get("enum"); enumValues != "" {
-				fieldSchema.Enum = parseEnumValues(enumValues)
+				if fieldSchema.Type == "array" {
+					fieldSchema.Items.Enum = parseEnumValues(enumValues)
+				} else {
+					fieldSchema.Enum = parseEnumValues(enumValues)
+				}
 			}
 		}
-		if fieldSchema.Description == "" {
+		if fieldSchema.Description == "" && fieldSchema.Ref == "" {
 			if astField.Comment != nil {
 				fieldSchema.Description = strings.TrimSpace(strings.Trim(astField.Comment.List[0].Text, "//"))
 			}
+		}
+		if fieldSchema.Ref != "" {
+			fieldSchema.Description = ""
+			fieldSchema.Type = ""
 		}
 		structSchema.Properties.Set(name, fieldSchema)
 	}

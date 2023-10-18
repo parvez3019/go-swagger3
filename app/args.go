@@ -9,27 +9,25 @@ import (
 type args struct {
 	flags []cli.Flag
 
-	modulePath       string
-	mainFilePath     string
-	handlerPath      string
-	output           string
-	debug            bool
-	strict           bool
-	schemaWithoutPkg bool
-	generateYaml     bool
+	modulePath   string
+	mainFilePath string
+	handlerPath  string
+	output       string
+	debug        bool
+	strict       bool
+	generateYaml bool
 }
 
 func LoadArgs(c *cli.Context) *args {
 	appArgs := args{
-		flags:            flags,
-		modulePath:       c.GlobalString("module-path"),
-		mainFilePath:     c.GlobalString("main-file-path"),
-		handlerPath:      c.GlobalString("handler-path"),
-		output:           c.GlobalString("output"),
-		debug:            c.GlobalBool("debug"),
-		strict:           c.GlobalBool("strict"),
-		schemaWithoutPkg: c.GlobalBool("schema-without-pkg"),
-		generateYaml:     c.GlobalBool("generate-yaml"),
+		flags:        flags,
+		modulePath:   c.GlobalString("module-path"),
+		mainFilePath: c.GlobalString("main-file-path"),
+		handlerPath:  c.GlobalString("handler-path"),
+		output:       c.GlobalString("output"),
+		debug:        c.GlobalBool("debug"),
+		strict:       c.GlobalBool("strict"),
+		generateYaml: c.GlobalBool("generate-yaml"),
 	}
 	if appArgs.generateYaml && strings.HasSuffix(appArgs.output, ".json") {
 		appArgs.output = strings.TrimSuffix(appArgs.output, ".json") + ".yml"
