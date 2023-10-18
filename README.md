@@ -9,27 +9,33 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 
 ### Table of content
 
-- [1. Install](#1-install)
-- [2. Documentation Generation](#2-documentation-generation)
-- [3. Usage](#3-usage)
+- [go-swagger3](#go-swagger3)
+    - [Table of content](#table-of-content)
+  - [1. Install](#1-install)
+    - [2. Documentation Generation](#2-documentation-generation)
+      - [Using binary](#using-binary)
+      - [Using docker](#using-docker)
+  - [3. Usage](#3-usage)
     - [Service Description](#service-description)
-    - [Handler functions](#handler-functions)
-    - [Title And Description](#title-and-description)
-    - [Parameter](#parameter)
-    - [Header](#header)
-    - [Header Parameters](#header-parameters)
-    - [Response](#response)
-    - [Resource & Tag](#resource--tag)
-    - [Route](#route)
-    - [Enums](#enums)
-- [4. Security](#4-security)
-- [5. Limitations](#5-limitations)
-- [6. References](#6-references)
+    - [Handler Functions](#handler-functions)
+      - [Title And Description](#title-and-description)
+      - [Parameter](#parameter)
+      - [Header](#header)
+      - [Header Parameters](#header-parameters)
+      - [Response](#response)
+      - [Resource \& Tag](#resource--tag)
+      - [Route](#route)
+      - [Enums](#enums)
+        - [How to add reference of Enum on types](#how-to-add-reference-of-enum-on-types)
+    - [4. Security](#4-security)
+      - [Scopes](#scopes)
+    - [5. Limitations](#5-limitations)
+    - [6. References](#6-references)
 
 ## 1. Install
 
 ```
-go install github.com/parvez3019/go-swagger3@latest
+go install github.com/hanyue2020/go-swagger3@latest
 ```
 
 
@@ -47,7 +53,7 @@ go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
 // in case you get 'command not found: go-swagger3' error, please export add GOPATH/bin to PATH
 export PATH="$HOME/go/bin:$PATH"
 
-Notes - 
+Notes -
 - Pass schema-without-pkg flag as true if you want to generate schemas without package names
 - Pass generate-yaml as trus if you want to generate yaml spec file instead of json
 
@@ -56,12 +62,12 @@ Notes -
 #### Using docker
 ``` shell
 // go.mod and main file are in the same directory
-docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --output oas.json --schema-without-pkg --generate-yaml true
+docker run -t --rm -v $(pwd):/app -w /app hanyue2020/go-swagger3:latest --module-path . --output oas.json --schema-without-pkg --generate-yaml true
 
 // go.mod and main file are in the different directory
-docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
+docker run -t --rm -v $(pwd):/app -w /app hanyue2020/go-swagger3:latest --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
 
-Notes - 
+Notes -
 - Pass schema-without-pkg flag as true if you want to generate schemas without package names
 - Pass generate-yaml as trus if you want to generate yaml spec file instead of json
 
@@ -101,7 +107,7 @@ By adding comments to your handler func godoc, you can document individual actio
 ``` go
 type User struct {
   ID   uint64 `json:"id" example:"100" description:"User identity"`
-  Name string `json:"name" example:"Parvez"` 
+  Name string `json:"name" example:"Parvez"`
 }
 
 type UsersResponse struct {
@@ -167,7 +173,7 @@ func PostUser() {
 - {name}: The parameter name.
 - {in}: The parameter is in `path`, `query`, `form`, `header`, `cookie`, `body` or `file`.
 - {goType}: The type in go code. This will be ignored when {in} is `file`.
-- {required}: `true`, `false`, `required` or `optional`. 
+- {required}: `true`, `false`, `required` or `optional`.
 - {description}: The description of the parameter. Must be quoted.
 
 One can also override example for an object with `override-example` key in struct
@@ -178,7 +184,7 @@ type Request struct {
 }
 ```
 
-#### Header 
+#### Header
 ```
 @Header          {goType}
 @HeaderParameters   model.RequestHeaders
@@ -203,7 +209,7 @@ type Request struct {
 @Failure  400       object      ErrorResponse  "ErrorResponse JSON"
 ```
 - {status}: The HTTP status code.
-- {jsonType}: The value can be `object` or `array`. 
+- {jsonType}: The value can be `object` or `array`.
 - {goType}: The type in go code.
 - {description}: The description of the response. Must be quoted.
 
@@ -246,7 +252,7 @@ type CountriesEnum struct {
 
 ``` go
 type Request struct {
-  Name string `json:"name" example:"Parvez"` 
+  Name string `json:"name" example:"Parvez"`
   Country string `json:"country" $ref:"CountriesEnum"`
 }
 
@@ -269,10 +275,10 @@ A number of different types is supported, they all have different parameters:
 |HTTP|A HTTP Authentication scheme using the `Authorization` header|scheme: any [HTTP Authentication scheme](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)|`@SecurityScheme MyApiAuth basic`|
 |APIKey|Authorization by passing an API Key along with the request|in: Location of the API Key, options are `header`, `query` and `cookie`. name: The name of the field where the API Key must be set|`@SecurityScheme MyApiAuth apiKey header X-MyCustomHeader`|
 |OpenIdConnect|Delegating security to a known OpenId server|url: The URL of the OpenId server|`@SecurityScheme MyApiAuth openIdConnect https://example.com/.well-known/openid-configuration`|
-|OAuth2AuthCode|Using the "Authentication Code" flow of OAuth2|authorizationUrl, tokenUrl|`@SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token`| 
-|OAuth2Implicit|Using the "Implicit" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2Implicit /oauth/authorize| 
-|OAuth2ResourceOwnerCredentials|Using the "Resource Owner Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ResourceOwnerCredentials /oauth/token| 
-|OAuth2ClientCredentials|Using the "Client Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ClientCredentials /oauth/token| 
+|OAuth2AuthCode|Using the "Authentication Code" flow of OAuth2|authorizationUrl, tokenUrl|`@SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token`|
+|OAuth2Implicit|Using the "Implicit" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2Implicit /oauth/authorize|
+|OAuth2ResourceOwnerCredentials|Using the "Resource Owner Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ResourceOwnerCredentials /oauth/token|
+|OAuth2ClientCredentials|Using the "Client Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ClientCredentials /oauth/token|
 
 Any text that is present after the last parameter wil be used as the description. For
 instance `@SecurityScheme MyApiAuth basic Login with your admin credentials`.
