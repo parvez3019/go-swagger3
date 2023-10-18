@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
+	oas "github.com/hanyue2020/go-swagger3/openApi3Schema"
+	"github.com/hanyue2020/go-swagger3/parser/utils"
 )
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {

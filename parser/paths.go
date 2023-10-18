@@ -2,10 +2,11 @@ package parser
 
 import (
 	"fmt"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/hanyue2020/go-swagger3/parser/utils"
 )
 
 func (p *parser) verifyAndSetPaths() error {

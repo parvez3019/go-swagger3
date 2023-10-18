@@ -1,9 +1,10 @@
 package main
 
 import (
-	appPkg "github.com/parvez3019/go-swagger3/app"
 	"log"
 	"os"
+
+	appPkg "github.com/hanyue2020/go-swagger3/app"
 )
 
 func main() {

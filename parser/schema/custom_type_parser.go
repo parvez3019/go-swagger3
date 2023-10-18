@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	. "github.com/hanyue2020/go-swagger3/openApi3Schema"
+	"github.com/hanyue2020/go-swagger3/parser/utils"
 	"github.com/iancoleman/orderedmap"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -8,7 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/parvez3019/go-swagger3/parser/model"
+	"github.com/hanyue2020/go-swagger3/parser/model"
 	"golang.org/x/mod/modfile"
 )
 

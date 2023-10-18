@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
+	oas "github.com/hanyue2020/go-swagger3/openApi3Schema"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/yaml"
 )

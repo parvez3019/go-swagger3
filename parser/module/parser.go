@@ -1,11 +1,12 @@
 package module
 
 import (
-	"github.com/parvez3019/go-swagger3/parser/model"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/hanyue2020/go-swagger3/parser/model"
+	log "github.com/sirupsen/logrus"
 )
 
 type Parser interface {

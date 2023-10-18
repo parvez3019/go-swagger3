@@ -7,8 +7,8 @@ import (
 	"go/token"
 	"strings"
 
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/model"
+	. "github.com/hanyue2020/go-swagger3/openApi3Schema"
+	"github.com/hanyue2020/go-swagger3/parser/model"
 	log "github.com/sirupsen/logrus"
 )
 

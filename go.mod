@@ -1,4 +1,4 @@
-module github.com/parvez3019/go-swagger3
+module github.com/hanyue2020/go-swagger3
 
 go 1.14
 

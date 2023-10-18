@@ -5,7 +5,7 @@ package mocks
 import (
 	ast "go/ast"
 
-	openApi3Schema "github.com/parvez3019/go-swagger3/openApi3Schema"
+	openApi3Schema "github.com/hanyue2020/go-swagger3/openApi3Schema"
 	mock "github.com/stretchr/testify/mock"
 )
 

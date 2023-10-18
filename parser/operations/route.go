@@ -2,10 +2,11 @@ package operations
 
 import (
 	"fmt"
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"net/http"
 	"regexp"
 	"strings"
+
+	oas "github.com/hanyue2020/go-swagger3/openApi3Schema"
 )
 
 func (p *parser) parseRouteComment(operation *oas.OperationObject, comment string) error {

@@ -2,11 +2,12 @@ package apis
 
 import (
 	"errors"
-	"github.com/iancoleman/orderedmap"
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/schema"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	oas "github.com/hanyue2020/go-swagger3/openApi3Schema"
+	"github.com/hanyue2020/go-swagger3/parser/schema"
+	"github.com/iancoleman/orderedmap"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_ParseHeaderParameters(t *testing.T) {

@@ -1,11 +1,12 @@
 package operations
 
 import (
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/model"
-	"github.com/parvez3019/go-swagger3/parser/schema"
 	"go/ast"
 	"strings"
+
+	. "github.com/hanyue2020/go-swagger3/openApi3Schema"
+	"github.com/hanyue2020/go-swagger3/parser/model"
+	"github.com/hanyue2020/go-swagger3/parser/schema"
 )
 
 type Parser interface {

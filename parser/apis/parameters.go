@@ -2,9 +2,10 @@ package apis
 
 import (
 	"fmt"
-	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"go/ast"
 	"strings"
+
+	oas "github.com/hanyue2020/go-swagger3/openApi3Schema"
 )
 
 func (p *parser) parseParameters() error {

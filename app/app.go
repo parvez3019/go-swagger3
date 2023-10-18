@@ -1,8 +1,8 @@
 package app
 
 import (
-	parserPkg "github.com/parvez3019/go-swagger3/parser"
-	"github.com/parvez3019/go-swagger3/writer"
+	parserPkg "github.com/hanyue2020/go-swagger3/parser"
+	"github.com/hanyue2020/go-swagger3/writer"
 	"github.com/urfave/cli"
 )
 
