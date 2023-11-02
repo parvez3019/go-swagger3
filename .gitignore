@@ -16,3 +16,6 @@
 
 # build file
 go-swagger3
+
+# vendor
+vendor/
