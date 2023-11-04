@@ -126,47 +126,44 @@ type MediaTypeObject struct {
 }
 
 type SchemaObject struct {
-	ID                 string                 `json:"-"` // For go-swagger3
-	PkgName            string                 `json:"-"` // For go-swagger3
-	FieldName          string                 `json:"-"` // For go-swagger3
-	DisabledFieldNames map[string]struct{}    `json:"-"` // For go-swagger3
-	Type               string                 `json:"type,omitempty"`
-	Format             string                 `json:"format,omitempty"`
-	Required           []string               `json:"required,omitempty"`
-	Properties         *orderedmap.OrderedMap `json:"properties,omitempty"`
-	Description        string                 `json:"description,omitempty"`
-	Items              *SchemaObject          `json:"items,omitempty"` // use ptr to prevent recursive error
-	Example            interface{}            `json:"example,omitempty"`
-	Deprecated         bool                   `json:"deprecated,omitempty"`
-	Ref                string                 `json:"$ref,omitempty"` // Ref is used when SchemaObject is as a ReferenceObject
-	Enum               interface{}            `json:"enum,omitempty"`
-	MaxLength          uint                   `json:"maxLength,omitempty"`
-	MinLength          uint                   `json:"minLength,omitempty"`
+	ID                   string                 `json:"-"` // For go-swagger3
+	PkgName              string                 `json:"-"` // For go-swagger3
+	FieldName            string                 `json:"-"` // For go-swagger3
+	DisabledFieldNames   map[string]struct{}    `json:"-"` // For go-swagger3
+	Type                 string                 `json:"type,omitempty"`
+	Format               string                 `json:"format,omitempty"`
+	Required             []string               `json:"required,omitempty"`
+	Properties           *orderedmap.OrderedMap `json:"properties,omitempty"`
+	Description          string                 `json:"description,omitempty"`
+	Items                *SchemaObject          `json:"items,omitempty"` // use ptr to prevent recursive error
+	Example              interface{}            `json:"example,omitempty"`
+	Deprecated           bool                   `json:"deprecated,omitempty"`
+	Ref                  string                 `json:"$ref,omitempty"` // Ref is used when SchemaObject is as a ReferenceObject
+	Enum                 interface{}            `json:"enum,omitempty"`
+	Title                string                 `json:"title,omitempty"`
+	Maximum              float64                `json:"maximum,omitempty"`
+	ExclusiveMaximum     bool                   `json:"exclusiveMaximum,omitempty"`
+	Minimum              float64                `json:"minimum,omitempty"`
+	ExclusiveMinimum     bool                   `json:"exclusiveMinimum,omitempty"`
+	MaxLength            uint                   `json:"maxLength,omitempty"`
+	MinLength            uint                   `json:"minLength,omitempty"`
+	Pattern              string                 `json:"pattern,omitempty"`
+	MaxItems             uint                   `json:"maxItems,omitempty"`
+	MinItems             uint                   `json:"minItems,omitempty"`
+	UniqueItems          bool                   `json:"uniqueItems,omitempty"`
+	MaxProperties        uint                   `json:"maxProperties,omitempty"`
+	MinProperties        uint                   `json:"minProperties,omitempty"`
+	AdditionalProperties bool                   `json:"additionalProperties,omitempty"`
+	Nullable             bool                   `json:"nullable,omitempty"`
+	ReadOnly             bool                   `json:"readOnly,omitempty"`
+	WriteOnly            bool                   `json:"writeOnly,omitempty"`
 
-	// Title
 	// MultipleOf
-	// Maximum
-	// ExclusiveMaximum
-	// Minimum
-	// ExclusiveMinimum
-	// MaxLength
-	// MinLength
-	// Pattern
-	// MaxItems
-	// MinItems
-	// UniqueItems
-	// MaxProperties
-	// MinProperties
 	// AllOf
 	// OneOf
 	// AnyOf
 	// Not
-	// AdditionalProperties
-	// Description
 	// Default
-	// Nullable
-	// ReadOnly
-	// WriteOnly
 	// XML
 	// ExternalDocs
 }
