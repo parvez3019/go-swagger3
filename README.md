@@ -127,7 +127,7 @@ type RequestHeaders struct {
 // @Title Get user list of a group.
 // @Description Get users related to a specific group.
 // @Header model.RequestHeaders
-// @Param  groupID  path  int  true  "Id of a specific group."
+// @Param  groupID  path  int  true  "Id of a specific group." "120"
 // @Success  200  object  UsersResponse  "UsersResponse JSON"
 // @Failure  400  object  ErrorResponse  "ErrorResponse JSON"
 // @Resource users
@@ -161,14 +161,15 @@ func PostUser() {
 
 #### Parameter
 ```
-@Param  {name}  {in}  {goType}  {required}  {description}
-@Param  user    body  User      true        "Info of a user."
+@Param  {name}    {in}  {goType}  {required}  {description}             {example}
+@Param  groupID   path  int       true        "Id of a specific group." "120"
 ```
 - {name}: The parameter name.
 - {in}: The parameter is in `path`, `query`, `form`, `header`, `cookie`, `body` or `file`.
 - {goType}: The type in go code. This will be ignored when {in} is `file`.
 - {required}: `true`, `false`, `required` or `optional`. 
 - {description}: The description of the parameter. Must be quoted.
+- {example}: **Optional** example of this parameter. Must be quoted.
 
 One can also override example for an object with `override-example` key in struct
 eg -
@@ -251,6 +252,46 @@ type Request struct {
 }
 
 ```
+
+#### Response body
+You need to provide swagger fields as reflect tags in your structure. In example:
+```go
+type Filter struct {
+	Rating       int    `json:"rating"`
+	Type         string `json:"type"`
+	Distance     int64  `json:"distance", minimum:"1", maximum:"100"`
+	DistrictCode string `json:"district_code", pattern:"[a-z]{2}\\d[a-z]\\s\\d[a-z]{2}"`
+}
+```
+
+Available fields:
+- type
+- format
+- required
+- properties
+- description
+- items
+- example
+- deprecated (bool)
+- ref
+- enum
+- title
+- maximum (float64)
+- exclusiveMaximum (bool)
+- minimum (float64)
+- exclusiveMinimum (bool)
+- maxLength (uint)
+- minLength (uint)
+- pattern
+- maxItems (uint)
+- minItems (uint)
+- uniqueItems (bool)
+- maxProperties (uint)
+- minProperties (uint)
+- additionalProperties (bool)
+- nullable (bool)
+- readOnly (bool)
+- writeOnly (bool)
 
 ### 4. Security
 
