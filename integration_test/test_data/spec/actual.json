@@ -73,6 +73,7 @@
             "name": "offset",
             "in": "query",
             "description": "offset limit count",
+            "example": "100",
             "schema": {
               "type": "integer",
               "format": "int64",

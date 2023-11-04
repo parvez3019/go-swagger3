@@ -11,12 +11,12 @@ import (
 )
 
 func (p *parser) parseParamComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {
-	// {name}  {in}  {goType}  {required}  {description}
+	// {name}  {in}  {goType}  {required}  {description}		{example (optional)}
 	// user    body  User      true        "Info of a user."
-	// f       file  ignored   true        "Upload a file."
-	re := regexp.MustCompile(`([-.\w]+)[\s]+([\w]+)[\s]+([\w./\[\]]+)[\s]+([\w]+)[\s]+"([^"]+)"`)
+	// f       file  ignored   true        "Upload a file." 	"/home/arlet/go-swagger3/main.go"
+	re := regexp.MustCompile(`([-.\w]+)[\s]+([\w]+)[\s]+([\w./\[\]]+)[\s]+([\w]+)[\s]+"([^"]+)"([\s]+"([^"]+)")*`)
 	matches := re.FindStringSubmatch(comment)
-	if len(matches) != 6 {
+	if len(matches) != 8 && len(matches) != 6 {
 		return fmt.Errorf("parseParamComment can not parse param comment \"%s\"", comment)
 	}
 
@@ -25,6 +25,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *oas.Opera
 	appendIn(&parameterObject, matches[2])
 	appendRequired(&parameterObject, matches[4])
 	appendDescription(&parameterObject, matches[5])
+	appendExample(&parameterObject, matches[7]) // 6 group is using for checking if example exist
 
 	goType := getType(re, matches)
 
@@ -188,4 +189,12 @@ func appendIn(parameterObject *oas.ParameterObject, in string) {
 
 func appendName(parameterObject *oas.ParameterObject, name string) {
 	parameterObject.Name = name
+}
+
+func appendExample(parameterObject *oas.ParameterObject, example string) {
+	if example == "" {
+		parameterObject.Example = nil
+	} else {
+		parameterObject.Example = example
+	}
 }
