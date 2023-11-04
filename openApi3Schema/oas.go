@@ -140,6 +140,8 @@ type SchemaObject struct {
 	Deprecated         bool                   `json:"deprecated,omitempty"`
 	Ref                string                 `json:"$ref,omitempty"` // Ref is used when SchemaObject is as a ReferenceObject
 	Enum               interface{}            `json:"enum,omitempty"`
+	MaxLength          uint                   `json:"maxLength,omitempty"`
+	MinLength          uint                   `json:"minLength,omitempty"`
 
 	// Title
 	// MultipleOf

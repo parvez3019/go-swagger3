@@ -318,6 +318,14 @@ astFieldsLoop:
 			if enumValues := astFieldTag.Get("enum"); enumValues != "" {
 				fieldSchema.Enum = parseEnumValues(enumValues)
 			}
+
+			if maxLength := astFieldTag.Get("maxLength"); maxLength != "" {
+				fieldSchema.MaxLength = parseMaxLength(maxLength)
+			}
+
+			if minLength := astFieldTag.Get("minLength"); minLength != "" {
+				fieldSchema.MinLength = parseMinLength(minLength)
+			}
 		}
 
 		structSchema.Properties.Set(name, fieldSchema)
@@ -450,6 +458,24 @@ func parseEnumValues(enumString string) interface{} {
 		result = append(result, currentEnumValue)
 	}
 	return result
+}
+
+func parseMaxLength(maxLengthString string) uint {
+	value, err := strconv.ParseUint(maxLengthString, 10, 64)
+	if err != nil {
+		value = 0
+	}
+
+	return uint(value)
+}
+
+func parseMinLength(minLengthString string) uint {
+	value, err := strconv.ParseUint(minLengthString, 10, 64)
+	if err != nil {
+		value = 0
+	}
+
+	return uint(value)
 }
 
 type DECL struct {
