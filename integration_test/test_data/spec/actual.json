@@ -41,7 +41,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetRestaurantsResponse"
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse"
                 }
               }
             }
@@ -92,8 +92,18 @@
             "in": "query",
             "description": "In json format",
             "schema": {
-              "type": "Filter",
-              "$ref": "#/components/schemas/Filter"
+              "type": "github.com.parvez3019.go-swagger3.model.Filter",
+              "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.Filter"
+            }
+          },
+          {
+            "name": "extra.field",
+            "in": "query",
+            "description": "extra field",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "extra field"
             }
           }
         ]
@@ -123,7 +133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateUserResponse"
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserResponse"
                 }
               }
             }
@@ -146,7 +156,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserRequest"
+                "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserRequest"
               }
             }
           },
@@ -157,96 +167,6 @@
   },
   "components": {
     "schemas": {
-      "CreateUserRequest": {
-        "type": "object",
-        "properties": {
-          "first_name": {
-            "type": "string"
-          },
-          "last_name": {
-            "type": "string"
-          },
-          "age": {
-            "type": "integer"
-          },
-          "email_id": {
-            "type": "string"
-          },
-          "user_name": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "CreateUserResponse": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string"
-          }
-        }
-      },
-      "Filter": {
-        "type": "object",
-        "properties": {
-          "rating": {
-            "type": "integer"
-          },
-          "type": {
-            "type": "string"
-          },
-          "distance": {
-            "type": "integer"
-          },
-          "district_code": {
-            "type": "string"
-          }
-        }
-      },
-      "GetRestaurantsResponse": {
-        "type": "object",
-        "properties": {
-          "restaurants": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "city": {
-                  "type": "string"
-                },
-                "rating": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string"
-                },
-                "menus": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       "Headers": {
         "type": "object",
         "properties": {
@@ -324,6 +244,113 @@
                 }
               }
             }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 256,
+            "exclusiveMaximum": true,
+            "minimum": 18,
+            "exclusiveMinimum": true
+          },
+          "email_id": {
+            "type": "string",
+            "pattern": "[\\w.]+@[\\w.]"
+          },
+          "user_name": {
+            "type": "string",
+            "title": "login"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 6
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "uniqueItems": true,
+            "nullable": true,
+            "writeOnly": true
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.Filter": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "integer"
+          },
+          "district_code": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse": {
+        "type": "object",
+        "properties": {
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "menus": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "maxProperties": 100,
+            "minProperties": 2,
+            "additionalProperties": true
           }
         }
       }
