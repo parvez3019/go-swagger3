@@ -7,6 +7,7 @@
 
 # Test binary, built with `go test -c`
 *.test
+integration_test/test_data/spec/actual.json
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

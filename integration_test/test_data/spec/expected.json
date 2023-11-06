@@ -73,6 +73,7 @@
             "name": "offset",
             "in": "query",
             "description": "offset limit count",
+            "example": "100",
             "schema": {
               "type": "integer",
               "format": "int64",
@@ -171,28 +172,42 @@
         "type": "object",
         "properties": {
           "first_name": {
-            "type": "string"
+            "type": "string",
+            "readOnly": true
           },
           "last_name": {
             "type": "string"
           },
           "age": {
-            "type": "integer"
+            "type": "integer",
+            "maximum": 256,
+            "exclusiveMaximum": true,
+            "minimum": 18,
+            "exclusiveMinimum": true
           },
           "email_id": {
-            "type": "string"
+            "type": "string",
+            "pattern": "[\\w.]+@[\\w.]"
           },
           "user_name": {
-            "type": "string"
+            "type": "string",
+            "title": "login"
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 6
           },
           "roles": {
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "uniqueItems": true,
+            "nullable": true,
+            "writeOnly": true
           }
         }
       },
@@ -253,7 +268,10 @@
                   }
                 }
               }
-            }
+            },
+            "maxProperties": 100,
+            "minProperties": 2,
+            "additionalProperties": true
           }
         }
       },

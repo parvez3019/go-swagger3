@@ -49,4 +49,3 @@ func (p *parser) Parse() error {
 
 	return p.parsePaths()
 }
-

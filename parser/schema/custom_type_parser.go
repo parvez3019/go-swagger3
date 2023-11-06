@@ -318,6 +318,74 @@ astFieldsLoop:
 			if enumValues := astFieldTag.Get("enum"); enumValues != "" {
 				fieldSchema.Enum = parseEnumValues(enumValues)
 			}
+
+			if title := astFieldTag.Get("title"); title != "" {
+				fieldSchema.Title = title
+			}
+
+			if maximum := astFieldTag.Get("maximum"); maximum != "" {
+				fieldSchema.Maximum = parseFloat64(maximum)
+			}
+
+			if exclusiveMaximum := astFieldTag.Get("exclusiveMaximum"); exclusiveMaximum == "true" {
+				fieldSchema.ExclusiveMaximum = true
+			}
+
+			if minimum := astFieldTag.Get("minimum"); minimum != "" {
+				fieldSchema.Minimum = parseFloat64(minimum)
+			}
+
+			if exclusiveMinimum := astFieldTag.Get("exclusiveMinimum"); exclusiveMinimum == "true" {
+				fieldSchema.ExclusiveMinimum = true
+			}
+
+			if maxLength := astFieldTag.Get("maxLength"); maxLength != "" {
+				fieldSchema.MaxLength = parseUint(maxLength)
+			}
+
+			if minLength := astFieldTag.Get("minLength"); minLength != "" {
+				fieldSchema.MinLength = parseUint(minLength)
+			}
+
+			if pattern := astFieldTag.Get("pattern"); pattern != "" {
+				fieldSchema.Pattern = pattern
+			}
+
+			if maxItems := astFieldTag.Get("maxItems"); maxItems != "" {
+				fieldSchema.MaxItems = parseUint(maxItems)
+			}
+
+			if minItems := astFieldTag.Get("minItems"); minItems != "" {
+				fieldSchema.MinItems = parseUint(minItems)
+			}
+
+			if uniqueItems := astFieldTag.Get("uniqueItems"); uniqueItems == "true" {
+				fieldSchema.UniqueItems = true
+			}
+
+			if maxProperties := astFieldTag.Get("maxProperties"); maxProperties != "" {
+				fieldSchema.MaxProperties = parseUint(maxProperties)
+			}
+
+			if minProperties := astFieldTag.Get("minProperties"); minProperties != "" {
+				fieldSchema.MinProperties = parseUint(minProperties)
+			}
+
+			if additionalProperties := astFieldTag.Get("additionalProperties"); additionalProperties == "true" {
+				fieldSchema.AdditionalProperties = true
+			}
+
+			if nullable := astFieldTag.Get("nullable"); nullable == "true" {
+				fieldSchema.Nullable = true
+			}
+
+			if readOnly := astFieldTag.Get("readOnly"); readOnly == "true" {
+				fieldSchema.ReadOnly = true
+			}
+
+			if writeOnly := astFieldTag.Get("writeOnly"); writeOnly == "true" {
+				fieldSchema.WriteOnly = true
+			}
 		}
 
 		structSchema.Properties.Set(name, fieldSchema)
@@ -450,6 +518,24 @@ func parseEnumValues(enumString string) interface{} {
 		result = append(result, currentEnumValue)
 	}
 	return result
+}
+
+func parseUint(uintString string) uint {
+	value, err := strconv.ParseUint(uintString, 10, 64)
+	if err != nil {
+		value = 0
+	}
+
+	return uint(value)
+}
+
+func parseFloat64(float64String string) float64 {
+	value, err := strconv.ParseFloat(float64String, 64)
+	if err != nil {
+		value = 0
+	}
+
+	return value
 }
 
 type DECL struct {
