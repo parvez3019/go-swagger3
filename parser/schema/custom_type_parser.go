@@ -250,144 +250,30 @@ astFieldsLoop:
 					name = v
 				}
 			}
-
-			if tag := astFieldTag.Get("example"); tag != "" {
-				switch fieldSchema.Type {
-				case "boolean":
-					fieldSchema.Example, _ = strconv.ParseBool(tag)
-				case "integer":
-					fieldSchema.Example, _ = strconv.Atoi(tag)
-				case "number":
-					fieldSchema.Example, _ = strconv.ParseFloat(tag, 64)
-				case "array":
-					b, err := json.RawMessage(tag).MarshalJSON()
-					if err != nil {
-						fieldSchema.Example = "invalid example"
-					} else {
-						sliceOfInterface := []interface{}{}
-						err := json.Unmarshal(b, &sliceOfInterface)
-						if err != nil {
-							fieldSchema.Example = "invalid example"
-						} else {
-							fieldSchema.Example = sliceOfInterface
-						}
-					}
-				case "object":
-					b, err := json.RawMessage(tag).MarshalJSON()
-					if err != nil {
-						fieldSchema.Example = "invalid example"
-					} else {
-						mapOfInterface := map[string]interface{}{}
-						err := json.Unmarshal(b, &mapOfInterface)
-						if err != nil {
-							fieldSchema.Example = "invalid example"
-						} else {
-							fieldSchema.Example = mapOfInterface
-						}
-					}
-				default:
-					fieldSchema.Example = tag
-				}
-
-				if fieldSchema.Example != nil && len(fieldSchema.Ref) != 0 {
-					fieldSchema.Ref = ""
-				}
-			}
-
-			if tag := astFieldTag.Get("override-example"); tag != "" {
-				fieldSchema.Example = tag
-
-				if fieldSchema.Example != nil && len(fieldSchema.Ref) != 0 {
-					fieldSchema.Ref = ""
-				}
-			}
-
-			if _, ok := astFieldTag.Lookup("required"); ok || isRequired {
-				structSchema.Required = append(structSchema.Required, name)
-			}
-
-			if desc := astFieldTag.Get("description"); desc != "" {
-				fieldSchema.Description = desc
-			}
-
-			if ref := astFieldTag.Get("$ref"); ref != "" {
-				fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(ref)
-				fieldSchema.Type = "" // remove default type in case of reference link
-			}
-
-			if enumValues := astFieldTag.Get("enum"); enumValues != "" {
-				fieldSchema.Enum = parseEnumValues(enumValues)
-			}
-
-			if title := astFieldTag.Get("title"); title != "" {
-				fieldSchema.Title = title
-			}
-
-			if maximum := astFieldTag.Get("maximum"); maximum != "" {
-				fieldSchema.Maximum = parseFloat64(maximum)
-			}
-
-			if exclusiveMaximum := astFieldTag.Get("exclusiveMaximum"); exclusiveMaximum == "true" {
-				fieldSchema.ExclusiveMaximum = true
-			}
-
-			if minimum := astFieldTag.Get("minimum"); minimum != "" {
-				fieldSchema.Minimum = parseFloat64(minimum)
-			}
-
-			if exclusiveMinimum := astFieldTag.Get("exclusiveMinimum"); exclusiveMinimum == "true" {
-				fieldSchema.ExclusiveMinimum = true
-			}
-
-			if maxLength := astFieldTag.Get("maxLength"); maxLength != "" {
-				fieldSchema.MaxLength = parseUint(maxLength)
-			}
-
-			if minLength := astFieldTag.Get("minLength"); minLength != "" {
-				fieldSchema.MinLength = parseUint(minLength)
-			}
-
-			if pattern := astFieldTag.Get("pattern"); pattern != "" {
-				fieldSchema.Pattern = pattern
-			}
-
-			if maxItems := astFieldTag.Get("maxItems"); maxItems != "" {
-				fieldSchema.MaxItems = parseUint(maxItems)
-			}
-
-			if minItems := astFieldTag.Get("minItems"); minItems != "" {
-				fieldSchema.MinItems = parseUint(minItems)
-			}
-
-			if uniqueItems := astFieldTag.Get("uniqueItems"); uniqueItems == "true" {
-				fieldSchema.UniqueItems = true
-			}
-
-			if maxProperties := astFieldTag.Get("maxProperties"); maxProperties != "" {
-				fieldSchema.MaxProperties = parseUint(maxProperties)
-			}
-
-			if minProperties := astFieldTag.Get("minProperties"); minProperties != "" {
-				fieldSchema.MinProperties = parseUint(minProperties)
-			}
-
-			if additionalProperties := astFieldTag.Get("additionalProperties"); additionalProperties == "true" {
-				fieldSchema.AdditionalProperties = true
-			}
-
-			if nullable := astFieldTag.Get("nullable"); nullable == "true" {
-				fieldSchema.Nullable = true
-			}
-
-			if readOnly := astFieldTag.Get("readOnly"); readOnly == "true" {
-				fieldSchema.ReadOnly = true
-			}
-
-			if writeOnly := astFieldTag.Get("writeOnly"); writeOnly == "true" {
-				fieldSchema.WriteOnly = true
-			}
+			p.addExample(astFieldTag, fieldSchema)
+			p.addOverrideExample(astFieldTag, fieldSchema)
+			p.addRequiredField(astFieldTag, isRequired, structSchema, name)
+			p.addDescription(astFieldTag, fieldSchema)
+			p.addReference(astFieldTag, fieldSchema)
+			p.addEnum(astFieldTag, fieldSchema)
+			p.addTitle(astFieldTag, fieldSchema)
+			p.addMaxLimit(astFieldTag, fieldSchema)
+			p.addIsExclusiveMaximum(astFieldTag, fieldSchema)
+			p.addMinimumLimit(astFieldTag, fieldSchema)
+			p.addIsExclusiveMinimum(astFieldTag, fieldSchema)
+			p.addMaxLength(astFieldTag, fieldSchema)
+			p.addMinLength(astFieldTag, fieldSchema)
+			p.addPattern(astFieldTag, fieldSchema)
+			p.addMaxItems(astFieldTag, fieldSchema)
+			p.addMinItems(astFieldTag, fieldSchema)
+			p.addUniqueItems(astFieldTag, fieldSchema)
+			p.addMaxProperties(astFieldTag, fieldSchema)
+			p.addMinProperties(astFieldTag, fieldSchema)
+			p.addAdditionalProperties(astFieldTag, fieldSchema)
+			p.addNullable(astFieldTag, fieldSchema)
+			p.addReadOnly(astFieldTag, fieldSchema)
+			p.addWriteOnly(astFieldTag, fieldSchema)
 		}
-
 		structSchema.Properties.Set(name, fieldSchema)
 	}
 	for _, astField := range astFields {
@@ -470,6 +356,188 @@ astFieldsLoop:
 				}
 			}
 			continue
+		}
+	}
+}
+
+func (p *parser) addExample(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if tag := astFieldTag.Get("example"); tag != "" {
+		switch fieldSchema.Type {
+		case "boolean":
+			fieldSchema.Example, _ = strconv.ParseBool(tag)
+		case "integer":
+			fieldSchema.Example, _ = strconv.Atoi(tag)
+		case "number":
+			fieldSchema.Example, _ = strconv.ParseFloat(tag, 64)
+		case "array":
+			b, err := json.RawMessage(tag).MarshalJSON()
+			if err != nil {
+				fieldSchema.Example = "invalid example"
+			} else {
+				sliceOfInterface := []interface{}{}
+				err := json.Unmarshal(b, &sliceOfInterface)
+				if err != nil {
+					fieldSchema.Example = "invalid example"
+				} else {
+					fieldSchema.Example = sliceOfInterface
+				}
+			}
+		case "object":
+			b, err := json.RawMessage(tag).MarshalJSON()
+			if err != nil {
+				fieldSchema.Example = "invalid example"
+			} else {
+				mapOfInterface := map[string]interface{}{}
+				err := json.Unmarshal(b, &mapOfInterface)
+				if err != nil {
+					fieldSchema.Example = "invalid example"
+				} else {
+					fieldSchema.Example = mapOfInterface
+				}
+			}
+		default:
+			fieldSchema.Example = tag
+		}
+
+		if fieldSchema.Example != nil && len(fieldSchema.Ref) != 0 {
+			fieldSchema.Ref = ""
+		}
+	}
+}
+
+func (p *parser) addWriteOnly(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if writeOnly := astFieldTag.Get("writeOnly"); writeOnly == "true" {
+		fieldSchema.WriteOnly = true
+	}
+}
+
+func (p *parser) addReadOnly(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if readOnly := astFieldTag.Get("readOnly"); readOnly == "true" {
+		fieldSchema.ReadOnly = true
+	}
+}
+
+func (p *parser) addNullable(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if nullable := astFieldTag.Get("nullable"); nullable == "true" {
+		fieldSchema.Nullable = true
+	}
+}
+
+func (p *parser) addAdditionalProperties(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if additionalProperties := astFieldTag.Get("additionalProperties"); additionalProperties == "true" {
+		fieldSchema.AdditionalProperties = true
+	}
+}
+
+func (p *parser) addMinProperties(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if minProperties := astFieldTag.Get("minProperties"); minProperties != "" {
+		fieldSchema.MinProperties = parseUint(minProperties)
+	}
+}
+
+func (p *parser) addMaxProperties(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if maxProperties := astFieldTag.Get("maxProperties"); maxProperties != "" {
+		fieldSchema.MaxProperties = parseUint(maxProperties)
+	}
+}
+
+func (p *parser) addUniqueItems(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if uniqueItems := astFieldTag.Get("uniqueItems"); uniqueItems == "true" {
+		fieldSchema.UniqueItems = true
+	}
+}
+
+func (p *parser) addMinItems(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if minItems := astFieldTag.Get("minItems"); minItems != "" {
+		fieldSchema.MinItems = parseUint(minItems)
+	}
+}
+
+func (p *parser) addMaxItems(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if maxItems := astFieldTag.Get("maxItems"); maxItems != "" {
+		fieldSchema.MaxItems = parseUint(maxItems)
+	}
+}
+
+func (p *parser) addPattern(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if pattern := astFieldTag.Get("pattern"); pattern != "" {
+		fieldSchema.Pattern = pattern
+	}
+}
+
+func (p *parser) addMinLength(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if minLength := astFieldTag.Get("minLength"); minLength != "" {
+		fieldSchema.MinLength = parseUint(minLength)
+	}
+}
+
+func (p *parser) addMaxLength(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if maxLength := astFieldTag.Get("maxLength"); maxLength != "" {
+		fieldSchema.MaxLength = parseUint(maxLength)
+	}
+}
+
+func (p *parser) addIsExclusiveMinimum(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if exclusiveMinimum := astFieldTag.Get("exclusiveMinimum"); exclusiveMinimum == "true" {
+		fieldSchema.ExclusiveMinimum = true
+	}
+}
+
+func (p *parser) addMinimumLimit(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if minimum := astFieldTag.Get("minimum"); minimum != "" {
+		fieldSchema.Minimum = parseFloat64(minimum)
+	}
+}
+
+func (p *parser) addIsExclusiveMaximum(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if exclusiveMaximum := astFieldTag.Get("exclusiveMaximum"); exclusiveMaximum == "true" {
+		fieldSchema.ExclusiveMaximum = true
+	}
+}
+
+func (p *parser) addMaxLimit(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if maximum := astFieldTag.Get("maximum"); maximum != "" {
+		fieldSchema.Maximum = parseFloat64(maximum)
+	}
+}
+
+func (p *parser) addTitle(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if title := astFieldTag.Get("title"); title != "" {
+		fieldSchema.Title = title
+	}
+}
+
+func (p *parser) addEnum(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if enumValues := astFieldTag.Get("enum"); enumValues != "" {
+		fieldSchema.Enum = parseEnumValues(enumValues)
+	}
+}
+
+func (p *parser) addReference(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if ref := astFieldTag.Get("$ref"); ref != "" {
+		fieldSchema.Ref = utils.AddSchemaRefLinkPrefix(ref)
+		fieldSchema.Type = "" // remove default type in case of reference link
+	}
+}
+
+func (p *parser) addDescription(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if desc := astFieldTag.Get("description"); desc != "" {
+		fieldSchema.Description = desc
+	}
+}
+
+func (p *parser) addRequiredField(astFieldTag reflect.StructTag, isRequired bool, structSchema *SchemaObject, name string) {
+	if _, ok := astFieldTag.Lookup("required"); ok || isRequired {
+		structSchema.Required = append(structSchema.Required, name)
+	}
+}
+
+func (p *parser) addOverrideExample(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if tag := astFieldTag.Get("override-example"); tag != "" {
+		fieldSchema.Example = tag
+
+		if fieldSchema.Example != nil && len(fieldSchema.Ref) != 0 {
+			fieldSchema.Ref = ""
 		}
 	}
 }
