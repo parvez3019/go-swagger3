@@ -1,14 +1,11 @@
 ### Demo
-
 Click here for [Youtube Demo Link](https://www.youtube.com/watch?v=GLM9c5j8g7I)
-
 
 # go-swagger3
 
 Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with comments in Go.
 
 ### Table of content
-
 - [1. Install](#1-install)
 - [2. Documentation Generation](#2-documentation-generation)
 - [3. Usage](#3-usage)
@@ -31,7 +28,6 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 ```
 go install github.com/parvez3019/go-swagger3@latest
 ```
-
 
 ### 2. Documentation Generation
 #### Using binary
