@@ -197,10 +197,10 @@ type Request struct {
 
 #### Response
 ``` json
-@Success  {stauts}  {jsonType}  {goType}       {description}
+@Success  {status}  {jsonType}  {goType}       {description}
 @Success  200       object      UsersResponse  "UsersResponse JSON"
 
-@Failure  {stauts}  {jsonType}  {goType}       {description}
+@Failure  {status}  {jsonType}  {goType}       {description}
 @Failure  400       object      ErrorResponse  "ErrorResponse JSON"
 ```
 - {status}: The HTTP status code.
