@@ -27,8 +27,8 @@ func GetRestaurants() {
 // @param isDigitalScreen query string false "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false"
 // @success 200 {object} GetPogsResponse
 // @failure 400 {object} ValidationError
-// @failure 404 {object} types.ErrResponse
-// @failure 500 {object} types.ErrResponse
+// @failure 404 {object} ErrResponse
+// @failure 500 {object} ErrResponse
 // @route assortment/planogram [get]
 func GetPogs() {}
 
@@ -40,4 +40,9 @@ type GetPogsResponse struct {
 type ValidationError struct {
 	StatusCode int     `json:"statusCode" xml:"statusCode"`
 	Errors     []error `json:"errors" xml:"errors"`
+}
+
+type ErrResponse struct {
+	StatusCode int    `json:"statusCode" xml:"statusCode"`
+	Message    string `json:"message" xml:"message"`
 }
