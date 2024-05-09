@@ -164,6 +164,118 @@
           "required": true
         }
       }
+    },
+    "assortment/planogram": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.GetPogsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Planograms.",
+        "description": " Returns planogram based on query params.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Use as filter.id! Planogram dbKey [comma separated list]",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.id! Planogram dbKey [comma separated list]"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "description": "Use as filter.locationId! Location ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.locationId! Location ID"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "description": "Includes. Can be: position, fixture, liveFlrFixture",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Includes. Can be: position, fixture, liveFlrFixture"
+            }
+          },
+          {
+            "name": "commodity",
+            "in": "query",
+            "description": "Use as filter.commodity! Commodity",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.commodity! Commodity"
+            }
+          },
+          {
+            "name": "commodityGroup",
+            "in": "query",
+            "description": "Use as filter.commodityGroup! Commodity Group",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.commodityGroup! Commodity Group"
+            }
+          },
+          {
+            "name": "isDigitalScreen",
+            "in": "query",
+            "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -244,6 +356,42 @@
                   "type": "string"
                 }
               }
+            }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.ErrResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.GetPogsResponse": {
+        "type": "object",
+        "properties": {
+          "planograms": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.ValidationError": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "error"
             }
           }
         }

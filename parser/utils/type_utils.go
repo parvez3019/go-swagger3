@@ -22,6 +22,7 @@ var GoTypesOASFormats = map[string]string{
 	"float32": "float",
 	"float64": "double",
 	"string":  "string",
+	"error":   "error",
 }
 
 var BasicGoTypes = map[string]bool{
@@ -62,6 +63,7 @@ var GoTypesOASTypes = map[string]string{
 	"float32": "number",
 	"float64": "number",
 	"string":  "string",
+	"error":   "error",
 }
 
 func IsMainFile(path string) bool {
