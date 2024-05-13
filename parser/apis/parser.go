@@ -18,6 +18,7 @@ type parser struct {
 	model.Utils
 	schemaParser    schema.Parser
 	operationParser operations.Parser
+	TypeAliases     map[string]map[string]string // pkgName -> alias -> original
 }
 
 func NewParser(utils model.Utils, api *oas.OpenAPIObject, schemaParser schema.Parser) Parser {
@@ -26,6 +27,7 @@ func NewParser(utils model.Utils, api *oas.OpenAPIObject, schemaParser schema.Pa
 		OpenAPI:         api,
 		schemaParser:    schemaParser,
 		operationParser: operations.NewParser(utils, api, schemaParser),
+		TypeAliases:     make(map[string]map[string]string),
 	}
 }
 
