@@ -193,7 +193,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/"
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
                 }
               }
             }
@@ -203,7 +203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/"
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
                 }
               }
             }
@@ -280,7 +280,6 @@
   },
   "components": {
     "schemas": {
-      "": {},
       "Headers": {
         "type": "object",
         "properties": {
@@ -358,6 +357,17 @@
                 }
               }
             }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.ErrResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },

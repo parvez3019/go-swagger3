@@ -193,7 +193,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/"
+                  "$ref": "#/components/schemas/ErrResponse"
                 }
               }
             }
@@ -203,7 +203,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/"
+                  "$ref": "#/components/schemas/ErrResponse"
                 }
               }
             }
@@ -280,7 +280,6 @@
   },
   "components": {
     "schemas": {
-      "": {},
       "CreateUserRequest": {
         "type": "object",
         "properties": {
@@ -328,6 +327,17 @@
         "type": "object",
         "properties": {
           "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrResponse": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
             "type": "string"
           }
         }
