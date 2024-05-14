@@ -30,8 +30,25 @@ func (p *parser) parseTypeSpecs() error {
 			p.parseTypeSpecsFromPackage(astPackage, pkgName)
 		}
 	}
+	// After all type specifications have been parsed, resolve the type aliases
+	for pkgName, aliases := range p.TypeAliases {
+		for alias, original := range aliases {
+			if originalTypeSpec, ok := p.TypeSpecs[pkgName][original]; ok {
+				p.TypeSpecs[pkgName][alias] = originalTypeSpec
+			}
+		}
+	}
 
 	return nil
+}
+
+func (p *parser) parseTypeAlias(typeSpec *ast.TypeSpec, pkgName string) {
+	if ident, ok := typeSpec.Type.(*ast.Ident); ok {
+		if _, ok := p.TypeAliases[pkgName]; !ok {
+			p.TypeAliases[pkgName] = map[string]string{}
+		}
+		p.TypeAliases[pkgName][typeSpec.Name.String()] = ident.Name
+	}
 }
 
 func (p *parser) parseTypeSpecsFromPackage(astPackage *ast.Package, pkgName string) {
@@ -54,11 +71,11 @@ func (p *parser) parseTypeSpecFromDeclaration(astDeclaration ast.Decl, pkgName s
 	}
 }
 
-// parseTypeSpecFromGenDeclaration find type declaration
 func (p *parser) parseTypeSpecFromGenDeclaration(astGenDeclaration *ast.GenDecl, pkgName string) {
 	for _, astSpec := range astGenDeclaration.Specs {
 		if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
 			p.TypeSpecs[pkgName][typeSpec.Name.String()] = typeSpec
+			p.parseTypeAlias(typeSpec, pkgName)
 		}
 	}
 }

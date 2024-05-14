@@ -26,7 +26,7 @@ func GetRestaurants() {
 // @param commodityGroup query string false "Use as filter.commodityGroup! Commodity Group"
 // @param isDigitalScreen query string false "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false"
 // @success 200 {object} GetPogsResponse
-// @failure 400 {object} ValidationError
+// @failure 400 {object} aliasValidationError
 // @failure 404 {object} ErrResponse
 // @failure 500 {object} ErrResponse
 // @route assortment/planogram [get]
@@ -36,6 +36,9 @@ type GetPogsResponse struct {
 	// @description Planogram details
 	Planograms []int `json:"planograms"`
 }
+
+// make a type alias of ValidationError
+type aliasValidationError = ValidationError
 
 type ValidationError struct {
 	StatusCode int     `json:"statusCode" xml:"statusCode"`

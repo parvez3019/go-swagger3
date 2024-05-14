@@ -183,7 +183,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ValidationError"
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.aliasValidationError"
                 }
               }
             }
@@ -382,7 +382,7 @@
           }
         }
       },
-      "github.com.parvez3019.go-swagger3.handler.ValidationError": {
+      "github.com.parvez3019.go-swagger3.handler.aliasValidationError": {
         "type": "object",
         "properties": {
           "statusCode": {
