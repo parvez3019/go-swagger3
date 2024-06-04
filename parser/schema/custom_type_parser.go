@@ -3,14 +3,15 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iancoleman/orderedmap"
-	. "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"github.com/parvez3019/go-swagger3/parser/utils"
-	log "github.com/sirupsen/logrus"
 	"go/ast"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/iancoleman/orderedmap"
+	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error) {
@@ -160,6 +161,15 @@ astFieldsLoop:
 		if len(astField.Names) == 0 {
 			continue
 		}
+
+		if astField.Tag != nil {
+			tag := reflect.StructTag(strings.Trim(astField.Tag.Value, "`"))
+			if tag.Get("skip") == "true" {
+				// If the field has a 'skip:"true"' tag, skip this iteration
+				continue
+			}
+		}
+
 		fieldSchema := &SchemaObject{}
 		typeAsString := p.getTypeAsString(astField.Type)
 		typeAsString = strings.TrimLeft(typeAsString, "*")

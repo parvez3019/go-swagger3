@@ -35,6 +35,12 @@ func GetPogs() {}
 type GetPogsResponse struct {
 	// @description Planogram details
 	Planograms []int `json:"planograms"`
+	Field3     Bar   `json:"field3" skip:"true"`
+}
+
+type Bar struct {
+	// @description Bar field
+	BarField string `json:"barField"`
 }
 
 // make a type alias of ValidationError
