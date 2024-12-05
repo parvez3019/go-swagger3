@@ -363,6 +363,7 @@ astFieldsLoop:
 
 						structSchema.Properties.Set(propertyName, refPropertySchema)
 					}
+					structSchema.Required = append(structSchema.Required, refSchema.Required...)
 				}
 			}
 			continue
