@@ -8,7 +8,7 @@ import (
 )
 
 var GoTypesOASFormats = map[string]string{
-	"bool":    "boolean",
+	"bool":    "",
 	"uint":    "int64",
 	"uint8":   "int64",
 	"uint16":  "int64",
@@ -21,7 +21,7 @@ var GoTypesOASFormats = map[string]string{
 	"int64":   "int64",
 	"float32": "float",
 	"float64": "double",
-	"string":  "string",
+	"string":  "",
 	"error":   "error",
 }
 
@@ -128,7 +128,7 @@ func GetModuleNameFromGoMod(path string) string {
 }
 
 func IsInStringList(list []string, s string) bool {
-	for i, _ := range list {
+	for i := range list {
 		if list[i] == s {
 			return true
 		}
