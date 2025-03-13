@@ -103,7 +103,6 @@
             "description": "extra field",
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "extra field"
             }
           }
@@ -219,7 +218,6 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Use as filter.id! Planogram dbKey [comma separated list]"
             }
           },
@@ -230,7 +228,6 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Use as filter.locationId! Location ID"
             }
           },
@@ -240,7 +237,6 @@
             "description": "Includes. Can be: position, fixture, liveFlrFixture",
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Includes. Can be: position, fixture, liveFlrFixture"
             }
           },
@@ -250,7 +246,6 @@
             "description": "Use as filter.commodity! Commodity",
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Use as filter.commodity! Commodity"
             }
           },
@@ -260,7 +255,6 @@
             "description": "Use as filter.commodityGroup! Commodity Group",
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Use as filter.commodityGroup! Commodity Group"
             }
           },
@@ -270,7 +264,6 @@
             "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false",
             "schema": {
               "type": "string",
-              "format": "string",
               "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false"
             }
           }
