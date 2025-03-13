@@ -280,6 +280,17 @@
   },
   "components": {
     "schemas": {
+      "Bar": {
+        "type": "object",
+        "required": [
+          "barField"
+        ],
+        "properties": {
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
       "CreateUserRequest": {
         "type": "object",
         "properties": {
@@ -331,6 +342,20 @@
           }
         }
       },
+      "EmbeddedBar": {
+        "type": "object",
+        "required": [
+          "barField"
+        ],
+        "properties": {
+          "barField2": {
+            "type": "string"
+          },
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
       "ErrResponse": {
         "type": "object",
         "properties": {
@@ -367,6 +392,14 @@
             "items": {
               "type": "integer"
             }
+          },
+          "field4": {
+            "type": "object",
+            "$ref": "#/components/schemas/Bar"
+          },
+          "field5": {
+            "type": "object",
+            "$ref": "#/components/schemas/EmbeddedBar"
           }
         }
       },

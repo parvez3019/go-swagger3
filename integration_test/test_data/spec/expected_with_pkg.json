@@ -360,6 +360,31 @@
           }
         }
       },
+      "github.com.parvez3019.go-swagger3.handler.Bar": {
+        "type": "object",
+        "required": [
+          "barField"
+        ],
+        "properties": {
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.EmbeddedBar": {
+        "type": "object",
+        "required": [
+          "barField"
+        ],
+        "properties": {
+          "barField2": {
+            "type": "string"
+          },
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
       "github.com.parvez3019.go-swagger3.handler.ErrResponse": {
         "type": "object",
         "properties": {
@@ -379,6 +404,14 @@
             "items": {
               "type": "integer"
             }
+          },
+          "field4": {
+            "type": "object",
+            "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.Bar"
+          },
+          "field5": {
+            "type": "object",
+            "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.EmbeddedBar"
           }
         }
       },
