@@ -260,6 +260,8 @@ astFieldsLoop:
 					name = v
 				}
 			}
+			p.addType(astFieldTag, fieldSchema)
+			p.addFormat(astFieldTag, fieldSchema)
 			p.addExample(astFieldTag, fieldSchema)
 			p.addOverrideExample(astFieldTag, fieldSchema)
 			p.addRequiredField(astFieldTag, isRequired, structSchema, name)
@@ -367,6 +369,20 @@ astFieldsLoop:
 			}
 			continue
 		}
+	}
+}
+
+func (p *parser) addType(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if tag := astFieldTag.Get("type"); tag != "" {
+		fieldSchema.Type = tag
+		fieldSchema.Ref = ""
+		fieldSchema.Items = nil
+	}
+}
+
+func (p *parser) addFormat(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
+	if tag := astFieldTag.Get("format"); tag != "" {
+		fieldSchema.Format = tag
 	}
 }
 
