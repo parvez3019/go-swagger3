@@ -13,6 +13,7 @@ import (
 // @Param filter query model.Filter false "In json format"
 // @Param extra.field query string false "extra field"
 // @Success 200 {object} model.GetRestaurantsResponse
+// @OperationId GetRestaurants
 // @Router /restaurants [get]
 func GetRestaurants() {
 }
@@ -29,6 +30,7 @@ func GetRestaurants() {
 // @failure 400 {object} aliasValidationError
 // @failure 404 {object} ErrResponse
 // @failure 500 {object} ErrResponse
+// @OperationId GetPogs
 // @route assortment/planogram [get]
 func GetPogs() {}
 

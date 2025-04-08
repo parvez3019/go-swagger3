@@ -157,6 +157,7 @@ openapi: 3.0.0
 paths:
   /restaurants:
     get:
+      operationId: GetRestaurants
       description: ' Returns a list of restaurants based on filter request'
       parameters:
       - $ref: '#/components/parameters/Client-Version'
@@ -197,6 +198,7 @@ paths:
       summary: Get restaurants list
   /user:
     post:
+      operationId: CreateUser
       description: ' Creates & Returns an User based on the request'
       parameters:
       - $ref: '#/components/parameters/Client-Version'
@@ -216,6 +218,72 @@ paths:
                 $ref: '#/components/schemas/CreateUserResponse'
           description: ""
       summary: Create User
+  /assortment/planogram:
+    get:
+      operationId: GetPogs
+      description: Returns planogram based on query params
+      parameters:
+      - name: id
+        in: query
+        required: true
+        description: Use as filter.id! Planogram dbKey [comma separated list]
+        schema:
+          type: string
+      - name: locationId
+        in: query
+        required: true
+        description: Use as filter.locationId! Location ID
+        schema:
+          type: string
+      - name: include
+        in: query
+        required: false
+        description: Includes. Can be: position, fixture, liveFlrFixture
+        schema:
+          type: string
+      - name: commodity
+        in: query
+        required: false
+        description: Use as filter.commodity! Commodity
+        schema:
+          type: string
+      - name: commodityGroup
+        in: query
+        required: false
+        description: Use as filter.commodityGroup! Commodity Group
+        schema:
+          type: string
+      - name: isDigitalScreen
+        in: query
+        required: false
+        description: Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPogsResponse'
+        "400":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/aliasValidationError'
+        "404":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrResponse'
+        "500":
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrResponse'
 security:
 - AuthorizationHeader:
   - read

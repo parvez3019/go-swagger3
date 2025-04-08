@@ -49,6 +49,7 @@
         },
         "summary": "Get restaurants list",
         "description": " Returns a list of restaurants based on filter request",
+        "operationId": "GetRestaurants",
         "parameters": [
           {
             "$ref": "#/components/parameters/Client-Version"
@@ -142,6 +143,7 @@
         },
         "summary": "Create User",
         "description": " Creates \u0026 Returns an User based on the request",
+        "operationId": "CreateUser",
         "parameters": [
           {
             "$ref": "#/components/parameters/Client-Version"
@@ -211,6 +213,7 @@
         },
         "summary": "Get Planograms.",
         "description": " Returns planogram based on query params.",
+        "operationId": "GetPogs",
         "parameters": [
           {
             "name": "id",

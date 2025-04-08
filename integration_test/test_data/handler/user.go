@@ -5,7 +5,7 @@ package handler
 // @Header model.Headers
 // @Param request body model.CreateUserRequest true "Create User Request"
 // @Success 200 {object} model.CreateUserResponse
+// @OperationId CreateUser
 // @Router /user [post]
 func CreateUser() {
 }
-
