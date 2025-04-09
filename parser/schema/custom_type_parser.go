@@ -249,6 +249,12 @@ astFieldsLoop:
 			}
 			tagValues = strings.Split(tagText, ",")
 			isRequired := false
+
+			if p.RequiredByDefault {
+				p.Debug(fmt.Sprintf("Setting field %s required (required-by-default)", name))
+				isRequired = true
+			}
+
 			for _, v := range tagValues {
 				if v == "-" {
 					structSchema.DisabledFieldNames[name] = struct{}{}
