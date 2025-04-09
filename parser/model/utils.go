@@ -1,9 +1,10 @@
 package model
 
 import (
+	"go/ast"
+
 	"github.com/parvez3019/go-swagger3/logger"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"go/ast"
 )
 
 type Utils struct {
@@ -35,9 +36,10 @@ type PkgAndSpecs struct {
 }
 
 type Flags struct {
-	RunInDebugMode   bool
-	RunInStrictMode  bool
-	SchemaWithoutPkg bool
+	RunInDebugMode    bool
+	RunInStrictMode   bool
+	SchemaWithoutPkg  bool
+	RequiredByDefault bool
 }
 
 type Pkg struct {
