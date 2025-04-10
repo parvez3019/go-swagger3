@@ -75,12 +75,11 @@ type OperationObject struct {
 	Tags        []string           `json:"tags,omitempty"`
 	Summary     string             `json:"summary,omitempty"`
 	Description string             `json:"description,omitempty"`
+	OperationID string             `json:"operationId,omitempty"`
 	Parameters  []ParameterObject  `json:"parameters,omitempty"`
 	RequestBody *RequestBodyObject `json:"requestBody,omitempty"`
 
-	// Tags
 	// ExternalDocs
-	// OperationID
 	// Callbacks
 	// Deprecated
 	// Security
