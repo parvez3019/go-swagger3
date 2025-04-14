@@ -249,6 +249,12 @@ astFieldsLoop:
 			}
 			tagValues = strings.Split(tagText, ",")
 			isRequired := false
+
+			if p.RequiredByDefault {
+				p.Debug(fmt.Sprintf("Setting field %s required (required-by-default)", name))
+				isRequired = true
+			}
+
 			for _, v := range tagValues {
 				if v == "-" {
 					structSchema.DisabledFieldNames[name] = struct{}{}
@@ -554,7 +560,11 @@ func (p *parser) addDescription(astFieldTag reflect.StructTag, fieldSchema *Sche
 }
 
 func (p *parser) addRequiredField(astFieldTag reflect.StructTag, isRequired bool, structSchema *SchemaObject, name string) {
-	if _, ok := astFieldTag.Lookup("required"); ok || isRequired {
+	if requiredTag, ok := astFieldTag.Lookup("required"); ok {
+		if requiredTag != "false" {
+			structSchema.Required = append(structSchema.Required, name)
+		}
+	} else if isRequired {
 		structSchema.Required = append(structSchema.Required, name)
 	}
 }

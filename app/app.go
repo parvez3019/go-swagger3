@@ -37,6 +37,7 @@ func action(c *cli.Context) error {
 		args.debug,
 		args.strict,
 		args.schemaWithoutPkg,
+		args.requiredByDefault,
 	).Init()
 
 	if err != nil {
