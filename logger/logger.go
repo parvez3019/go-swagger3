@@ -14,6 +14,9 @@ func init() {
 
 func SetDebugMode(debugMode bool) *Logger {
 	loggerInstance.debugMode = debugMode
+	if debugMode {
+		log.SetLevel(log.DebugLevel)
+	}
 	return loggerInstance
 }
 
