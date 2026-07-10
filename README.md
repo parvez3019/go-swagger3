@@ -12,7 +12,8 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 - [AI agent skills](agent-skills/) (copy into Claude / Cursor projects)
 - [1. Install](#1-install)
 - [2. Documentation Generation](#2-documentation-generation)
-- [3. Usage](#3-usage)
+- [3. Serving Swagger UI](#3-serving-swagger-ui)
+- [4. Usage](#4-usage)
     - [Service Description](#service-description)
     - [Handler functions](#handler-functions)
     - [Title And Description](#title-and-description)
@@ -24,9 +25,9 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
     - [Resource & Tag](#resource--tag)
     - [Route](#route)
     - [Enums](#enums)
-- [4. Security](#4-security)
-- [5. Limitations](#5-limitations)
-- [6. References](#6-references)
+- [5. Security](#5-security)
+- [6. Limitations](#6-limitations)
+- [7. References](#7-references)
 
 ## 1. Install
 
@@ -69,10 +70,81 @@ Notes -
 
 ```
 
+## 3. Serving Swagger UI
 
+Serve the generated OpenAPI file with an interactive UI at
+`http://localhost:8080/swagger/index.html` (same idea as [swaggo/swag](https://github.com/swaggo/swag)).
 
+1. Generate the spec:
 
-## 3. Usage
+```shell
+go-swagger3 --module-path . --output oas.json --schema-without-pkg
+```
+
+2. Mount the handler in your HTTP server:
+
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/parvez3019/go-swagger3/swagger"
+)
+
+func main() {
+	spec, err := os.ReadFile("oas.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	http.Handle("/swagger/", swagger.Handler(spec, swagger.Title("My API")))
+	// your API routes...
+	log.Println("Swagger UI at http://localhost:8080/swagger/index.html")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+Or embed the file at build time:
+
+```go
+import "embed"
+
+//go:embed oas.json
+var oas []byte
+
+func main() {
+	http.Handle("/swagger/", swagger.Handler(oas))
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+Or load from disk:
+
+```go
+h, err := swagger.HandlerFromFile("oas.json")
+if err != nil {
+	log.Fatal(err)
+}
+http.Handle("/swagger/", h)
+```
+
+The handler serves:
+
+| Path | Content |
+|------|---------|
+| `/swagger/index.html` | Swagger UI |
+| `/swagger/doc.json` | OpenAPI 3 document |
+
+Add the dependency:
+
+```shell
+go get github.com/parvez3019/go-swagger3/swagger
+```
+
+## 4. Usage
 
 You can document your service by placing annotations inside your godoc at various places in your code.
 
@@ -351,7 +423,7 @@ Available fields:
 - readOnly (bool)
 - writeOnly (bool)
 
-### 4. Security
+### 5. Security
 
 If authorization is required, you must define security schemes and then apply those to the API. A scheme is defined
 using `@SecurityScheme [name] [type] [parameters]` and applied by
@@ -394,12 +466,12 @@ the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
 // @SecurityScope MyApiAuth write_user Write a user to the system
 ```
 
-### 5. Limitations
+### 6. Limitations
 
 - Only support go module.
 - Anonymous struct field is not supported.
 
-### 6. References
+### 7. References
 
 - The project is based on the following repositories -
 - [yvasiyarov/swagger](https://github.com/yvasiyarov/swagger)
