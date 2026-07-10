@@ -6,24 +6,22 @@ on:
   pull_request:
     branches:
       - main
+
 permissions:
   contents: read
   pull-requests: read
+
 jobs:
   golangci:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24'
-          cache: false
-      - uses: actions/checkout@v3
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
-          args: --issues-exit-code=1
+          version: v2.4
           only-new-issues: true
-          skip-pkg-cache: true
-          skip-build-cache: true
