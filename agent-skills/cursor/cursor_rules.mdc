@@ -1,0 +1,329 @@
+---
+description: Document Go HTTP APIs with go-swagger3 godoc annotations and generate OpenAPI 3 specs
+globs: "**/*.go"
+alwaysApply: false
+---
+
+# go-swagger3 — document existing Go APIs
+
+Copy this file into your project as `.cursor/rules/go-swagger3.mdc`.
+
+When the user asks to document an API, add Swagger/OpenAPI comments, or generate an OAS file: annotate existing Go code with go-swagger3 godoc `@` tags and struct tags, then run the CLI. Prefer editing comments and tags over rewriting handlers.
+
+## Install
+
+```bash
+go install github.com/parvez3019/go-swagger3@latest
+export PATH="$HOME/go/bin:$PATH"
+
+# Docker alternative
+docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest \
+  --module-path . --main-file-path ./cmd/api/main.go --output oas.json --schema-without-pkg
+```
+
+## Workflow
+
+1. Confirm `go.mod` exists (Go modules only).
+2. Put **service** annotations on the main/entry file (`@Title` and `@Version` required).
+3. Annotate each HTTP handler’s godoc (comments must sit directly above the func).
+4. Add `json` + OAS tags on request/response structs; add `@Enum` / `@HeaderParameters` types when needed.
+5. Generate (pick the matching layout):
+   ```bash
+   # main next to go.mod
+   go-swagger3 --module-path . --output oas.json --schema-without-pkg
+
+   # main elsewhere
+   go-swagger3 --module-path . --main-file-path ./cmd/api/main.go --output oas.json --schema-without-pkg
+
+   # only scan handlers under a path
+   go-swagger3 --module-path . --main-file-path ./cmd/api/main.go --handler-path ./internal/handlers --output oas.json --schema-without-pkg
+
+   # YAML
+   go-swagger3 --module-path . --main-file-path ./cmd/api/main.go --output oas.json --schema-without-pkg --generate-yaml
+   ```
+6. Open the output, fix gaps, re-run with `--debug` if needed. Use `--strict` when hardening.
+
+### CLI flags
+
+| Flag | Purpose |
+|------|---------|
+| `--module-path` | Module root to scan |
+| `--main-file-path` | File with service-level annotations |
+| `--handler-path` | Optional: only scan handlers under this path |
+| `--output` | Output path (default `oas.json`) |
+| `--schema-without-pkg` | Schema names without package prefix |
+| `--generate-yaml` | Emit YAML (`.json` output becomes `.yml`) |
+| `--debug` | Debug logging |
+| `--strict` | Treat parse warnings as fatal |
+
+## Patterns
+
+### Service (main file)
+
+```go
+package main
+
+// @Title User API
+// @Version 1.0
+// @Description User and restaurants API
+// @ContactName API Support
+// @ContactEmail support@example.com
+// @TermsOfServiceUrl https://example.com/tos
+// @Server localhost:8080 Server 1
+// @Server localhost:8081 Server 2
+// @Security AuthorizationHeader read write
+// @SecurityScheme AuthorizationHeader http bearer Input your token
+// @LicenseName MIT
+// @LicenseURL https://en.wikipedia.org/wiki/MIT_License
+func main() {}
+```
+
+### Shared headers
+
+```go
+// Headers shared request headers
+// @HeaderParameters Headers
+type Headers struct {
+	Authorization string `json:"Authorization" example:"Bearer <token>" skip:"true"`
+	Version       string `json:"Client-Version" description:"Client Version"`
+	Language      string `json:"Client-Language" $ref:"LanguageEnum"`
+	Platform      string `json:"Client-Platform" example:"android" description:"Available values : android, ios, web"`
+}
+
+// @Enum LanguageEnum
+type LanguageEnum struct {
+	LanguageEnum string `enum:"en-in,en-id,id,en-mx,es-mx" example:"en-in"`
+}
+```
+
+### Handler operations
+
+Prefer `@Router` and `{object}` / `{array}`. Both `@Route`/`@Router` and `object`/`{object}` work. Case-insensitive. `@Tag` aliases `@Resource`.
+
+`@Param` shape: `@Param {name} {in} {goType} {required} "{desc}" ["{example}"]`  
+`in`: `path`, `query`, `form`, `header`, `cookie`, `body`, `file`  
+`required`: `true`, `false`, `required`, `optional`  
+Descriptions and examples must be quoted.
+
+#### POST body
+
+```go
+// @Title Create User
+// @Description Creates and returns a user
+// @Header model.Headers
+// @Param request body model.CreateUserRequest true "Create User Request"
+// @Success 200 {object} model.CreateUserResponse
+// @Failure 400 {object} model.ErrorResponse
+// @OperationId CreateUser
+// @Resource users
+// @Router /user [post]
+func CreateUser() {}
+```
+
+#### GET with query + nested filter
+
+```go
+// @Title Get restaurants list
+// @Description Returns restaurants by filter
+// @Header model.Headers
+// @Param count query int32 false "count of restaurants"
+// @Param offset query int32 false "offset" "100"
+// @Param order_by query model.OrderByEnum false "order list"
+// @Param filter query model.Filter false "In json format"
+// @Success 200 {object} model.GetRestaurantsResponse
+// @Failure 500 {object} model.ErrorResponse
+// @OperationId GetRestaurants
+// @Router /restaurants [get]
+func GetRestaurants() {}
+```
+
+#### Path params + array response
+
+```go
+// @Title Get user list of a group
+// @Description Get users related to a specific group
+// @Param groupID path int true "Id of a specific group" "120"
+// @Success 200 {array} model.User "Users JSON"
+// @Failure 400 {object} model.ErrorResponse "Error JSON"
+// @Resource users
+// @Router /api/group/{groupID}/users [get]
+func GetGroupUsers() {}
+```
+
+#### PUT / PATCH / DELETE
+
+```go
+// @Title Update User
+// @Param userID path string true "User id"
+// @Param request body model.UpdateUserRequest true "Update payload"
+// @Success 200 {object} model.User
+// @Failure 404 {object} model.ErrorResponse
+// @OperationId UpdateUser
+// @Router /user/{userID} [put]
+func UpdateUser() {}
+
+// @Title Delete User
+// @Param userID path string true "User id"
+// @Success 204 "No Content"
+// @Failure 404 {object} model.ErrorResponse
+// @OperationId DeleteUser
+// @Router /user/{userID} [delete]
+func DeleteUser() {}
+```
+
+#### File upload, cookie, header param
+
+```go
+// @Title Upload avatar
+// @Param userID path string true "User id"
+// @Param file file ignored true "Avatar image"
+// @Success 201 {object} model.UploadResponse
+// @Router /user/{userID}/avatar [post]
+func UploadAvatar() {}
+
+// @Title Session info
+// @Param session_id cookie string true "Session cookie"
+// @Param X-Request-Id header string false "Client request id"
+// @Success 200 {object} model.Session
+// @Router /session [get]
+func GetSession() {}
+```
+
+#### Status-only / string response / response headers
+
+```go
+// @Success 200 "live endpoint"
+// @Router /live [get]
+func Live() {}
+
+// @Success 201 {string} string "created id"
+// @Router /updates [post]
+func CreateUpdate() {}
+
+// @Success 200 {object} model.TokenResponse "Login successful"
+// @ResponseHeader 200 Set-Cookie string "Access token cookie" "accessToken=...; Path=/; HttpOnly"
+// @ResponseHeader 200 X-Request-Id string "Unique request identifier"
+// @Router /login [post]
+func Login() {}
+```
+
+### Models, enums, field tags
+
+```go
+// @Enum OrderByEnum
+type OrderByEnum struct {
+	OrderByEnum string `enum:"nearest,popular,new,highest-rated" example:"popular"`
+}
+
+type CreateUserRequest struct {
+	FirstName string   `json:"first_name" readOnly:"true"`
+	LastName  string   `json:"last_name" example:"Hassan" description:"Last name"`
+	Age       int      `json:"age" minimum:"18" exclusiveMinimum:"true" maximum:"256" exclusiveMaximum:"true"`
+	EmailID   string   `json:"email_id" pattern:"[\\w.]+@[\\w.]"`
+	UserName  string   `json:"user_name" title:"login"`
+	Password  string   `json:"password" minLength:"6" maxLength:"200"`
+	Roles     []string `json:"roles" writeOnly:"true" nullable:"true" uniqueItems:"true" minItems:"1" maxItems:"100"`
+	Country   string   `json:"country" $ref:"CountriesEnum"`
+	Version   string   `json:"version" override-example:"11.0.0"`
+}
+
+type CreateUserResponse struct {
+	UserID string `json:"user_id" example:"u_123"`
+}
+
+type GetRestaurantsResponse struct {
+	Restaurants []Restaurant `json:"restaurants" maxProperties:"100" minProperties:"2" additionalProperties:"true"`
+}
+
+type ErrorResponse struct {
+	Code string `json:"code"`
+	Msg  string `json:"msg" skip:"true"` // omitted from schema
+	Secret string `json:"-"`             // hidden
+}
+
+// @Enum CountriesEnum
+type CountriesEnum struct {
+	CountriesEnum string `enum:"india,china,mexico,japan" example:"india"`
+}
+```
+
+Useful tags: `example`, `description`, `title`, `required`, `nullable`, `readOnly`, `writeOnly`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `minLength`, `maxLength`, `pattern`, `minItems`, `maxItems`, `uniqueItems`, `minProperties`, `maxProperties`, `additionalProperties`, `enum`, `$ref`, `override-example`, `skip:"true"`. Hide with `json:"-"` or `go-swagger3:"-"`.
+
+### Security (global only)
+
+```go
+// HTTP bearer / basic
+// @SecurityScheme AuthorizationHeader http bearer Input your token
+// @SecurityScheme BasicAuth http basic Login with admin credentials
+
+// API key
+// @SecurityScheme ApiKeyAuth apiKey header X-MyCustomHeader
+
+// OpenID Connect
+// @SecurityScheme OidcAuth openIdConnect https://example.com/.well-known/openid-configuration
+
+// OAuth2 + scopes
+// @SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token
+// @SecurityScope MyApiAuth read_user Read a user
+// @SecurityScope MyApiAuth write_user Write a user
+// @Security MyApiAuth read_user write_user
+```
+
+Also: `oauth2Implicit`, `oauth2ResourceOwnerCredentials`, `oauth2ClientCredentials`. Security applies to the **entire** service — not per operation.
+
+## End-to-end example (minimal API)
+
+```go
+// main.go
+// @Title Demo API
+// @Version 1.0
+// @Server http://localhost:8080 Local
+func main() {}
+
+// handler
+// @Title List items
+// @Param limit query int false "page size" "20"
+// @Success 200 {array} Item
+// @Failure 500 {object} ErrorResponse
+// @OperationId ListItems
+// @Router /items [get]
+func ListItems() {}
+
+type Item struct {
+	ID   string `json:"id" example:"1"`
+	Name string `json:"name" example:"Widget"`
+}
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+```
+
+## Troubleshooting (for agents)
+
+Work top-down. After each fix, re-run the CLI.
+
+| Symptom | Likely cause | What to do |
+|---------|--------------|------------|
+| `command not found: go-swagger3` | Binary not on PATH | `export PATH="$HOME/go/bin:$PATH"` or use Docker |
+| Empty / missing `info.title` or `info.version` | Service comments not on `--main-file-path` | Move `@Title`/`@Version` to the main file; pass `--main-file-path` explicitly |
+| No paths in output | Handlers lack `@Router`/`@Route`, or `--handler-path` excludes them | Add `@Router /path [method]`; widen or drop `--handler-path` |
+| Handler present but operation missing | Comments not on the func godoc, or package outside module | Put `// @...` directly above `func`; keep handlers inside the module |
+| Schema / type missing or wrong | Wrong package-qualified name, or type not imported/reachable | Use `pkg.Type` as in Go; ensure the type is in-module or a scanned dependency |
+| Schema names look like `handler.User` | Package prefix included | Pass `--schema-without-pkg` |
+| `operation ID 'X' is not unique` | Duplicate `@OperationId` | Make each `@OperationId` unique across the module |
+| Parse warnings / `--strict` fails | Malformed `@Param`/`@Success` (missing quotes, bad `in`, bad status) | Match examples; quote descriptions; valid `in` values only |
+| Field missing from schema | `skip:"true"`, `json:"-"`, or `go-swagger3:"-"` | Remove skip/hide tags if the field should appear |
+| Nested / anonymous field wrong | Anonymous embedded structs unsupported | Give the field an explicit named type |
+| Security missing on one route | Per-operation security not supported | Define `@Security` / `@SecurityScheme` on the service file only |
+| Unknown tags ignored (e.g. `@Accept`) | Not a go-swagger3 annotation | Use only supported tags listed above |
+| YAML not produced | Forgot flag or wrong extension expectation | Pass `--generate-yaml` (tool rewrites `.json` → `.yml`) |
+| Still stuck | Need parser detail | Re-run with `--debug` and fix the first real error |
+
+## Rules
+
+- Do not invent unsupported annotations (`@Accept`, swag-only tags, etc.).
+- Do not claim per-operation security.
+- Anonymous struct fields are not supported.
+- Go modules only.
+- Prefer godoc/tag edits over handler rewrites unless asked.
+- Keep `@OperationId` values unique.

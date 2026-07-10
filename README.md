@@ -9,6 +9,7 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 
 ### Table of content
 
+- [AI agent skills](agent-skills/) (copy into Claude / Cursor projects)
 - [1. Install](#1-install)
 - [2. Documentation Generation](#2-documentation-generation)
 - [3. Usage](#3-usage)
