@@ -27,7 +27,7 @@ func (p *parser) parseParamComment(pkgPath, pkgName string, operation *oas.Opera
 	appendDescription(&parameterObject, matches[5])
 	appendExample(&parameterObject, matches[7]) // 6 group is using for checking if example exist
 
-	goType := getType(re, matches)
+	goType := getType(matches)
 
 	switch parameterObject.In {
 	// file, form
@@ -135,15 +135,13 @@ func (p *parser) appendModelSchemaRef(pkgPath string, pkgName string, operation 
 }
 
 func (p *parser) appendEnumParamRef(goType string, parameterObject oas.ParameterObject, operation *oas.OperationObject) {
-	if strings.Contains(goType, "model.") {
-		goType = strings.Replace(goType, "model.", "", -1)
-	}
+	goType = strings.ReplaceAll(goType, "model.", "")
 	parameterObject.Schema = &oas.SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(goType)}
 	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 
 func appendRequestBody(operation *oas.OperationObject, parameterObject oas.ParameterObject, goType string) {
-	if !(parameterObject.In == "file" || parameterObject.In == "form") {
+	if parameterObject.In != "file" && parameterObject.In != "form" {
 		return
 	}
 	if operation.RequestBody == nil {
@@ -170,10 +168,9 @@ func appendRequestBody(operation *oas.OperationObject, parameterObject oas.Param
 	}
 }
 
-func getType(re *regexp.Regexp, matches []string) string {
-	re = regexp.MustCompile(`\[\w*\]`)
-	goType := re.ReplaceAllString(matches[3], "[]")
-	return goType
+func getType(matches []string) string {
+	re := regexp.MustCompile(`\[\w*\]`)
+	return re.ReplaceAllString(matches[3], "[]")
 }
 
 func appendRequired(paramObject *oas.ParameterObject, isRequired string) {

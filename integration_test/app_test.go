@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -39,11 +38,10 @@ func Test_GenerateExpectedSpecWithPkg(t *testing.T) {
 }
 
 func LoadJSONAsString(path string) string {
-	file, err := os.Open(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to open at %s", path))
 	}
-	content, _ := ioutil.ReadAll(file)
 	return string(content)
 }
 

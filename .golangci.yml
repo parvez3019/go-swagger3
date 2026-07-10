@@ -1,0 +1,20 @@
+# See https://golangci-lint.run/usage/configuration/
+version: "2"
+
+linters:
+  default: standard
+  settings:
+    staticcheck:
+      # Keep defaults, but allow intentional exceptions:
+      # - ST1001: dot imports in schema package for OAS types
+      # - SA1019: go/parser.ParseDir still returns *ast.Package
+      checks:
+        - all
+        - -ST1000
+        - -ST1001
+        - -ST1003
+        - -SA1019
+
+issues:
+  exclude-dirs:
+    - integration_test/test_data

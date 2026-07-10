@@ -42,9 +42,9 @@ func (w *fileWriter) Write(openApiObject oas.OpenAPIObject, path string, generat
 	log.Info("Writing to open api object file ...")
 	fd, err := os.Create(path)
 	if err != nil {
-		return fmt.Errorf("Can not create the file %s: %v", path, err)
+		return fmt.Errorf("can not create the file %s: %v", path, err)
 	}
-	defer fd.Close()
+	defer func() { _ = fd.Close() }()
 
 	output, err := json.MarshalIndent(openApiObject, "", "  ")
 	if err != nil {

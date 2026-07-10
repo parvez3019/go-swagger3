@@ -9,10 +9,9 @@ import (
 
 func (p *parser) parseBasicTypeSchemaObject(pkgPath string, pkgName string, typeName string) (*SchemaObject, error, bool) {
 	var schemaObject SchemaObject
-	var err error
 	// handler basic and some specific typeName
 	if strings.HasPrefix(typeName, "[]") {
-		return p.parseArrayType(pkgPath, pkgName, typeName, schemaObject, err)
+		return p.parseArrayType(pkgPath, pkgName, typeName, schemaObject)
 	} else if strings.HasPrefix(typeName, "map[]") {
 		return p.parseMapType(pkgPath, pkgName, typeName, schemaObject)
 	} else if typeName == "time.Time" {
@@ -40,7 +39,7 @@ func (p *parser) parseTimeType(schemaObject SchemaObject) (*SchemaObject, error,
 	return &schemaObject, nil, true
 }
 
-func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject, err error) (*SchemaObject, error, bool) {
+func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject) (*SchemaObject, error, bool) {
 	schemaObject.Type = "array"
 	itemTypeName := typeName[2:]
 	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
@@ -48,6 +47,7 @@ func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string,
 		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true
 	}
+	var err error
 	schemaObject.Items, err = p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 	if err != nil {
 		return nil, err, true

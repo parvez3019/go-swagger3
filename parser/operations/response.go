@@ -129,7 +129,7 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 			Schema: *schema,
 		}
 	} else if strings.HasPrefix(goType, "[]") {
-		goType = strings.Replace(goType, "[]", "", -1)
+		goType = strings.ReplaceAll(goType, "[]", "")
 		typeName, err := p.RegisterType(pkgPath, pkgName, goType)
 		if err != nil {
 			return err

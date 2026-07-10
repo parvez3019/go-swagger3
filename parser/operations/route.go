@@ -15,7 +15,7 @@ func (p *parser) parseRouteComment(operation *oas.OperationObject, comment strin
 	re := regexp.MustCompile(`([\w\.\/\-{}]+)[^\[]+\[([^\]]+)`)
 	matches := re.FindStringSubmatch(sourceString)
 	if len(matches) != 3 {
-		return fmt.Errorf("Can not parse router comment \"%s\", skipped", comment)
+		return fmt.Errorf("can not parse router comment \"%s\", skipped", comment)
 	}
 
 	_, ok := p.OpenAPI.Paths[matches[1]]

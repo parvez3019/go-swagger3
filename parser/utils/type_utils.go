@@ -71,7 +71,7 @@ func IsMainFile(path string) bool {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var isMainPackage, hasMainFunc bool
 
@@ -108,7 +108,7 @@ func GetModuleNameFromGoMod(path string) string {
 	if err != nil {
 		return ""
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	moduleName := ""
 
