@@ -48,9 +48,10 @@ type DepModule struct {
 }
 
 type Flags struct {
-	RunInDebugMode   bool
-	RunInStrictMode  bool
-	SchemaWithoutPkg bool
+	RunInDebugMode    bool
+	RunInStrictMode   bool
+	SchemaWithoutPkg  bool
+	RequiredByDefault bool
 }
 
 type Pkg struct {

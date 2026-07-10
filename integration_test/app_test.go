@@ -15,7 +15,7 @@ import (
 
 // Characterisation test for the refactoring
 func Test_ShouldGenerateExpectedSpec(t *testing.T) {
-	if err := createSpecFile(false, true); err != nil {
+	if err := createSpecFile(false, true, false); err != nil {
 		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
 	}
 	diff, _ := jsondiff.Compare([]byte(LoadJSONAsString("test_data/spec/expected.json")),
@@ -27,7 +27,7 @@ func Test_ShouldGenerateExpectedSpec(t *testing.T) {
 }
 
 func Test_GenerateExpectedSpecWithPkg(t *testing.T) {
-	if err := createSpecFile(false, false); err != nil {
+	if err := createSpecFile(false, false, false); err != nil {
 		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
 	}
 	diff, _ := jsondiff.Compare([]byte(LoadJSONAsString("test_data/spec/expected_with_pkg.json")),
@@ -36,6 +36,19 @@ func Test_GenerateExpectedSpecWithPkg(t *testing.T) {
 	// assert the diff is FullMatch
 	assert.Equal(t, jsondiff.FullMatch, diff)
 
+}
+
+func Test_GenerateExpectedSpecWithDefaultRequired(t *testing.T) {
+	if err := createSpecFile(false, false, true); err != nil {
+		panic(fmt.Sprintf("could not run app - Error %s", err.Error()))
+	}
+	diff, _ := jsondiff.Compare([]byte(LoadJSONAsString("test_data/spec/expected_with_required_default.json")),
+		[]byte(LoadJSONAsString("test_data/spec/actual.json")), &jsondiff.Options{})
+
+	actualJson := LoadJSONAsString("test_data/spec/actual.json")
+	fmt.Println("DEBUG: test_data/spec/actual.json content:\n", actualJson)
+	// assert the diff is FullMatch
+	assert.Equal(t, jsondiff.FullMatch, diff)
 }
 
 func LoadJSONAsString(path string) string {
@@ -47,7 +60,7 @@ func LoadJSONAsString(path string) string {
 	return string(content)
 }
 
-func createSpecFile(generateYaml bool, schemaWithoutPkg bool) error {
+func createSpecFile(generateYaml bool, schemaWithoutPkg bool, requiredByDefault bool) error {
 	p, err := parser.NewParser(
 		"test_data",
 		"test_data/server/main.go",
@@ -55,6 +68,7 @@ func createSpecFile(generateYaml bool, schemaWithoutPkg bool) error {
 		false,
 		false,
 		schemaWithoutPkg,
+		requiredByDefault,
 	).Init()
 
 	if err != nil {

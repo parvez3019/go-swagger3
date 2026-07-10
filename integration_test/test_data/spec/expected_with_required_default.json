@@ -1,0 +1,651 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "User API",
+    "description": "Restaurants API documentation",
+    "contact": {
+      "name": "Restaurants API Support",
+      "email": "parvez.hassan@olx.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://en.wikipedia.org/wiki/MIT_License"
+    },
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "localhost:8080",
+      "description": " Server 1"
+    },
+    {
+      "url": "localhost:8081",
+      "description": " Server 2"
+    }
+  ],
+  "paths": {
+    "/live": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "live endpoint"
+          }
+        }
+      }
+    },
+    "/restaurants": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get restaurants list",
+        "description": " Returns a list of restaurants based on filter request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Version"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Language"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Platform"
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "description": "count of restaurants",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "count of restaurants"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "offset limit count",
+            "example": "100",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "offset limit count"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "description": "order restaurants list",
+            "schema": {
+              "$ref": "#/components/schemas/OrderByEnum"
+            }
+          },
+          {
+            "name": "filter",
+            "in": "query",
+            "description": "In json format",
+            "schema": {
+              "type": "github.com.parvez3019.go-swagger3.model.Filter",
+              "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.Filter"
+            }
+          },
+          {
+            "name": "extra.field",
+            "in": "query",
+            "description": "extra field",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "extra field"
+            }
+          }
+        ]
+      }
+    },
+    "/updates": {
+      "post": {
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create User",
+        "description": " Creates \u0026 Returns an User based on the request",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Client-Version"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Language"
+          },
+          {
+            "$ref": "#/components/parameters/Client-Platform"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.CreateUserRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "assortment/planogram": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.GetPogsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.aliasValidationError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.ErrResponse"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get Planograms.",
+        "description": " Returns planogram based on query params.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "Use as filter.id! Planogram dbKey [comma separated list]",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.id! Planogram dbKey [comma separated list]"
+            }
+          },
+          {
+            "name": "locationId",
+            "in": "query",
+            "description": "Use as filter.locationId! Location ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.locationId! Location ID"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "description": "Includes. Can be: position, fixture, liveFlrFixture",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Includes. Can be: position, fixture, liveFlrFixture"
+            }
+          },
+          {
+            "name": "commodity",
+            "in": "query",
+            "description": "Use as filter.commodity! Commodity",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.commodity! Commodity"
+            }
+          },
+          {
+            "name": "commodityGroup",
+            "in": "query",
+            "description": "Use as filter.commodityGroup! Commodity Group",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.commodityGroup! Commodity Group"
+            }
+          },
+          {
+            "name": "isDigitalScreen",
+            "in": "query",
+            "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "Use as filter.isDigitalScreen! IsDigitalScreen. Can be: true, false"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Headers": {
+        "type": "object",
+        "required": [
+          "Client-Version",
+          "Client-Language",
+          "Client-Platform"
+        ],
+        "properties": {
+          "Client-Version": {
+            "type": "string",
+            "description": "Client Version"
+          },
+          "Client-Language": {
+            "$ref": "#/components/schemas/LanguageEnum"
+          },
+          "Client-Platform": {
+            "type": "string",
+            "description": "Available values : android, ios, web",
+            "example": "android"
+          }
+        }
+      },
+      "LanguageEnum": {
+        "type": "string",
+        "example": "en-in",
+        "enum": [
+          "en-in",
+          "en-id",
+          "id",
+          "en-mx",
+          "es-mx",
+          "en-cl",
+          "es-cl",
+          "en-ng",
+          "en-pk",
+          "en-tr",
+          "tr"
+        ]
+      },
+      "Menu": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderByEnum": {
+        "type": "string",
+        "example": "popular",
+        "enum": [
+          "nearest",
+          "popular",
+          "new",
+          "highest-rated"
+        ]
+      },
+      "Restaurant": {
+        "type": "object",
+        "required": [
+          "name",
+          "city",
+          "rating",
+          "type",
+          "menus"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "menus": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.Bar": {
+        "type": "object",
+        "required": [
+          "barField"
+        ],
+        "properties": {
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.EmbeddedBar": {
+        "type": "object",
+        "required": [
+          "barField2",
+          "barField"
+        ],
+        "properties": {
+          "barField2": {
+            "type": "string"
+          },
+          "barField": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.ErrResponse": {
+        "type": "object",
+        "required": [
+          "statusCode",
+          "message"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.GetPogsResponse": {
+        "type": "object",
+        "required": [
+          "planograms",
+          "field4",
+          "field5"
+        ],
+        "properties": {
+          "planograms": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "field4": {
+            "type": "object",
+            "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.Bar"
+          },
+          "field5": {
+            "type": "object",
+            "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.handler.EmbeddedBar"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.handler.aliasValidationError": {
+        "type": "object",
+        "required": [
+          "statusCode",
+          "errors"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "error"
+            }
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserRequest": {
+        "type": "object",
+        "required": [
+          "first_name",
+          "last_name",
+          "age",
+          "email_id",
+          "user_name",
+          "password",
+          "roles"
+        ],
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "last_name": {
+            "type": "string"
+          },
+          "age": {
+            "type": "integer",
+            "maximum": 256,
+            "exclusiveMaximum": true,
+            "minimum": 18,
+            "exclusiveMinimum": true
+          },
+          "email_id": {
+            "type": "string",
+            "pattern": "[\\w.]+@[\\w.]"
+          },
+          "user_name": {
+            "type": "string",
+            "title": "login"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 6
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "uniqueItems": true,
+            "nullable": true,
+            "writeOnly": true
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.CreateUserResponse": {
+        "type": "object",
+        "required": [
+          "user_id"
+        ],
+        "properties": {
+          "user_id": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.Filter": {
+        "type": "object",
+        "required": [
+          "rating",
+          "type",
+          "distance",
+          "district_code"
+        ],
+        "properties": {
+          "rating": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "distance": {
+            "type": "integer"
+          },
+          "district_code": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.GetRestaurantsResponse": {
+        "type": "object",
+        "required": [
+          "restaurants"
+        ],
+        "properties": {
+          "restaurants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "city",
+                "rating",
+                "type",
+                "menus"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "menus": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "maxProperties": 100,
+            "minProperties": 2,
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "AuthorizationHeader": {
+        "type": "http",
+        "description": "Input your token",
+        "scheme": "bearer"
+      }
+    },
+    "parameters": {
+      "Client-Language": {
+        "name": "Client-Language",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/LanguageEnum"
+        }
+      },
+      "Client-Platform": {
+        "name": "Client-Platform",
+        "in": "header",
+        "description": "Available values : android, ios, web",
+        "required": true,
+        "example": "android",
+        "schema": {
+          "type": "string",
+          "description": "Available values : android, ios, web",
+          "example": "android"
+        }
+      },
+      "Client-Version": {
+        "name": "Client-Version",
+        "in": "header",
+        "description": "Client Version",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "description": "Client Version"
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "AuthorizationHeader": [
+        "read",
+        "write"
+      ]
+    }
+  ]
+}
