@@ -100,6 +100,25 @@ func TestHandlerCustomURL(t *testing.T) {
 	require.Equal(t, http.StatusOK, rec.Code)
 }
 
+func TestHandlerTrailingSlashOnFile(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.Handle("/swagger/", Handler([]byte(sampleSpec)))
+
+	req := httptest.NewRequest(http.MethodGet, "/swagger/index.html/", nil)
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+	body, _ := io.ReadAll(rec.Body)
+	assert.Contains(t, string(body), "SwaggerUIBundle")
+
+	req = httptest.NewRequest(http.MethodGet, "/swagger/doc.json/", nil)
+	rec = httptest.NewRecorder()
+	mux.ServeHTTP(rec, req)
+	require.Equal(t, http.StatusOK, rec.Code)
+	body, _ = io.ReadAll(rec.Body)
+	assert.JSONEq(t, sampleSpec, string(body))
+}
+
 func TestHandlerWithoutSpec(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/swagger/", WrapHandler)

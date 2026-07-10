@@ -11,6 +11,27 @@ import (
 )
 
 func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.OperationObject, comment string) error {
+	// $ref form: 200 $ref:ErrorResponse ["description"]
+	if refName, desc, ok := parseResponseRef(comment); ok {
+		status, _, restOk := splitStatus(comment)
+		if !restOk {
+			return fmt.Errorf("parseResponseComment can not parse response comment \"%s\"", comment)
+		}
+		statusInt, err := strconv.Atoi(status)
+		if err != nil {
+			return fmt.Errorf("parseResponseComment: http status must be int, but got %s", status)
+		}
+		if !utils.IsValidHTTPStatusCode(statusInt) {
+			return fmt.Errorf("parseResponseComment: Invalid http status code %s", status)
+		}
+		responseObject := &oas.ResponseObject{
+			Ref:         utils.AddResponsesRefLinkPrefix(refName),
+			Description: desc,
+		}
+		operation.Responses[status] = responseObject
+		return nil
+	}
+
 	// {status}  {jsonType}  {goType}     {description}
 	// 201       object      models.User  "User Model"
 	// for cases of empty return payload
@@ -18,7 +39,7 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.Op
 	// 204 "User Model"
 	// for cases of simple types
 	// 200 {string} string "..."
-	re := regexp.MustCompile(`(?P<status>[\d]+)[\s]*(?P<jsonType>[\w\{\}]+)?[\s]+(?P<goType>[\w\-\.\/\[\]]+)?[^"]*(?P<description>.*)?`)
+	re := regexp.MustCompile(`(?P<status>[\d]+)[\s]*(?P<jsonType>[\w\{\}]+)?[\s]+(?P<goType>[\w\-\.\/\[\]\{\}=,]+)?[^"]*(?P<description>.*)?`)
 	matches := re.FindStringSubmatch(comment)
 	if len(matches) <= 2 {
 		return fmt.Errorf("parseResponseComment can not parse response comment \"%s\"", comment)
@@ -38,12 +59,14 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.Op
 	}
 	responseObject.Description = strings.Trim(matches[4], "\"")
 
+	contentType := contentTypeForResponse(operation)
+
 	switch matches[2] {
 
 	case "object", "array", "{object}", "{array}":
-		err = p.complexResponseObject(pkgPath, pkgName, matches[3], responseObject)
+		err = p.complexResponseObject(pkgPath, pkgName, matches[3], responseObject, contentType)
 	case "{string}", "{integer}", "{boolean}", "string", "integer", "boolean":
-		err = p.simpleResponseObject(matches[2], responseObject)
+		err = p.simpleResponseObject(matches[2], responseObject, contentType)
 	case "":
 
 	default:
@@ -56,6 +79,23 @@ func (p *parser) parseResponseComment(pkgPath, pkgName string, operation *oas.Op
 
 	operation.Responses[status] = responseObject
 	return nil
+}
+
+func parseResponseRef(comment string) (refName, description string, ok bool) {
+	re := regexp.MustCompile(`^\d+\s+\$ref:([\w.\-]+)(?:\s+"([^"]*)")?`)
+	matches := re.FindStringSubmatch(comment)
+	if len(matches) < 2 {
+		return "", "", false
+	}
+	return matches[1], matches[2], true
+}
+
+func splitStatus(comment string) (status, rest string, ok bool) {
+	fields := strings.Fields(comment)
+	if len(fields) == 0 {
+		return "", "", false
+	}
+	return fields[0], strings.TrimSpace(comment[len(fields[0]):]), true
 }
 
 func (p *parser) parseResponseHeaderComment(operation *oas.OperationObject, comment string) error {
@@ -116,16 +156,15 @@ func (p *parser) parseResponseHeaderComment(operation *oas.OperationObject, comm
 }
 
 // function to parse cases of jsonType in case "object", "array", "{object}", "{array}":
-func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObject *oas.ResponseObject) error {
+func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObject *oas.ResponseObject, contentType string) error {
 
-	re := regexp.MustCompile(`\[\w*\]`)
-	goType := re.ReplaceAllString(typ, "[]")
+	goType := normalizeAnnotatedGoType(typ)
 	if strings.HasPrefix(goType, "map[]") {
 		schema, err := p.ParseSchemaObject(pkgPath, pkgName, goType)
 		if err != nil {
 			p.Debug("parseResponseComment cannot parse goType", goType)
 		}
-		responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{
+		responseObject.Content[contentType] = &oas.MediaTypeObject{
 			Schema: *schema,
 		}
 	} else if strings.HasPrefix(goType, "[]") {
@@ -147,7 +186,7 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 			}
 		}
 
-		responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{
+		responseObject.Content[contentType] = &oas.MediaTypeObject{
 			Schema: oas.SchemaObject{
 				Type:  "array",
 				Items: &s,
@@ -165,13 +204,13 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 				},
 			}
 		} else if utils.IsInterfaceType(typeName) {
-			responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{
+			responseObject.Content[contentType] = &oas.MediaTypeObject{
 				Schema: oas.SchemaObject{
 					Type: "object",
 				},
 			}
 		} else {
-			responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{
+			responseObject.Content[contentType] = &oas.MediaTypeObject{
 				Schema: oas.SchemaObject{
 					Ref: utils.AddSchemaRefLinkPrefix(typeName),
 				},
@@ -181,12 +220,12 @@ func (p *parser) complexResponseObject(pkgPath, pkgName, typ string, responseObj
 	return nil
 }
 
-func (p *parser) simpleResponseObject(jsonType string, responseObject *oas.ResponseObject) error {
+func (p *parser) simpleResponseObject(jsonType string, responseObject *oas.ResponseObject, contentType string) error {
 	formattedType := jsonType
 	if strings.HasPrefix(jsonType, "{") && strings.HasSuffix(jsonType, "}") {
 		formattedType = jsonType[1 : len(jsonType)-1]
 	}
 
-	responseObject.Content[oas.ContentTypeJson] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Type: formattedType}}
+	responseObject.Content[contentType] = &oas.MediaTypeObject{Schema: oas.SchemaObject{Type: formattedType}}
 	return nil
 }

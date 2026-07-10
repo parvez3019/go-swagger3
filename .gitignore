@@ -10,6 +10,7 @@ parser/.DS_Store
 # Test binary, built with `go test -c`
 *.test
 integration_test/test_data/spec/actual.json
+integration_test/features_data/spec/actual_features.json
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

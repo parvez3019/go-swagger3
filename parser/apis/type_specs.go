@@ -72,12 +72,48 @@ func (p *parser) parseTypeSpecFromDeclaration(astDeclaration ast.Decl, pkgName s
 }
 
 func (p *parser) parseTypeSpecFromGenDeclaration(astGenDeclaration *ast.GenDecl, pkgName string) {
+	genDesc := extractDescriptionAnnotation(commentText(astGenDeclaration.Doc))
 	for _, astSpec := range astGenDeclaration.Specs {
 		if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
 			p.TypeSpecs[pkgName][typeSpec.Name.String()] = typeSpec
 			p.parseTypeAlias(typeSpec, pkgName)
+			desc := extractDescriptionAnnotation(commentText(typeSpec.Doc))
+			if desc == "" {
+				desc = genDesc
+			}
+			if desc != "" {
+				if _, ok := p.TypeDescriptions[pkgName]; !ok {
+					p.TypeDescriptions[pkgName] = map[string]string{}
+				}
+				p.TypeDescriptions[pkgName][typeSpec.Name.String()] = desc
+			}
 		}
 	}
+}
+
+func commentText(group *ast.CommentGroup) string {
+	if group == nil {
+		return ""
+	}
+	return group.Text()
+}
+
+func extractDescriptionAnnotation(text string) string {
+	var parts []string
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(strings.TrimLeft(line, "/"))
+		if line == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+		if strings.EqualFold(fields[0], "@description") {
+			parts = append(parts, strings.TrimSpace(line[len(fields[0]):]))
+		}
+	}
+	return strings.TrimSpace(strings.Join(parts, " "))
 }
 
 // parseTypeSpecInFuncDeclaration find type declaration in func, method

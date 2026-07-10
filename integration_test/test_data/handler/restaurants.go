@@ -35,7 +35,6 @@ func GetRestaurants() {
 func GetPogs() {}
 
 type GetPogsResponse struct {
-	// @description Planogram details
 	Planograms []int       `json:"planograms"`
 	Field3     Bar         `json:"field3" skip:"true"`
 	Field4     Bar         `json:"field4"`
@@ -43,7 +42,6 @@ type GetPogsResponse struct {
 }
 
 type Bar struct {
-	// @description Bar field
 	BarField string `json:"barField" required:"true"`
 }
 

@@ -50,12 +50,19 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 
 	if utils.IsBasicGoType(typeName) || utils.IsInterfaceType(typeName) {
 		registerTypeName = typeName
-	} else if schemaObject, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg)]; ok {
-		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)]
-		if !ok {
-			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(typeName)] = schemaObject
+	} else if schemaObject, ok := p.KnownIDSchema[p.schemaIDForTypeName(pkgName, typeName)]; ok {
+		// Preserve historical Components keying: plain type names (e.g. "Restaurant")
+		// are stored under typeName when already parsed into KnownIDSchema. Generics /
+		// composition use the normalized schema ID instead.
+		componentsKey := typeName
+		if strings.ContainsAny(typeName, "[{") {
+			componentsKey = schemaObject.ID
 		}
-		return utils.GenSchemaObjectID(pkgName, typeName, p.SchemaWithoutPkg), nil
+		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)]
+		if !ok {
+			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)] = schemaObject
+		}
+		return schemaObject.ID, nil
 	} else {
 		schemaObject, err := p.ParseSchemaObject(pkgPath, pkgName, typeName)
 		if err != nil {

@@ -22,6 +22,7 @@ type Path struct {
 	HandlerPath    string
 	GoModFilePath  string
 	GoModCachePath string
+	ExcludePaths   []string
 }
 
 type PkgAndSpecs struct {
@@ -31,8 +32,13 @@ type PkgAndSpecs struct {
 	KnownIDSchema map[string]*oas.SchemaObject
 
 	TypeSpecs               map[string]map[string]*ast.TypeSpec
+	TypeDescriptions        map[string]map[string]string // pkgName -> typeName -> @Description
 	PkgPathAstPkgCache      map[string]map[string]*ast.Package
 	PkgNameImportedPkgAlias map[string]map[string][]string
+
+	// RegisteredEnums tracks type names registered via @Enum annotations.
+	// Used so enum params do not rely solely on the type name containing "Enum".
+	RegisteredEnums map[string]struct{}
 
 	// DepModules indexes every module in go.mod by import path to its module-cache
 	// directory, without walking it. The schema parser uses this to locate and index
@@ -51,6 +57,7 @@ type Flags struct {
 	RunInDebugMode   bool
 	RunInStrictMode  bool
 	SchemaWithoutPkg bool
+	Quiet            bool
 }
 
 type Pkg struct {

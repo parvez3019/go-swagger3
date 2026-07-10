@@ -1,7 +1,6 @@
 package schema
 
 import (
-	"github.com/iancoleman/orderedmap"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
 	"github.com/parvez3019/go-swagger3/parser/utils"
 	"strings"
@@ -60,14 +59,13 @@ func (p *parser) parseMapType(pkgPath string, pkgName string, typeName string, s
 	itemTypeName := typeName[5:]
 	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 	if ok {
-		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
+		schemaObject.AdditionalProperties = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
 		return &schemaObject, nil, true
 	}
 	schemaProperty, err := p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 	if err != nil {
 		return nil, err, true
 	}
-	schemaObject.Properties = orderedmap.New()
-	schemaObject.Properties.Set("key", schemaProperty)
+	schemaObject.AdditionalProperties = schemaProperty
 	return &schemaObject, nil, true
 }

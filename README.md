@@ -5,7 +5,11 @@ Click here for [Youtube Demo Link](https://www.youtube.com/watch?v=GLM9c5j8g7I)
 
 # go-swagger3
 
-Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with comments in Go.
+Generate [OpenAPI Specification](https://swagger.io/specification) **v3** from Go godoc `@` annotations and struct tags.
+
+OpenAPI 3-first, with swag-class DX: `@Accept`/`@Produce`, per-operation security, generics, composition, framework UI adapters, and `go-swagger3 fmt`.
+
+Migrating from [swaggo/swag](https://github.com/swaggo/swag)? See [docs/MIGRATION_FROM_SWAG.md](docs/MIGRATION_FROM_SWAG.md).
 
 ### Table of content
 
@@ -13,6 +17,7 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 - [1. Install](#1-install)
 - [2. Documentation Generation](#2-documentation-generation)
 - [3. Serving Swagger UI](#3-serving-swagger-ui)
+- [Supported Web Frameworks](#supported-web-frameworks)
 - [4. Usage](#4-usage)
     - [Service Description](#service-description)
     - [Handler functions](#handler-functions)
@@ -28,6 +33,8 @@ Generate [OpenAPI Specification](https://swagger.io/specification) v3 file with 
 - [5. Security](#5-security)
 - [6. Limitations](#6-limitations)
 - [7. References](#7-references)
+- [Examples](examples/)
+- [Migration from swag](docs/MIGRATION_FROM_SWAG.md)
 
 ## 1. Install
 
@@ -50,10 +57,18 @@ go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json
 // in case you get 'command not found: go-swagger3' error, please export add GOPATH/bin to PATH
 export PATH="$HOME/go/bin:$PATH"
 
-Notes - 
-- Pass schema-without-pkg flag as true if you want to generate schemas without package names
-- Pass generate-yaml as trus if you want to generate yaml spec file instead of json
+Notes:
+- `--schema-without-pkg` — schema names without package prefixes
+- `--generate-yaml` — write YAML instead of JSON
+- `--exclude dir1,dir2` — skip directories while walking the module
+- `--quiet` — reduce log noise
+- `--handler-path` — only scan handlers under this path
+- `--strict` / `--debug` — stricter parse / verbose logs
 
+Format annotations (like `go fmt` / `swag fmt`):
+
+```shell
+go-swagger3 fmt -d ./
 ```
 
 #### Using docker
@@ -64,9 +79,9 @@ docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module
 // go.mod and main file are in the different directory
 docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
 
-Notes - 
-- Pass schema-without-pkg flag as true if you want to generate schemas without package names
-- Pass generate-yaml as trus if you want to generate yaml spec file instead of json
+Notes:
+- `--schema-without-pkg` — schema names without package prefixes
+- `--generate-yaml` — write YAML instead of JSON
 
 ```
 
@@ -142,6 +157,42 @@ Add the dependency:
 
 ```shell
 go get github.com/parvez3019/go-swagger3/swagger
+```
+
+## Supported Web Frameworks
+
+Thin UI adapters wrap the core `swagger.Handler` (`net/http`). Each adapter is a **separate module** so you only pull the framework you use.
+
+| Framework | Import | Mount example |
+|-----------|--------|---------------|
+| [net/http](https://pkg.go.dev/net/http) | `github.com/parvez3019/go-swagger3/swagger` | `http.Handle("/swagger/", swagger.Handler(spec))` |
+| [gin](https://github.com/gin-gonic/gin) | `.../swagger/gin` | `r.Any("/swagger/*any", ginswagger.WrapHandler(spec))` |
+| [echo](https://github.com/labstack/echo) | `.../swagger/echo` | `e.Any("/swagger/*", echoswagger.WrapHandler(spec))` |
+| [gorilla/mux](https://github.com/gorilla/mux) | `.../swagger/mux` | `r.PathPrefix("/swagger/").Handler(muxswagger.WrapHandler(spec))` |
+| [go-chi/chi](https://github.com/go-chi/chi) | `.../swagger/chi` | `r.Handle("/swagger/*", chiswagger.WrapHandler(spec))` |
+| [fiber](https://github.com/gofiber/fiber) | `.../swagger/fiber` | `app.All("/swagger/*", fiberswagger.WrapHandler(spec))` |
+| [hertz](https://github.com/cloudwego/hertz) | `.../swagger/hertz` | see package docs |
+| [buffalo](https://github.com/gobuffalo/buffalo) | `.../swagger/buffalo` | see package docs |
+| [flamingo](https://github.com/i-love-flamingo/flamingo) | `.../swagger/flamingo` | `http.Handler` wrapper |
+| [atreugo](https://github.com/savsgio/atreugo) | `.../swagger/atreugo` | see package docs |
+
+Minimal runnable samples: [examples/](examples/).
+
+Gin snippet:
+
+```go
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/parvez3019/go-swagger3/swagger"
+	ginswagger "github.com/parvez3019/go-swagger3/swagger/gin"
+)
+
+r := gin.Default()
+r.Any("/swagger/*any", ginswagger.WrapHandler(spec, swagger.Title("My API")))
+```
+
+```shell
+go get github.com/parvez3019/go-swagger3/swagger/gin
 ```
 
 ## 4. Usage
@@ -448,12 +499,15 @@ A number of different types is supported, they all have different parameters:
 Any text that is present after the last parameter wil be used as the description. For
 instance `@SecurityScheme MyApiAuth basic Login with your admin credentials`.
 
-Once all security schemes have been defined, they must be configured. This is done with the `@Security` comment.
-Depending on the `type` of the scheme, scopes (see below) may be supported. *At the moment, it is only possible to
-configure security for the entire service*.
+Once all security schemes have been defined, apply them with `@Security`.
+You can set **global** security on the service file and/or **per-operation** `@Security` on a handler.
 
 ``` go
+// Global (service file)
 // @Security MyApiAuth read_user write_user
+
+// Per-operation (handler godoc)
+// @Security MyApiAuth read_user
 ```
 
 #### Scopes
@@ -468,8 +522,10 @@ the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
 
 ### 6. Limitations
 
-- Only support go module.
-- Anonymous struct field is not supported.
+- Go modules only.
+- Anonymous (unnamed) embedded struct fields have limited support; prefer named types.
+- OpenAPI output is **3.0.0** (3.1 mode planned; see migration guide).
+- Route discovery is annotation-driven (`@Router` / `@Route`); framework routers are not introspected.
 
 ### 7. References
 
@@ -477,6 +533,7 @@ the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
 - [yvasiyarov/swagger](https://github.com/yvasiyarov/swagger)
 - [uudashr/go-module](https://github.com/uudashr/go-module)
 - [mikunalpha/goas](https://github.com/mikunalpha/goas)
+- [swaggo/swag](https://github.com/swaggo/swag) (feature inspiration; migration guide above)
 
 ## Star History
 

@@ -160,6 +160,20 @@ func AddParametersRefLinkPrefix(name string) string {
 	return ReplaceBackslash("#/components/parameters/" + name)
 }
 
+func AddResponsesRefLinkPrefix(name string) string {
+	if strings.HasPrefix(name, "#/components/responses/") {
+		return ReplaceBackslash(name)
+	}
+	return ReplaceBackslash("#/components/responses/" + name)
+}
+
+func AddRequestBodiesRefLinkPrefix(name string) string {
+	if strings.HasPrefix(name, "#/components/requestBodies/") {
+		return ReplaceBackslash(name)
+	}
+	return ReplaceBackslash("#/components/requestBodies/" + name)
+}
+
 func GenSchemaObjectID(pkgName, typeName string, withoutPkg bool) string {
 	typeNameParts := strings.Split(typeName, ".")
 	pkgName = ReplaceBackslash(pkgName)

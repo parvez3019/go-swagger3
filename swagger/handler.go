@@ -8,6 +8,9 @@
 //	}
 //	http.Handle("/swagger/", swagger.Handler(spec))
 //	log.Fatal(http.ListenAndServe(":8080", nil))
+//
+// Framework adapters live in separate modules under swagger/<name>/ (gin, echo, chi,
+// mux, fiber, hertz, buffalo, flamingo, atreugo) so the main module stays lean.
 package swagger
 
 import (
@@ -86,13 +89,29 @@ type uiHandler struct {
 // Matches /prefix/ and optional remainder, ignoring query string.
 var pathRE = regexp.MustCompile(`^(.*/)([^?]*?)(?:\?.*)?$`)
 
+// normalizeRequestURI trims a trailing slash on file-like paths (e.g. index.html/).
+// Some frameworks (notably Buffalo) append trailing slashes to all routes.
+func normalizeRequestURI(raw string) string {
+	pathPart, query, hasQuery := strings.Cut(raw, "?")
+	if pathPart != "/" && strings.HasSuffix(pathPart, "/") {
+		trimmed := strings.TrimSuffix(pathPart, "/")
+		if strings.Contains(path.Base(trimmed), ".") {
+			pathPart = trimmed
+		}
+	}
+	if hasQuery {
+		return pathPart + "?" + query
+	}
+	return pathPart
+}
+
 func (h *uiHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	matches := pathRE.FindStringSubmatch(r.URL.RequestURI())
+	matches := pathRE.FindStringSubmatch(normalizeRequestURI(r.URL.RequestURI()))
 	if matches == nil {
 		http.NotFound(w, r)
 		return

@@ -3,6 +3,7 @@ package apis
 import (
 	"fmt"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/utils"
 	"go/ast"
 	"strings"
 )
@@ -74,6 +75,10 @@ func (p *parser) parseParameter(pkgPath string, pkgName string, astComments []*a
 			err = p.parseHeaderParameters(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
 		case "@enum":
 			err = p.parseEnums(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
+		case "@responsecomponent":
+			err = p.parseResponseComponent(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
+		case "@requestbodycomponent":
+			err = p.parseRequestBodyComponent(pkgPath, pkgName, strings.TrimSpace(comment[len(attribute):]))
 		}
 	}
 	return err
@@ -87,6 +92,11 @@ func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) erro
 	if schema.Properties == nil {
 		return fmt.Errorf("parseHeaderComment can not parse Header comment schema %s", comment)
 	}
+	if p.RegisteredEnums == nil {
+		p.RegisteredEnums = map[string]struct{}{}
+	}
+	p.RegisteredEnums[comment] = struct{}{}
+	p.RegisteredEnums[strings.TrimPrefix(comment, "model.")] = struct{}{}
 	for _, key := range schema.Properties.Keys() {
 		value, _ := schema.Properties.Get(key)
 		currentSchemaObj, ok := value.(*oas.SchemaObject)
@@ -95,6 +105,7 @@ func (p *parser) parseEnums(pkgPath string, pkgName string, comment string) erro
 		}
 
 		p.OpenAPI.Components.Schemas[key] = currentSchemaObj
+		p.RegisteredEnums[key] = struct{}{}
 	}
 	return nil
 }
@@ -134,4 +145,71 @@ func isRequiredParam(requiredParams []string, key string) bool {
 		}
 	}
 	return false
+}
+
+func (p *parser) parseResponseComponent(pkgPath, pkgName, comment string) error {
+	typeName := strings.Fields(comment)
+	if len(typeName) == 0 {
+		return fmt.Errorf("parseResponseComponent: missing type name")
+	}
+	name := typeName[0]
+	schemaID, err := p.schemaParser.RegisterType(pkgPath, pkgName, name)
+	if err != nil {
+		return err
+	}
+	desc := ""
+	if schema, ok := p.OpenAPI.Components.Schemas[schemaID]; ok && schema != nil {
+		desc = schema.Description
+	}
+	if desc == "" {
+		desc = name
+	}
+	if p.OpenAPI.Components.Responses == nil {
+		p.OpenAPI.Components.Responses = map[string]*oas.ResponseObject{}
+	}
+	componentKey := componentName(name)
+	p.OpenAPI.Components.Responses[componentKey] = &oas.ResponseObject{
+		Description: desc,
+		Content: map[string]*oas.MediaTypeObject{
+			oas.ContentTypeJson: {
+				Schema: oas.SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schemaID)},
+			},
+		},
+	}
+	return nil
+}
+
+func (p *parser) parseRequestBodyComponent(pkgPath, pkgName, comment string) error {
+	typeName := strings.Fields(comment)
+	if len(typeName) == 0 {
+		return fmt.Errorf("parseRequestBodyComponent: missing type name")
+	}
+	name := typeName[0]
+	schemaID, err := p.schemaParser.RegisterType(pkgPath, pkgName, name)
+	if err != nil {
+		return err
+	}
+	desc := ""
+	if schema, ok := p.OpenAPI.Components.Schemas[schemaID]; ok && schema != nil {
+		desc = schema.Description
+	}
+	if p.OpenAPI.Components.RequestBodies == nil {
+		p.OpenAPI.Components.RequestBodies = map[string]*oas.RequestBodyObject{}
+	}
+	componentKey := componentName(name)
+	p.OpenAPI.Components.RequestBodies[componentKey] = &oas.RequestBodyObject{
+		Description: desc,
+		Required:    true,
+		Content: map[string]*oas.MediaTypeObject{
+			oas.ContentTypeJson: {
+				Schema: oas.SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schemaID)},
+			},
+		},
+	}
+	return nil
+}
+
+func componentName(typeName string) string {
+	parts := strings.Split(typeName, ".")
+	return parts[len(parts)-1]
 }

@@ -56,8 +56,23 @@ docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest \
 | `--output` | Output path (default `oas.json`) |
 | `--schema-without-pkg` | Schema names without package prefix |
 | `--generate-yaml` | Emit YAML (`.json` output becomes `.yml`) |
+| `--exclude` | Comma-separated dirs to skip |
+| `--quiet` | Reduce log noise |
 | `--debug` | Debug logging |
 | `--strict` | Treat parse warnings as fatal |
+
+Also: `go-swagger3 fmt -d ./` formats `@` annotations.
+
+### Framework UI
+
+Serve UI via `github.com/parvez3019/go-swagger3/swagger` (net/http) or adapters under `swagger/gin`, `swagger/echo`, `swagger/chi`, `swagger/mux`, `swagger/fiber`, `swagger/hertz`, `swagger/buffalo`, `swagger/flamingo`, `swagger/atreugo`. See `docs/MIGRATION_FROM_SWAG.md` and `examples/`.
+
+### Extra operation annotations
+
+- `@Accept` / `@Produce` (MIME aliases: `json`, `xml`, `mpfd`, …)
+- Per-handler `@Security`, `@deprecated`, `@externalDocs.description` / `.url`
+- `@Param` attributes: `Enums()`, `default()`, `minimum()`, `Format()`, `style()`, `explode()`, …
+- Generics: `PaginatedResult[User]`; composition: `JSONResult{data=Order}`
 
 ## Patterns
 

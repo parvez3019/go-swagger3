@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/parvez3019/go-swagger3/formatter"
 	parserPkg "github.com/parvez3019/go-swagger3/parser"
 	"github.com/parvez3019/go-swagger3/writer"
 	"github.com/urfave/cli"
@@ -22,6 +23,20 @@ func NewApp() *App {
 	}
 	cliApp.Flags = flags
 	cliApp.Action = action
+	cliApp.Commands = []cli.Command{
+		{
+			Name:  "fmt",
+			Usage: "format swagger @ annotations in Go source files",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "d",
+					Value: ".",
+					Usage: "directory to format",
+				},
+			},
+			Action: fmtAction,
+		},
+	}
 
 	return &App{
 		App: cliApp,
@@ -37,6 +52,8 @@ func action(c *cli.Context) error {
 		args.debug,
 		args.strict,
 		args.schemaWithoutPkg,
+		args.exclude,
+		args.quiet,
 	).Init()
 
 	if err != nil {
@@ -49,4 +66,12 @@ func action(c *cli.Context) error {
 
 	fw := writer.NewFileWriter()
 	return fw.Write(openApiObject, args.output, args.generateYaml, args.schemaWithoutPkg)
+}
+
+func fmtAction(c *cli.Context) error {
+	dir := c.String("d")
+	if dir == "" {
+		dir = "."
+	}
+	return formatter.FormatDir(dir)
 }

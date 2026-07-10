@@ -70,6 +70,8 @@ func (p *parser) parseComment(comment string, oauthScopes map[string]map[string]
 	p.parseSecurity(attribute, value)
 	p.parseSecurityScheme(attribute, value)
 	p.parseSecurityScope(attribute, value, oauthScopes)
+	p.parseTagMetadata(attribute, value)
+	p.parseAPIExternalDocs(attribute, value)
 }
 
 func (p *parser) parseAttributeAndValue(comment string) (string, string, bool) {
@@ -100,7 +102,7 @@ func (p *parser) parseOpenApiInfo(attribute string, value string) {
 		p.OpenAPI.Info.Description = value
 	case "@termsofserviceurl":
 		p.OpenAPI.Info.TermsOfService = value
-	case "@contactname", "@contactemail", "contacturl":
+	case "@contactname", "@contactemail", "@contacturl":
 		p.parseContact(attribute, value)
 	case "@licensename":
 		p.parseLicenseName(value)
@@ -266,5 +268,64 @@ func (p *parser) parseOauth2Scheme(fields []string) *SecuritySchemeObject {
 	return &SecuritySchemeObject{
 		Type:       "oauth2",
 		OAuthFlows: &SecuritySchemeOauthObject{},
+	}
+}
+
+func (p *parser) parseTagMetadata(attribute, value string) {
+	switch attribute {
+	case "@tag.name":
+		p.OpenAPI.Tags = append(p.OpenAPI.Tags, TagObject{Name: value})
+	case "@tag.description":
+		if tag := p.lastTag(); tag != nil {
+			tag.Description = value
+		}
+	case "@tag.docs.url":
+		if tag := p.lastTag(); tag != nil {
+			if tag.ExternalDocs == nil {
+				tag.ExternalDocs = &ExternalDocumentationObject{}
+			}
+			tag.ExternalDocs.URL = value
+		}
+	case "@tag.docs.description":
+		if tag := p.lastTag(); tag != nil {
+			if tag.ExternalDocs == nil {
+				tag.ExternalDocs = &ExternalDocumentationObject{}
+			}
+			tag.ExternalDocs.Description = value
+		}
+	}
+}
+
+func (p *parser) lastTag() *TagObject {
+	if len(p.OpenAPI.Tags) == 0 {
+		return nil
+	}
+	return &p.OpenAPI.Tags[len(p.OpenAPI.Tags)-1]
+}
+
+func (p *parser) parseAPIExternalDocs(attribute, value string) {
+	switch attribute {
+	case "@externaldocs":
+		fields := strings.Fields(value)
+		if len(fields) == 0 {
+			return
+		}
+		if p.OpenAPI.ExternalDocs == nil {
+			p.OpenAPI.ExternalDocs = &ExternalDocumentationObject{}
+		}
+		p.OpenAPI.ExternalDocs.URL = fields[0]
+		if len(fields) > 1 {
+			p.OpenAPI.ExternalDocs.Description = strings.TrimSpace(value[len(fields[0]):])
+		}
+	case "@externaldocs.url":
+		if p.OpenAPI.ExternalDocs == nil {
+			p.OpenAPI.ExternalDocs = &ExternalDocumentationObject{}
+		}
+		p.OpenAPI.ExternalDocs.URL = value
+	case "@externaldocs.description":
+		if p.OpenAPI.ExternalDocs == nil {
+			p.OpenAPI.ExternalDocs = &ExternalDocumentationObject{}
+		}
+		p.OpenAPI.ExternalDocs.Description = value
 	}
 }

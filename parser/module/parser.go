@@ -1,11 +1,12 @@
 package module
 
 import (
-	"github.com/parvez3019/go-swagger3/parser/model"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/parvez3019/go-swagger3/parser/model"
+	log "github.com/sirupsen/logrus"
 )
 
 type Parser interface {
@@ -30,6 +31,9 @@ func (p *parser) Parse() error {
 			if strings.HasPrefix(strings.Trim(strings.TrimPrefix(path, p.ModulePath), "/"), ".git") {
 				return nil
 			}
+			if p.isExcluded(path) {
+				return filepath.SkipDir
+			}
 			fns, err := filepath.Glob(filepath.Join(path, "*.go"))
 			if len(fns) == 0 || err != nil {
 				return nil
@@ -47,4 +51,25 @@ func (p *parser) Parse() error {
 		return nil
 	}
 	return filepath.Walk(p.ModulePath, walker)
+}
+
+func (p *parser) isExcluded(path string) bool {
+	if len(p.ExcludePaths) == 0 {
+		return false
+	}
+	rel := strings.Trim(strings.TrimPrefix(path, p.ModulePath), string(filepath.Separator))
+	relSlash := filepath.ToSlash(rel)
+	pathSlash := filepath.ToSlash(path)
+	for _, exclude := range p.ExcludePaths {
+		exclude = filepath.ToSlash(strings.TrimSpace(exclude))
+		if exclude == "" {
+			continue
+		}
+		if relSlash == exclude || strings.HasPrefix(relSlash, exclude+"/") ||
+			pathSlash == exclude || strings.HasPrefix(pathSlash, exclude+"/") ||
+			strings.Contains(relSlash, exclude) {
+			return true
+		}
+	}
+	return false
 }

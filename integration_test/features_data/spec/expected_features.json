@@ -1,0 +1,516 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Features API",
+    "description": "Integration coverage for go-swagger3 feature roadmap",
+    "contact": {
+      "name": "Features Support",
+      "url": "https://example.com/contact",
+      "email": "features@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://en.wikipedia.org/wiki/MIT_License"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com",
+      "description": " Production"
+    }
+  ],
+  "paths": {
+    "/bags": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bag"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomTypes"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get bag",
+        "description": " Returns bag schema features",
+        "operationId": "GetBag"
+      }
+    },
+    "/pets": {
+      "get": {
+        "deprecated": true,
+        "description": " Returns a page of items",
+        "externalDocs": {
+          "description": "Pets guide",
+          "url": "https://example.com/pets"
+        },
+        "operationId": "ListPets",
+        "parameters": [
+          {
+            "description": "search",
+            "example": "milo",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "description": "search",
+              "example": "milo",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_Item"
+                }
+              }
+            },
+            "description": "page"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONResult_data_Item"
+                }
+              }
+            },
+            "description": "composed"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "summary": "List pets",
+        "tags": [
+          "pets"
+        ],
+        "x-visibility": "public"
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "description": "created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetHolder"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "bad request",
+            "$ref": "#/components/responses/ErrorBody"
+          }
+        },
+        "tags": [
+          "pets"
+        ],
+        "summary": "Create pet",
+        "description": " Create a pet with XML accept and JSON produce",
+        "operationId": "CreatePet",
+        "parameters": [
+          {
+            "name": "dry_run",
+            "in": "query",
+            "description": "dry run flag",
+            "schema": {
+              "type": "boolean",
+              "description": "dry run flag",
+              "default": false
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "page size",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "page size",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "status filter",
+            "schema": {
+              "type": "string",
+              "format": "string",
+              "description": "status filter",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "sort order",
+            "example": "name",
+            "schema": {
+              "type": "string",
+              "description": "sort order",
+              "example": "name"
+            },
+            "style": "form",
+            "explode": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "text/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePetBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/pets/upload": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Upload pet image",
+        "operationId": "UploadPet",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "meta": {
+                    "type": "string",
+                    "description": "metadata"
+                  },
+                  "file": {
+                    "type": "string",
+                    "description": "image file"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Bag": {
+        "type": "object",
+        "properties": {
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "skip_n": {
+            "type": "integer"
+          }
+        }
+      },
+      "Cat": {
+        "type": "object",
+        "properties": {
+          "meow": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatePetBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Milo",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "example": "cat",
+            "enum": [
+              "cat",
+              "dog"
+            ]
+          }
+        },
+        "description": "Create pet payload"
+      },
+      "CustomTypes": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer",
+            "default": 10,
+            "maximum": 100
+          },
+          "legacy": {
+            "type": "string",
+            "deprecated": true
+          },
+          "internal": {
+            "type": "string",
+            "x-internal": "true"
+          }
+        }
+      },
+      "Dog": {
+        "type": "object",
+        "properties": {
+          "bark": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "bad_request"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "Shared error payload"
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "JSONResult": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "JSONResult_data_Item": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Item"
+          }
+        }
+      },
+      "Page_Item": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "PetHolder": {
+        "type": "object",
+        "properties": {
+          "pet": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Cat"
+              },
+              {
+                "$ref": "#/components/schemas/Dog"
+              }
+            ],
+            "discriminator": {
+              "propertyName": "petType"
+            }
+          },
+          "alt": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cat"
+              },
+              {
+                "$ref": "#/components/schemas/Dog"
+              }
+            ]
+          },
+          "mix": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Cat"
+              },
+              {
+                "$ref": "#/components/schemas/Dog"
+              }
+            ]
+          }
+        }
+      },
+      "StatusEnum": {
+        "type": "string",
+        "example": "active",
+        "enum": [
+          "active",
+          "inactive"
+        ]
+      },
+      "model.CreatePetBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Milo",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "example": "cat",
+            "enum": [
+              "cat",
+              "dog"
+            ]
+          }
+        },
+        "description": "Create pet payload"
+      },
+      "model.ErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "bad_request"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "description": "Shared error payload"
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "description": "Input your token",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "ErrorBody": {
+        "description": "Shared error payload",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorBody"
+            }
+          }
+        }
+      }
+    },
+    "requestBodies": {
+      "CreatePetBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/CreatePetBody"
+            }
+          }
+        },
+        "description": "Create pet payload",
+        "required": true
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "pets",
+      "description": "Pet operations"
+    }
+  ],
+  "externalDocs": {
+    "description": "Feature docs",
+    "url": "https://example.com/docs"
+  }
+}

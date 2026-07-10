@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### Added - 10-07-2026
+
+Feature roadmap toward swag-class DX while remaining OpenAPI 3-first. Existing characterisation tests (`integration_test`) remain the regression gate; goldens unchanged.
+
+**DX / operations**
+- `@Accept` / `@Produce` content types (MIME aliases)
+- Per-operation `@Security`, `@deprecated`, `@externalDocs`
+- `@Param` attributes: `Enums`, `default`, `minimum`/`maximum`, `minlength`/`maxlength`, `Format`, `collectionFormat`, `style`, `explode`, `example`
+- Tag metadata (`@tag.name`, …), API-level external docs
+- CLI `--exclude`, `--quiet`; `go-swagger3 fmt`
+
+**Schema**
+- Maps → `additionalProperties`; pointer fields → `nullable`
+- `swaggertype` / `go-swagger3:"type=…"`; field `default` tag; `deprecated:"true"`
+- Generics `Foo[Bar]`; composition `Foo{field=Type}`
+- `oneOf` / `anyOf` / `allOf` / `discriminator` field tags
+- Field/type descriptions from comments; x-extensions on operations and fields
+- `@ResponseComponent` / `@RequestBodyComponent`; `$ref:` in success/param
+
+**Framework UI adapters** (separate modules under `swagger/`)
+- gin, echo, chi, mux, fiber, hertz, buffalo, flamingo, atreugo (+ core net/http)
+
+**Docs**
+- [docs/MIGRATION_FROM_SWAG.md](docs/MIGRATION_FROM_SWAG.md), [examples/](examples/)
+
 #### Added - 30-07-2021
 - Fix array object field parsing
 
