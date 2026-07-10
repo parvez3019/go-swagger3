@@ -1,9 +1,10 @@
 package model
 
 import (
+	"go/ast"
+
 	"github.com/parvez3019/go-swagger3/logger"
 	oas "github.com/parvez3019/go-swagger3/openApi3Schema"
-	"go/ast"
 )
 
 type Utils struct {
@@ -32,6 +33,18 @@ type PkgAndSpecs struct {
 	TypeSpecs               map[string]map[string]*ast.TypeSpec
 	PkgPathAstPkgCache      map[string]map[string]*ast.Package
 	PkgNameImportedPkgAlias map[string]map[string][]string
+
+	// DepModules indexes every module in go.mod by import path to its module-cache
+	// directory, without walking it. The schema parser uses this to locate and index
+	// dependency packages on demand (only the ones an annotation actually references),
+	// instead of walking every required module up front. Sorted by import path
+	// length descending so the most specific module wins a prefix match.
+	DepModules []DepModule
+}
+
+type DepModule struct {
+	ImportPath string
+	CacheDir   string
 }
 
 type Flags struct {

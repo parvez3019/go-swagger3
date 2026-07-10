@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/ast"
+	"go/token"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/iancoleman/orderedmap"
 	. "github.com/parvez3019/go-swagger3/openApi3Schema"
+	"github.com/parvez3019/go-swagger3/parser/model"
 	"github.com/parvez3019/go-swagger3/parser/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -32,11 +36,8 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 	} else {
 		guessPkgName := strings.Join(typeNameParts[:len(typeNameParts)-1], "/")
 		guessPkgPath := ""
-		for i := range p.KnownPkgs {
-			if guessPkgName == p.KnownPkgs[i].Name {
-				guessPkgPath = p.KnownPkgs[i].Path
-				break
-			}
+		if dir, ok := p.resolvePkgDir(guessPkgName); ok {
+			guessPkgPath = dir
 		}
 		guessTypeName := typeNameParts[len(typeNameParts)-1]
 		typeSpec, exist = p.getTypeSpec(guessPkgName, guessTypeName)
@@ -56,11 +57,8 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 			for index, currentAliasName := range aliases {
 				guessPkgName = currentAliasName
 				guessPkgPath = ""
-				for i := range p.KnownPkgs {
-					if guessPkgName == p.KnownPkgs[i].Name {
-						guessPkgPath = p.KnownPkgs[i].Path
-						break
-					}
+				if dir, ok := p.resolvePkgDir(guessPkgName); ok {
+					guessPkgPath = dir
 				}
 				// p.debugf("guess %s ast.TypeSpec in package %s", guessTypeName, guessPkgName)
 				typeSpec, exist = p.getTypeSpec(guessPkgName, guessTypeName)
@@ -136,6 +134,12 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 }
 
 func (p *parser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
+	if _, indexed := p.TypeSpecs[pkgName]; !indexed {
+		// Best-effort: a dependency package's type specs are built on first reference.
+		// No-op for the project's own packages (already indexed) and for unresolvable
+		// names (standard library, short aliases).
+		p.resolvePkgDir(pkgName)
+	}
 	pkgTypeSpecs, exist := p.TypeSpecs[pkgName]
 	if !exist {
 		return nil, false
@@ -145,6 +149,100 @@ func (p *parser) getTypeSpec(pkgName, typeName string) (*ast.TypeSpec, bool) {
 		return nil, false
 	}
 	return astTypeSpec, true
+}
+
+// resolvePkgDir returns the directory of a package by its import path, indexing the
+// package (building its TypeSpecs and import aliases) on first use. Project packages
+// are already in KnownNamePkg; dependency packages are located in the module cache
+// via the DepModules index built by the gomod parser and indexed lazily here, so only
+// the dependency packages an annotation actually references are ever parsed.
+func (p *parser) resolvePkgDir(importPath string) (string, bool) {
+	if kp, ok := p.KnownNamePkg[importPath]; ok {
+		p.ensurePkgIndexed(importPath, kp.Path)
+		return kp.Path, true
+	}
+	dir, ok := p.locateDepPkgDir(importPath)
+	if !ok {
+		return "", false
+	}
+	pk := &model.Pkg{Name: importPath, Path: dir}
+	p.KnownNamePkg[importPath] = pk
+	p.KnownPathPkg[dir] = pk
+	if p.RunInDebugMode {
+		p.Debugf("on-demand %s -> %s", importPath, dir)
+	}
+	p.ensurePkgIndexed(importPath, dir)
+	return dir, true
+}
+
+// locateDepPkgDir maps an import path to its module-cache directory using the longest
+// matching module from the DepModules index, and confirms the directory exists.
+func (p *parser) locateDepPkgDir(importPath string) (string, bool) {
+	for _, m := range p.DepModules {
+		if importPath != m.ImportPath && !strings.HasPrefix(importPath, m.ImportPath+"/") {
+			continue
+		}
+		rel := strings.TrimPrefix(importPath, m.ImportPath)
+		dir := filepath.Join(m.CacheDir, filepath.FromSlash(rel))
+		if info, err := os.Stat(dir); err == nil && info.IsDir() {
+			return dir, true
+		}
+		return "", false
+	}
+	return "", false
+}
+
+// ensurePkgIndexed builds TypeSpecs and import aliases for a single package from its
+// AST, mirroring what the eager apis passes do for project packages. Idempotent.
+func (p *parser) ensurePkgIndexed(pkgName, dir string) {
+	if _, done := p.TypeSpecs[pkgName]; done {
+		return
+	}
+	p.TypeSpecs[pkgName] = map[string]*ast.TypeSpec{}
+
+	astPkgs, err := p.GetPkgAst(dir)
+	if err != nil {
+		return
+	}
+	if _, ok := p.PkgNameImportedPkgAlias[pkgName]; !ok {
+		p.PkgNameImportedPkgAlias[pkgName] = map[string][]string{}
+	}
+
+	for _, astPackage := range astPkgs {
+		for _, astFile := range astPackage.Files {
+			for _, astDeclaration := range astFile.Decls {
+				astGenDeclaration, ok := astDeclaration.(*ast.GenDecl)
+				if !ok || astGenDeclaration.Tok != token.TYPE {
+					continue
+				}
+				for _, astSpec := range astGenDeclaration.Specs {
+					if typeSpec, ok := astSpec.(*ast.TypeSpec); ok {
+						p.TypeSpecs[pkgName][typeSpec.Name.String()] = typeSpec
+					}
+				}
+			}
+			for _, astImport := range astFile.Imports {
+				p.indexImportAlias(pkgName, astImport)
+			}
+		}
+	}
+}
+
+func (p *parser) indexImportAlias(pkgName string, astImport *ast.ImportSpec) {
+	importedPkgName := strings.Trim(astImport.Path.Value, "\"")
+	importedPkgAlias := ""
+	if astImport.Name != nil && astImport.Name.Name != "." && astImport.Name.Name != "_" {
+		importedPkgAlias = astImport.Name.String()
+	} else {
+		s := strings.Split(importedPkgName, "/")
+		importedPkgAlias = s[len(s)-1]
+	}
+	for _, v := range p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] {
+		if v == importedPkgName {
+			return
+		}
+	}
+	p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias] = append(p.PkgNameImportedPkgAlias[pkgName][importedPkgAlias], importedPkgName)
 }
 
 func (p *parser) parseSchemaPropertiesFromStructFields(pkgPath, pkgName string, structSchema *SchemaObject, astFields []*ast.Field) {
