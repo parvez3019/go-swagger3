@@ -1,4 +1,4 @@
-# See https://golangci-lint.run/usage/configuration/
+# See https://golangci-lint.run/docs/configuration/file/
 version: "2"
 
 linters:
@@ -14,7 +14,6 @@ linters:
         - -ST1001
         - -ST1003
         - -SA1019
-
-issues:
-  exclude-dirs:
-    - integration_test/test_data
+  exclusions:
+    paths:
+      - integration_test/test_data
