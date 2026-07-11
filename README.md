@@ -5,15 +5,27 @@ Click here for [Youtube Demo Link](https://www.youtube.com/watch?v=GLM9c5j8g7I)
 
 # go-swagger3
 
+[![CI](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml/badge.svg)](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/badge/go-1.24.0-blue.svg)](https://golang.org/dl/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Generate [OpenAPI Specification](https://swagger.io/specification) **v3** from Go godoc `@` annotations and struct tags.
 
 OpenAPI 3-first, with swag-class DX: `@Accept`/`@Produce`, per-operation security, generics, composition, framework UI adapters, and `go-swagger3 fmt`.
 
 Migrating from [swaggo/swag](https://github.com/swaggo/swag)? See [docs/MIGRATION_FROM_SWAG.md](docs/MIGRATION_FROM_SWAG.md).
 
+## AI agent skills
+
+Copy these into Claude / Cursor projects so agents can annotate existing Go APIs and generate OpenAPI 3 specs with go-swagger3:
+
+| Agent | Source | Copy to |
+|-------|--------|---------|
+| Claude Code | [agent-skills/claude/SKILL.md](agent-skills/claude/SKILL.md) | `.claude/skills/go-swagger3-docs/SKILL.md` |
+| Cursor | [agent-skills/cursor/cursor_rules.mdc](agent-skills/cursor/cursor_rules.mdc) | `.cursor/rules/go-swagger3.mdc` |
+
 ### Table of content
 
-- [AI agent skills](agent-skills/) (copy into Claude / Cursor projects)
 - [1. Install](#1-install)
 - [2. Documentation Generation](#2-documentation-generation)
 - [3. Serving Swagger UI](#3-serving-swagger-ui)
