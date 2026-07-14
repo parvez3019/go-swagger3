@@ -87,7 +87,18 @@ func (p *parser) parseCustomTypeSchemaObject(pkgPath string, pkgName string, typ
 
 	if astIdent, ok := typeSpec.Type.(*ast.Ident); ok {
 		if astIdent != nil {
-			schemaObject.Type = astIdent.Name
+			if utils.IsGoTypeOASType(astIdent.Name) {
+				schemaObject.Type = utils.GoTypesOASTypes[astIdent.Name]
+			} else {
+				schemaObject.Type = astIdent.Name
+			}
+
+			if schemaObject.ID != "" {
+				componentsKey := schemaObject.ID
+				if _, exists := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)]; !exists {
+					p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)] = &schemaObject
+				}
+			}
 		}
 	} else if astStructType, ok := typeSpec.Type.(*ast.StructType); ok {
 		schemaObject.Type = "object"

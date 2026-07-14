@@ -58,9 +58,11 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 		if strings.ContainsAny(typeName, "[{") {
 			componentsKey = schemaObject.ID
 		}
-		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)]
-		if !ok {
-			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)] = schemaObject
+		if componentsKey != "" {
+			_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)]
+			if !ok {
+				p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(componentsKey)] = schemaObject
+			}
 		}
 		return schemaObject.ID, nil
 	} else {
@@ -69,9 +71,11 @@ func (p *parser) RegisterType(pkgPath, pkgName, typeName string) (string, error)
 			return "", err
 		}
 		registerTypeName = schemaObject.ID
-		_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)]
-		if !ok {
-			p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)] = schemaObject
+		if registerTypeName != "" {
+			_, ok := p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)]
+			if !ok {
+				p.OpenAPI.Components.Schemas[utils.ReplaceBackslash(registerTypeName)] = schemaObject
+			}
 		}
 	}
 	return registerTypeName, nil

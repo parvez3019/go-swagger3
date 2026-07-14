@@ -405,32 +405,7 @@
           "restaurants": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "city": {
-                  "type": "string"
-                },
-                "rating": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string"
-                },
-                "menus": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/Restaurant"
             },
             "maxProperties": 100,
             "minProperties": 2,
@@ -508,12 +483,7 @@
           "menus": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/components/schemas/Menu"
             }
           }
         }
