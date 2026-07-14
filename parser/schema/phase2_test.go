@@ -272,3 +272,121 @@ func TestSplitGenericAndComposition(t *testing.T) {
 		t.Fatalf("composition parse = %q %v %v", base, overrides, ok)
 	}
 }
+
+func TestPhase2NamedAliasInArrayRegistersComponent(t *testing.T) {
+	pkgDir := t.TempDir()
+	src := `package model
+
+type SendTo string
+
+type DeliveryChannel string
+
+type Delivery struct {
+	SendTo          []SendTo          ` + "`json:\"sendTo\"`" + `
+	DeliveryChannel []DeliveryChannel ` + "`json:\"deliveryChannel\"`" + `
+}
+
+type Shipment struct {
+	Recipients []SendTo ` + "`json:\"recipients\"`" + `
+}
+`
+	p := newPhase2TestParser(t, pkgDir, "model", src)
+
+	deliverySchema, err := p.ParseSchemaObject(pkgDir, "model", "Delivery")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sendToComponent, ok := p.OpenAPI.Components.Schemas["SendTo"]
+	if !ok {
+		t.Fatal("components.schemas.SendTo missing")
+	}
+	if sendToComponent.Type != "string" {
+		t.Fatalf("SendTo component type = %q, want string", sendToComponent.Type)
+	}
+
+	sendToProp, ok := deliverySchema.Properties.Get("sendTo")
+	if !ok {
+		t.Fatal("sendTo property missing")
+	}
+	sendTo := sendToProp.(*SchemaObject)
+	if sendTo.Type != "array" {
+		t.Fatalf("sendTo.Type = %q, want array", sendTo.Type)
+	}
+	if sendTo.Items == nil || sendTo.Items.Ref != "#/components/schemas/SendTo" {
+		t.Fatalf("sendTo.Items = %+v, want $ref to SendTo", sendTo.Items)
+	}
+	if sendTo.Items.Type != "" {
+		t.Fatalf("sendTo.Items should use $ref only, got inline type %q", sendTo.Items.Type)
+	}
+
+	channelComponent, ok := p.OpenAPI.Components.Schemas["DeliveryChannel"]
+	if !ok {
+		t.Fatal("components.schemas.DeliveryChannel missing")
+	}
+	if channelComponent.Type != "string" {
+		t.Fatalf("DeliveryChannel component type = %q, want string", channelComponent.Type)
+	}
+
+	channelProp, ok := deliverySchema.Properties.Get("deliveryChannel")
+	if !ok {
+		t.Fatal("deliveryChannel property missing")
+	}
+	channel := channelProp.(*SchemaObject)
+	if channel.Items == nil || channel.Items.Ref != "#/components/schemas/DeliveryChannel" {
+		t.Fatalf("deliveryChannel.Items = %+v, want $ref to DeliveryChannel", channel.Items)
+	}
+
+	// Second struct referencing the same alias must also use $ref, not inline type.
+	shipmentSchema, err := p.ParseSchemaObject(pkgDir, "model", "Shipment")
+	if err != nil {
+		t.Fatal(err)
+	}
+	recipientsProp, ok := shipmentSchema.Properties.Get("recipients")
+	if !ok {
+		t.Fatal("recipients property missing")
+	}
+	recipients := recipientsProp.(*SchemaObject)
+	if recipients.Items == nil || recipients.Items.Ref != "#/components/schemas/SendTo" {
+		t.Fatalf("recipients.Items = %+v, want $ref to SendTo", recipients.Items)
+	}
+}
+
+func TestPhase2NamedAliasInMapRegistersComponent(t *testing.T) {
+	pkgDir := t.TempDir()
+	src := `package model
+
+type Status string
+
+type StatusMap struct {
+	Values map[string]Status ` + "`json:\"values\"`" + `
+}
+`
+	p := newPhase2TestParser(t, pkgDir, "model", src)
+
+	schema, err := p.ParseSchemaObject(pkgDir, "model", "StatusMap")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	statusComponent, ok := p.OpenAPI.Components.Schemas["Status"]
+	if !ok {
+		t.Fatal("components.schemas.Status missing")
+	}
+	if statusComponent.Type != "string" {
+		t.Fatalf("Status component type = %q, want string", statusComponent.Type)
+	}
+
+	valuesProp, ok := schema.Properties.Get("values")
+	if !ok {
+		t.Fatal("values property missing")
+	}
+	values := valuesProp.(*SchemaObject)
+	ap, ok := values.AdditionalProperties.(*SchemaObject)
+	if !ok || ap == nil {
+		t.Fatalf("values.AdditionalProperties = %#v, want *SchemaObject", values.AdditionalProperties)
+	}
+	if ap.Ref != "#/components/schemas/Status" {
+		t.Fatalf("values.AdditionalProperties.Ref = %q, want #/components/schemas/Status", ap.Ref)
+	}
+}

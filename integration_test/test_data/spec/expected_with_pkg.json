@@ -310,14 +310,6 @@
           "tr"
         ]
       },
-      "Menu": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          }
-        }
-      },
       "OrderByEnum": {
         "type": "string",
         "example": "popular",
@@ -327,34 +319,6 @@
           "new",
           "highest-rated"
         ]
-      },
-      "Restaurant": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "city": {
-            "type": "string"
-          },
-          "rating": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "menus": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
       },
       "github.com.parvez3019.go-swagger3.handler.Bar": {
         "type": "object",
@@ -499,36 +463,42 @@
           "restaurants": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "city": {
-                  "type": "string"
-                },
-                "rating": {
-                  "type": "string"
-                },
-                "type": {
-                  "type": "string"
-                },
-                "menus": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "name": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                }
-              }
+              "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.Restaurant"
             },
             "maxProperties": 100,
             "minProperties": 2,
             "additionalProperties": true
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.Menu": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "github.com.parvez3019.go-swagger3.model.Restaurant": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "menus": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/github.com.parvez3019.go-swagger3.model.Menu"
+            }
           }
         }
       }

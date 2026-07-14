@@ -41,11 +41,18 @@ func (p *parser) parseTimeType(schemaObject SchemaObject) (*SchemaObject, error,
 func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject) (*SchemaObject, error, bool) {
 	schemaObject.Type = "array"
 	itemTypeName := typeName[2:]
-	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
-	if ok {
-		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
-		return &schemaObject, nil, true
+
+	if !utils.IsBasicGoType(itemTypeName) {
+		itemID, err := p.RegisterType(pkgPath, pkgName, itemTypeName)
+		if err != nil {
+			return nil, err, true
+		}
+		if itemID != "" {
+			schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(itemID)}
+			return &schemaObject, nil, true
+		}
 	}
+
 	var err error
 	schemaObject.Items, err = p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 	if err != nil {
@@ -57,11 +64,18 @@ func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string,
 func (p *parser) parseMapType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject) (*SchemaObject, error, bool) {
 	schemaObject.Type = "object"
 	itemTypeName := typeName[5:]
-	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
-	if ok {
-		schemaObject.AdditionalProperties = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
-		return &schemaObject, nil, true
+
+	if !utils.IsBasicGoType(itemTypeName) {
+		itemID, err := p.RegisterType(pkgPath, pkgName, itemTypeName)
+		if err != nil {
+			return nil, err, true
+		}
+		if itemID != "" {
+			schemaObject.AdditionalProperties = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(itemID)}
+			return &schemaObject, nil, true
+		}
 	}
+
 	schemaProperty, err := p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 	if err != nil {
 		return nil, err, true
