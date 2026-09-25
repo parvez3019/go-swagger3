@@ -101,6 +101,7 @@ type Person struct {
 	Age     *int    ` + "`json:\"age\" nullable:\"false\"`" + `
 	Active  *bool   ` + "`json:\"active\" nullable:\"true\"`" + `
 	Plain   string  ` + "`json:\"plain\"`" + `
+	Related *Person ` + "`json:\"related\"`" + `
 }
 `
 	p := newPhase2TestParser(t, pkgDir, "model", src)
@@ -127,6 +128,76 @@ type Person struct {
 		if fs.Nullable != c.nullable {
 			t.Errorf("%s.Nullable = %v, want %v", c.field, fs.Nullable, c.nullable)
 		}
+	}
+	relatedProperty, _ := schema.Properties.Get("related")
+	related := relatedProperty.(*SchemaObject)
+	if !related.Nullable || related.Ref != "" || len(related.AllOf) != 1 || related.AllOf[0].Ref != "#/components/schemas/Person" {
+		t.Fatalf("related = %+v, want nullable reference expressed with allOf", related)
+	}
+}
+
+func TestPhase2JSONOmitZero(t *testing.T) {
+	pkgDir := t.TempDir()
+	src := `package model
+
+type Nested struct {
+	Value string ` + "`json:\"value\"`" + `
+}
+
+type Container struct {
+	First  Nested ` + "`json:\"first,omitzero\" $ref:\"Nested\"`" + `
+	Second Nested ` + "`json:\"second,omitzero\" $ref:\"Nested\"`" + `
+}
+`
+	p := newPhase2TestParser(t, pkgDir, "model", src)
+	schema, err := p.ParseSchemaObject(pkgDir, "model", "Container")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, name := range []string{"first", "second"} {
+		property, ok := schema.Properties.Get(name)
+		if !ok {
+			t.Errorf("missing property %q", name)
+			continue
+		}
+		if ref := property.(*SchemaObject).Ref; ref != "#/components/schemas/Nested" {
+			t.Errorf("property %q ref = %q, want Nested reference", name, ref)
+		}
+	}
+	if _, ok := schema.Properties.Get("omitzero"); ok {
+		t.Error("omitzero must be treated as a JSON option, not a property name")
+	}
+}
+
+func TestPhase2SliceOfPointers(t *testing.T) {
+	pkgDir := t.TempDir()
+	src := `package model
+
+type Element struct {
+	ID string ` + "`json:\"id\"`" + `
+}
+
+type Container struct {
+	Elements []*Element ` + "`json:\"elements,omitempty\"`" + `
+}
+`
+	p := newPhase2TestParser(t, pkgDir, "model", src)
+	schema, err := p.ParseSchemaObject(pkgDir, "model", "Container")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	property, ok := schema.Properties.Get("elements")
+	if !ok {
+		t.Fatal("elements property missing")
+	}
+	elements := property.(*SchemaObject)
+	if elements.Type != "array" || elements.Items == nil {
+		t.Fatalf("elements = %+v, want array with items", elements)
+	}
+	if elements.Items.Type != "object" || !elements.Items.Nullable {
+		t.Fatalf("elements items = %+v, want nullable Element schema", elements.Items)
 	}
 }
 

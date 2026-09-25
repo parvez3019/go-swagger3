@@ -436,15 +436,20 @@ astFieldsLoop:
 			}
 			tagValues := strings.Split(tagText, ",")
 			isRequired := false
-			for _, v := range tagValues {
-				if v == "-" {
+			if len(tagValues) > 0 {
+				switch tagValues[0] {
+				case "-":
 					structSchema.DisabledFieldNames[name] = struct{}{}
 					fieldSchema.Deprecated = true
 					continue astFieldsLoop
-				} else if v == "required" {
+				case "":
+				default:
+					name = tagValues[0]
+				}
+			}
+			for _, option := range tagValues[1:] {
+				if option == "required" {
 					isRequired = true
-				} else if v != "" && v != "required" && v != "omitempty" {
-					name = v
 				}
 			}
 			p.addType(astFieldTag, fieldSchema)
@@ -480,7 +485,7 @@ astFieldsLoop:
 			nullableTag = astFieldTag.Get("nullable")
 		}
 		if isPointer && nullableTag != "false" {
-			fieldSchema.Nullable = true
+			makeSchemaNullable(fieldSchema)
 		}
 		p.addFieldCommentDescription(astField, fieldSchema)
 		structSchema.Properties.Set(name, fieldSchema)
@@ -569,6 +574,14 @@ astFieldsLoop:
 			continue
 		}
 	}
+}
+
+func makeSchemaNullable(schema *SchemaObject) {
+	if schema.Ref != "" {
+		schema.AllOf = []*SchemaObject{{Ref: schema.Ref}}
+		schema.Ref = ""
+	}
+	schema.Nullable = true
 }
 
 func (p *parser) addType(astFieldTag reflect.StructTag, fieldSchema *SchemaObject) {
