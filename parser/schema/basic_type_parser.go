@@ -41,15 +41,23 @@ func (p *parser) parseTimeType(schemaObject SchemaObject) (*SchemaObject, error,
 func (p *parser) parseArrayType(pkgPath string, pkgName string, typeName string, schemaObject SchemaObject) (*SchemaObject, error, bool) {
 	schemaObject.Type = "array"
 	itemTypeName := typeName[2:]
+	itemIsPointer := strings.HasPrefix(itemTypeName, "*")
+	itemTypeName = strings.TrimLeft(itemTypeName, "*")
 	schema, ok := p.KnownIDSchema[utils.GenSchemaObjectID(pkgName, itemTypeName, p.SchemaWithoutPkg)]
 	if ok {
 		schemaObject.Items = &SchemaObject{Ref: utils.AddSchemaRefLinkPrefix(schema.ID)}
+		if itemIsPointer {
+			makeSchemaNullable(schemaObject.Items)
+		}
 		return &schemaObject, nil, true
 	}
 	var err error
 	schemaObject.Items, err = p.ParseSchemaObject(pkgPath, pkgName, itemTypeName)
 	if err != nil {
 		return nil, err, true
+	}
+	if itemIsPointer {
+		makeSchemaNullable(schemaObject.Items)
 	}
 	return &schemaObject, nil, true
 }
