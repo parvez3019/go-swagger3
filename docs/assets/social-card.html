@@ -1,0 +1,48 @@
+<!-- Social preview source (1280x640). Regenerate:
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars \
+    --force-device-scale-factor=1 --window-size=1280,640 \
+    --screenshot=docs/assets/social-card.png "file://$PWD/docs/assets/social-card.html"
+-->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1280px; height: 640px; }
+  body {
+    background: #0d1b2a;
+    color: #e6edf3;
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 96px; box-sizing: border-box;
+    position: relative; overflow: hidden;
+  }
+  .glow { position: absolute; right: -160px; top: -160px; width: 620px; height: 620px;
+          border-radius: 50%; background: radial-gradient(circle, rgba(0,173,216,.35), rgba(0,173,216,0) 70%); }
+  .kicker { font: 600 26px ui-monospace, Menlo, monospace; color: #00add8; letter-spacing: .5px; }
+  h1 { font-size: 104px; margin: 14px 0 18px; letter-spacing: -2px; }
+  p { font-size: 40px; line-height: 1.3; margin: 0; color: #c9d4df; max-width: 980px; }
+  .code { margin-top: 44px; font: 28px ui-monospace, Menlo, monospace; color: #9fb3c8;
+          background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+          border-radius: 12px; padding: 18px 26px; display: inline-block; align-self: flex-start; }
+  .code b { color: #f5b14c; font-weight: 600; }
+  .pills { position: absolute; bottom: 52px; left: 96px; display: flex; gap: 14px; }
+  .pill { font: 600 22px -apple-system, Arial, sans-serif; color: #0d1b2a; background: #00add8;
+          border-radius: 999px; padding: 8px 20px; }
+  .pill.alt { background: transparent; color: #9fb3c8; border: 1px solid #3a4d63; }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="kicker">github.com/parvez3019/go-swagger3</div>
+  <h1>go-swagger3</h1>
+  <p>Generate OpenAPI 3 specs from Go code annotations.</p>
+  <div class="code"><b>// @Route</b> /pets/{id} [get] &nbsp;→&nbsp; openapi: 3.0.0</div>
+  <div class="pills">
+    <span class="pill">OpenAPI 3.0</span>
+    <span class="pill alt">swag-style comments</span>
+    <span class="pill alt">Gin · Echo · chi · Fiber</span>
+    <span class="pill alt">Generics</span>
+  </div>
+</body>
+</html>

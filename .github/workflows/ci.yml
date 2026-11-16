@@ -27,7 +27,10 @@ jobs:
         run: |
           go mod tidy
           go build
-          go test -v -coverprofile=coverage.out -covermode=atomic ./...
+          # -coverpkg counts code exercised by integration_test across all
+          # packages (matches `make cover`); generated mocks are excluded.
+          go test -v -coverpkg=./... -coverprofile=coverage.out.tmp -covermode=atomic ./...
+          grep -v "mocks/" coverage.out.tmp > coverage.out
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
