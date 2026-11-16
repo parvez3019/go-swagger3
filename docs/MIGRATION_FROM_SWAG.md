@@ -1,3 +1,8 @@
+---
+title: "Migrating from swaggo/swag to OpenAPI 3"
+description: "Move a Go project from swaggo/swag (Swagger 2.0) to go-swagger3 (OpenAPI 3.0): annotation mapping, security, Swagger UI middleware."
+---
+
 # Migrating from swaggo/swag to go-swagger3
 
 go-swagger3 generates **OpenAPI 3.0** natively. swag (v1) generates Swagger 2.0; swag v2 targets OpenAPI 3.1 (RC). This guide maps common swag annotations and UI mounts to go-swagger3.

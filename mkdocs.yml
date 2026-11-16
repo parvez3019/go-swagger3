@@ -1,0 +1,88 @@
+site_name: go-swagger3
+site_description: >-
+  Generate OpenAPI 3 specs from Go code annotations. A swaggo/swag alternative with native OpenAPI 3.0 output,
+  swag-style comments, generics, and built-in Swagger UI for Gin, Echo, chi, Fiber, Hertz and net/http.
+site_url: https://parvez3019.github.io/go-swagger3/
+repo_url: https://github.com/parvez3019/go-swagger3
+repo_name: parvez3019/go-swagger3
+edit_uri: edit/main/docs/
+copyright: Copyright &copy; go-swagger3 contributors · MIT License
+
+docs_dir: docs
+exclude_docs: |
+  assets/social-card.html
+hooks:
+  - scripts/mkdocs_hooks.py
+
+theme:
+  name: material
+  custom_dir: overrides
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: cyan
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+extra:
+  # Google Search Console HTML-tag verification. Paste the `content` value of the
+  # <meta name="google-site-verification"> tag from Search Console here.
+  google_site_verification: ""
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/parvez3019/go-swagger3
+
+nav:
+  - Home: README.md
+  - Frameworks:
+      - Gin: frameworks/gin.md
+      - Echo: frameworks/echo.md
+      - chi: frameworks/chi.md
+      - Fiber: frameworks/fiber.md
+      - Hertz: frameworks/hertz.md
+      - gorilla/mux: frameworks/gorilla-mux.md
+      - net/http: frameworks/net-http.md
+  - Reference:
+      - Install & CLI: cli.md
+      - Annotations: annotations.md
+      - Security: security.md
+      - Serving Swagger UI: serving-swagger-ui.md
+  - Coming from swag:
+      - Comparison: comparison.md
+      - Migrating from swaggo/swag: MIGRATION_FROM_SWAG.md
+  - AI agent skills: ai-agent-skills.md
+
+validation:
+  links:
+    not_found: warn
+    anchors: warn
+    unrecognized_links: warn

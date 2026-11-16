@@ -9,10 +9,15 @@ more.
 [![Release](https://img.shields.io/github/v/release/parvez3019/go-swagger3)](https://github.com/parvez3019/go-swagger3/releases/latest)
 [![codecov](https://codecov.io/gh/parvez3019/go-swagger3/branch/main/graph/badge.svg)](https://codecov.io/gh/parvez3019/go-swagger3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-parvez3019.github.io-00ADD8)](https://parvez3019.github.io/go-swagger3/)
 
 > [!TIP]
-> **[Read the docs](docs/)** · [Install](docs/cli.md#install) · [Annotation reference](docs/annotations.md) ·
-> [Migrating from swag](docs/MIGRATION_FROM_SWAG.md)
+> **[Read the docs](https://parvez3019.github.io/go-swagger3/)** ·
+> Guides for [Gin](https://parvez3019.github.io/go-swagger3/frameworks/gin/),
+> [Echo](https://parvez3019.github.io/go-swagger3/frameworks/echo/),
+> [chi](https://parvez3019.github.io/go-swagger3/frameworks/chi/),
+> [Fiber](https://parvez3019.github.io/go-swagger3/frameworks/fiber/) ·
+> [Migrating from swag](https://parvez3019.github.io/go-swagger3/MIGRATION_FROM_SWAG/)
 
 ## Quick start
 

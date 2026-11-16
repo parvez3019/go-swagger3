@@ -1,3 +1,8 @@
+---
+title: "Serve Swagger UI in Go"
+description: "Serve Swagger UI for an OpenAPI 3 spec from net/http, Gin, Echo, chi, gorilla/mux, Fiber, Hertz, Buffalo, Flamingo or Atreugo."
+---
+
 # Serving Swagger UI
 
 Serve the generated OpenAPI file with an interactive UI at `http://localhost:8080/swagger/index.html`

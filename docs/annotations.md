@@ -1,3 +1,8 @@
+---
+title: "Go OpenAPI 3 annotation reference"
+description: "Every go-swagger3 annotation and struct tag: @Param, @Success, @Failure, @Route, @Header, @ResponseHeader, enums, generics and composition for OpenAPI 3."
+---
+
 # Annotation reference
 
 go-swagger3 reads `@` annotations from Go comments and struct tags. Service-level annotations go in your main file;

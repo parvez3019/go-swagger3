@@ -1,3 +1,8 @@
+---
+title: "OpenAPI 3 security schemes from Go annotations"
+description: "Define bearer, basic, API key, OpenID Connect and OAuth2 security schemes and scopes in Go comments with go-swagger3."
+---
+
 # Security
 
 If authorization is required, define security schemes with `@SecurityScheme [name] [type] [parameters]` and apply

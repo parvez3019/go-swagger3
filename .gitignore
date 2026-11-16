@@ -26,3 +26,7 @@ vendor/
 
 # goreleaser output
 dist/
+
+# mkdocs output
+site/
+__pycache__/
