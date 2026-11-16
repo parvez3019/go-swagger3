@@ -23,3 +23,6 @@ go-swagger3
 
 # vendor
 vendor/
+
+# goreleaser output
+dist/

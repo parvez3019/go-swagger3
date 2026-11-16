@@ -1,13 +1,29 @@
 package app
 
 import (
+	"runtime/debug"
+
 	"github.com/parvez3019/go-swagger3/formatter"
 	parserPkg "github.com/parvez3019/go-swagger3/parser"
 	"github.com/parvez3019/go-swagger3/writer"
 	"github.com/urfave/cli"
 )
 
-var version = "v1.0.0"
+// version is set at build time by GoReleaser via
+// -ldflags "-X github.com/parvez3019/go-swagger3/app.version=...".
+// When empty (e.g. `go install ...@v1.2.2`), it falls back to the module
+// version recorded in the binary's build info.
+var version = ""
+
+func resolveVersion() string {
+	if version != "" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return info.Main.Version
+	}
+	return "dev"
+}
 
 type App struct {
 	*cli.App
@@ -16,7 +32,7 @@ type App struct {
 func NewApp() *App {
 	cliApp := cli.NewApp()
 	cliApp.Name = "go-swagger3"
-	cliApp.Version = version
+	cliApp.Version = resolveVersion()
 	cliApp.HideHelp = true
 	cliApp.OnUsageError = func(c *cli.Context, err error, isSubcommand bool) error {
 		return cli.ShowAppHelp(c)

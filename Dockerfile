@@ -3,8 +3,11 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+ARG VERSION=dev
 # Build the checked-out source (the tagged release), not @latest from the proxy.
-RUN CGO_ENABLED=0 GOWORK=off go build -o /out/go-swagger3 .
+RUN CGO_ENABLED=0 GOWORK=off go build -trimpath \
+    -ldflags "-s -w -X github.com/parvez3019/go-swagger3/app.version=${VERSION}" \
+    -o /out/go-swagger3 .
 
 # Keep a Go toolchain in the runtime image: go-swagger3 resolves modules and
 # GOPATH of the project it parses.
