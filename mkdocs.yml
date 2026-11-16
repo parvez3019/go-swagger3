@@ -56,7 +56,7 @@ markdown_extensions:
 extra:
   # Google Search Console HTML-tag verification. Paste the `content` value of the
   # <meta name="google-site-verification"> tag from Search Console here.
-  google_site_verification: ""
+  google_site_verification: "fxHYijen_d4W46Y2YnUqH2-B4O1RXTfCUg9uEyMbPKw"
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/parvez3019/go-swagger3
