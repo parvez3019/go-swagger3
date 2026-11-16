@@ -1,8 +1,12 @@
 name: Module install check
 
-# Verifies that a released version can be installed by an outside user from
+# Verifies that released versions can be installed by an outside user from
 # the public module proxy. Guards against adapters depending on an unreleased
 # or replace-only version of the root module.
+#
+# - Root tag (v1.2.2): `go install` the CLI at that tag, and `go get` every
+#   adapter at @latest against it.
+# - Adapter tag (swagger/gin/v1.2.2): `go get` that adapter at its tag.
 on:
   push:
     tags:
@@ -11,52 +15,84 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to check (e.g. v1.2.1). Defaults to latest."
+        description: "Adapter version to check (e.g. v1.2.1). Defaults to latest."
         required: false
         default: "latest"
 
 permissions:
   contents: read
 
+env:
+  GOFLAGS: -mod=mod
+  GOWORK: "off"
+
 jobs:
-  install:
+  cli:
+    if: github.event_name == 'push' && !startsWith(github.ref_name, 'swagger/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+          check-latest: true
+      - name: go install the CLI at the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if go install "github.com/parvez3019/go-swagger3@${TAG}"; then break; fi
+            [ "$i" = 6 ] && exit 1
+            sleep 20
+          done
+          "$(go env GOPATH)/bin/go-swagger3" --version
+
+  adapters:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         adapter: [atreugo, buffalo, chi, echo, fiber, flamingo, gin, hertz, mux]
     steps:
-      - name: Set up Go
-        uses: actions/setup-go@v6
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.24'
           check-latest: true
 
       - name: Resolve version
         id: ver
+        env:
+          REF: ${{ github.ref_name }}
+          ADAPTER: ${{ matrix.adapter }}
         run: |
-          ref="${GITHUB_REF_NAME}"
+          skip=false
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             v="${{ inputs.version }}"
+          elif [ "${REF#swagger/}" != "${REF}" ]; then
+            # Adapter tag: only check the tagged adapter, at its version.
+            case "${REF}" in
+              "swagger/${ADAPTER}/"*) v="${REF##*/}" ;;
+              *) skip=true ;;
+            esac
           else
-            # v1.2.1 or swagger/gin/v1.2.1 -> v1.2.1
-            v="${ref##*/}"
+            # Root tag: adapters keep their own versions; check @latest.
+            v=latest
           fi
           echo "version=${v:-latest}" >> "$GITHUB_OUTPUT"
+          echo "skip=${skip}" >> "$GITHUB_OUTPUT"
 
       - name: Install from proxy in a fresh module
+        if: steps.ver.outputs.skip != 'true'
         env:
-          GOFLAGS: -mod=mod
-          GOWORK: "off"
           ADAPTER: github.com/parvez3019/go-swagger3/swagger/${{ matrix.adapter }}
           VERSION: ${{ steps.ver.outputs.version }}
+          ROOT_TAG: ${{ (github.event_name == 'push' && !startsWith(github.ref_name, 'swagger/')) && github.ref_name || '' }}
         run: |
           dir="$(mktemp -d)"
           cd "$dir"
           go mod init example.com/installcheck
           # The proxy can lag a fresh tag by a minute or two; retry briefly.
           for i in 1 2 3 4 5 6; do
-            if go get "${ADAPTER}@${VERSION}"; then break; fi
+            if go get "${ADAPTER}@${VERSION}" ${ROOT_TAG:+github.com/parvez3019/go-swagger3@${ROOT_TAG}}; then break; fi
             [ "$i" = 6 ] && exit 1
             sleep 20
           done
