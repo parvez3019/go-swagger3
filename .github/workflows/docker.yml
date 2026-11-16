@@ -37,6 +37,11 @@ jobs:
           tags: |
             type=semver,pattern={{version}},value=${{ env.RELEASE_TAG }}
 
+      # Current Dockerfile cross-compiles natively; QEMU is only needed when
+      # rebuilding older tags (<= v1.2.2) whose Dockerfile compiles in-target.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -51,7 +56,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          # The Dockerfile cross-compiles in a native build stage, so no QEMU.
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
