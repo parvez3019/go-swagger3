@@ -1,0 +1,907 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Advanced API",
+    "description": "Integration coverage for security schemes, schema edge cases and parameter styles",
+    "termsOfService": "https://example.com/terms",
+    "contact": {
+      "name": "Advanced Support",
+      "url": "https://example.com/support",
+      "email": "advanced@example.com"
+    },
+    "license": {
+      "name": "Apache-2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    "version": "2.1.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v2",
+      "description": " Production"
+    },
+    {
+      "url": "https://staging.example.com/v2",
+      "description": " Staging"
+    }
+  ],
+  "paths": {
+    "/admin/stats": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "admin"
+        ],
+        "summary": "Stats",
+        "operationId": "GetStats",
+        "parameters": [
+          {
+            "name": "at",
+            "in": "query",
+            "description": "Point in time",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "security": [
+          {
+            "OIDC": []
+          },
+          {
+            "CookieAuth": []
+          }
+        ]
+      }
+    },
+    "/items": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Matching items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "206": {
+            "description": "Partial page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Items"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Search items",
+        "description": " Search the catalogue.",
+        "operationId": "SearchItems",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search text",
+            "example": "widget",
+            "schema": {
+              "type": "string",
+              "description": "Search text",
+              "example": "widget"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "description": "Only items updated since",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size",
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Page size",
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "description": "Only active items",
+            "schema": {
+              "type": "boolean",
+              "description": "Only active items",
+              "default": true
+            }
+          },
+          {
+            "name": "X-Trace-Id",
+            "in": "header",
+            "description": "Trace identifier",
+            "schema": {
+              "type": "string",
+              "description": "Trace identifier"
+            }
+          },
+          {
+            "name": "session",
+            "in": "cookie",
+            "description": "Session cookie",
+            "schema": {
+              "type": "string",
+              "description": "Session cookie"
+            }
+          }
+        ]
+      },
+      "post": {
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Create items",
+        "operationId": "CreateItems",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "BasicAuth": []
+          }
+        ]
+      }
+    },
+    "/items/index": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Items by ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Item"
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Named index",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemIndex"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Untyped payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Item index",
+        "operationId": "GetItemIndex"
+      }
+    },
+    "/items/{id}/image": {
+      "post": {
+        "responses": {
+          "204": {
+            "description": "Uploaded",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Upload image",
+        "operationId": "UploadImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Item ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Item ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "caption": {
+                    "type": "string",
+                    "description": "Caption"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/items/{id}/labels": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Updated labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Labels"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Set labels",
+        "operationId": "SetLabels",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Item ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Item ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/items/{id}/name": {
+      "put": {
+        "responses": {
+          "200": {
+            "description": "Renamed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Rename item",
+        "operationId": "RenameItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Item ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "description": "Item ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/wrapper": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Wrapper",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wrapper"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Pair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Pair_string_Item"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Box",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Box_Owner"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "items"
+        ],
+        "summary": "Get wrapper",
+        "operationId": "GetWrapper"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Base": {
+        "type": "object",
+        "properties": {
+          "createdBy": {
+            "type": "string",
+            "example": "system"
+          }
+        }
+      },
+      "Box_Item": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "object",
+            "$ref": "#/components/schemas/Item"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            }
+          },
+          "byName": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Item"
+            }
+          },
+          "when": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "any": {
+            "type": "object"
+          },
+          "inner": {
+            "type": "object",
+            "$ref": "#/components/schemas/Owner"
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Box_Owner": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "object",
+            "$ref": "#/components/schemas/Owner"
+          },
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Owner"
+            }
+          },
+          "byName": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Owner"
+            }
+          },
+          "when": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "any": {
+            "type": "object"
+          },
+          "inner": {
+            "type": "object",
+            "$ref": "#/components/schemas/Owner"
+          },
+          "count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID is the item identifier.",
+            "example": 7
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "widget"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in cents",
+            "example": 9.99,
+            "default": 1.5
+          },
+          "active": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "count": {
+            "type": "integer",
+            "default": 3
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "color": "red"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "broken": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "invalid example"
+          },
+          "badObject": {
+            "type": "object",
+            "example": "invalid example",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "extra": {
+            "type": "object"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "$ref": "#/components/schemas/Tags"
+          },
+          "labels": {
+            "type": "object",
+            "$ref": "#/components/schemas/Labels"
+          },
+          "owner": {
+            "type": "object",
+            "example": "alice"
+          },
+          "old": {
+            "type": "string",
+            "deprecated": true
+          },
+          "secret": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "version": {
+            "type": "string",
+            "readOnly": true
+          },
+          "createdBy": {
+            "type": "string",
+            "example": "system"
+          }
+        },
+        "description": "An item in the catalogue"
+      },
+      "ItemIndex": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/Item"
+        }
+      },
+      "Items": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Item"
+        }
+      },
+      "Labels": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "Owner": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "alice"
+          }
+        }
+      },
+      "Pair_string_Item": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "object",
+            "$ref": "#/components/schemas/Item"
+          }
+        }
+      },
+      "Pair_string_int": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "type": "integer"
+          }
+        }
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "example": 42
+          }
+        }
+      },
+      "Tags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "Wrapper": {
+        "type": "object",
+        "properties": {
+          "box": {
+            "type": "object",
+            "$ref": "#/components/schemas/Box_Item"
+          },
+          "pair": {
+            "type": "object",
+            "$ref": "#/components/schemas/Pair_string_int"
+          }
+        }
+      },
+      "model.Item": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "ID is the item identifier.",
+            "example": 7
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name",
+            "example": "widget"
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in cents",
+            "example": 9.99,
+            "default": 1.5
+          },
+          "active": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "count": {
+            "type": "integer",
+            "default": 3
+          },
+          "sizes": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1,
+              2,
+              3
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "example": {
+              "color": "red"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "broken": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "invalid example"
+          },
+          "badObject": {
+            "type": "object",
+            "example": "invalid example",
+            "additionalProperties": {
+              "type": "integer"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "extra": {
+            "type": "object"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "$ref": "#/components/schemas/Tags"
+          },
+          "labels": {
+            "type": "object",
+            "$ref": "#/components/schemas/Labels"
+          },
+          "owner": {
+            "type": "object",
+            "example": "alice"
+          },
+          "old": {
+            "type": "string",
+            "deprecated": true
+          },
+          "secret": {
+            "type": "string",
+            "writeOnly": true
+          },
+          "version": {
+            "type": "string",
+            "readOnly": true
+          },
+          "createdBy": {
+            "type": "string",
+            "example": "system"
+          }
+        },
+        "description": "An item in the catalogue"
+      },
+      "model.Labels": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
+      "model.Owner": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "alice"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "BasicAuth": {
+        "type": "http",
+        "description": "Admin credentials",
+        "scheme": "basic"
+      },
+      "CookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "session_id"
+      },
+      "OAuth": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "scopes": {
+              "read:items": "Read catalogue items",
+              "write:items": "Modify catalogue items"
+            }
+          },
+          "authorizationCode": {
+            "authorizationUrl": "https://example.com/oauth/authorize",
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+              "read:items": "Read catalogue items",
+              "write:items": "Modify catalogue items"
+            }
+          },
+          "password": {
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+              "read:items": "Read catalogue items",
+              "write:items": "Modify catalogue items"
+            }
+          },
+          "clientCredentials": {
+            "tokenUrl": "https://example.com/oauth/token",
+            "scopes": {
+              "read:items": "Read catalogue items",
+              "write:items": "Modify catalogue items"
+            }
+          }
+        }
+      },
+      "OIDC": {
+        "type": "openIdConnect",
+        "description": "Company SSO",
+        "openIdConnectUrl": "https://example.com/.well-known/openid-configuration"
+      }
+    }
+  },
+  "security": [
+    {
+      "OAuth": [
+        "read:items"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "items",
+      "description": "Catalogue items",
+      "externalDocs": {
+        "description": "Item guide",
+        "url": "https://example.com/docs/items"
+      }
+    },
+    {
+      "name": "admin",
+      "description": "Administrative operations"
+    }
+  ],
+  "externalDocs": {
+    "description": "Developer handbook",
+    "url": "https://example.com/handbook"
+  }
+}
