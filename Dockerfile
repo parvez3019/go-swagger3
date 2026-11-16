@@ -1,11 +1,15 @@
-FROM golang:1.24-alpine AS build
+# Build stage runs on the builder's native platform and cross-compiles for the
+# target, so multi-arch builds don't need QEMU emulation.
+FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 ARG VERSION=dev
+ARG TARGETOS
+ARG TARGETARCH
 # Build the checked-out source (the tagged release), not @latest from the proxy.
-RUN CGO_ENABLED=0 GOWORK=off go build -trimpath \
+RUN CGO_ENABLED=0 GOWORK=off GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath \
     -ldflags "-s -w -X github.com/parvez3019/go-swagger3/app.version=${VERSION}" \
     -o /out/go-swagger3 .
 
