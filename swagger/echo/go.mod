@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/labstack/echo/v4 v4.12.0
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 )
 
 require (
@@ -18,5 +18,3 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 )
-
-replace github.com/parvez3019/go-swagger3 => ../..

@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 	github.com/parvez3019/go-swagger3/swagger/gin v0.0.0
 )
 

@@ -27,4 +27,58 @@ jobs:
         run: |
           go mod tidy
           go build
-          go test -v ./...
+          go test -v -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # Each framework adapter and example is its own Go module. Test them in the
+  # go.work workspace (against the working tree) and standalone with
+  # GOWORK=off (against the released root module, the way users consume them).
+  modules:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - swagger/atreugo
+          - swagger/buffalo
+          - swagger/chi
+          - swagger/echo
+          - swagger/fiber
+          - swagger/flamingo
+          - swagger/gin
+          - swagger/hertz
+          - swagger/mux
+          - examples/chi
+          - examples/echo
+          - examples/gin
+    defaults:
+      run:
+        working-directory: ${{ matrix.module }}
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+          check-latest: true
+
+      - name: Test in workspace
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Test standalone (GOWORK=off)
+        env:
+          GOWORK: "off"
+        run: |
+          go mod tidy -diff
+          go build ./...
+          go test ./...

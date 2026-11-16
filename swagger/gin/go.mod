@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 )
 
 require (
@@ -35,5 +35,3 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/parvez3019/go-swagger3 => ../..

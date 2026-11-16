@@ -3,7 +3,7 @@ module github.com/parvez3019/go-swagger3/swagger/atreugo
 go 1.24.0
 
 require (
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 	github.com/savsgio/atreugo/v11 v11.13.2
 	github.com/valyala/fasthttp v1.55.0
 )
@@ -17,5 +17,3 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 )
-
-replace github.com/parvez3019/go-swagger3 => ../..

@@ -8,6 +8,8 @@ github.com/fasthttp/router v1.5.2 h1:ckJCCdV7hWkkrMeId3WfEhz+4Gyyf6QPwxi/RHIMZ6I
 github.com/fasthttp/router v1.5.2/go.mod h1:C8EY53ozOwpONyevc/V7Gr8pqnEjwnkFFqPo1alAGs0=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
 github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
+github.com/parvez3019/go-swagger3 v1.2.0 h1:r6k1QudRs1nmKsta2IEt9D88YooQfVNtyQJJ0msyS/0=
+github.com/parvez3019/go-swagger3 v1.2.0/go.mod h1:EBqT/mn6zSlGo6aagsTTsNfjSrJ1SCvypNLMdNR/gpo=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/savsgio/atreugo/v11 v11.13.2 h1:F1XHN2slrHKokg3ESLS6O2+hvlKqPJcBRuhJBEFJbn8=

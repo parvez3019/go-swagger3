@@ -1,5 +1,15 @@
-FROM golang:alpine 
+FROM golang:1.24-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+# Build the checked-out source (the tagged release), not @latest from the proxy.
+RUN CGO_ENABLED=0 GOWORK=off go build -o /out/go-swagger3 .
+
+# Keep a Go toolchain in the runtime image: go-swagger3 resolves modules and
+# GOPATH of the project it parses.
+FROM golang:1.24-alpine
 WORKDIR /go/src/main
-RUN go install github.com/parvez3019/go-swagger3@latest
+COPY --from=build /out/go-swagger3 /usr/local/bin/go-swagger3
 
 ENTRYPOINT ["go-swagger3"]
