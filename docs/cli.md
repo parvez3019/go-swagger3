@@ -1,3 +1,8 @@
+---
+title: "Install go-swagger3 and CLI reference"
+description: "Install go-swagger3 with go install, prebuilt binaries or Docker, and generate OpenAPI 3 specs from Go code. All CLI flags explained."
+---
+
 # Install and CLI reference
 
 ## Install
