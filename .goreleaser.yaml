@@ -57,7 +57,10 @@ homebrew_casks:
     repository:
       owner: parvez3019
       name: homebrew-tap
-      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+      token: '{{ index .Env "HOMEBREW_TAP_TOKEN" }}'
+    # Publish the cask only when the tap token is configured; otherwise the
+    # release still ships binaries and just skips Homebrew.
+    skip_upload: '{{ if index .Env "HOMEBREW_TAP_TOKEN" }}false{{ else }}true{{ end }}'
     directory: Casks
     homepage: https://github.com/parvez3019/go-swagger3
     description: Generate OpenAPI 3 specs from Go annotations

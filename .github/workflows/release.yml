@@ -32,5 +32,8 @@ jobs:
           version: "~> v2"
           args: release --clean
         env:
+          # Adapter modules are tagged swagger/<framework>/vX.Y.Z on the same
+          # commits as root releases; pin the CLI version to the pushed tag.
+          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
