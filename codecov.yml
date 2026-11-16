@@ -1,0 +1,12 @@
+# Codecov settings. Coverage is uploaded by .github/workflows/ci.yml
+# (go test -coverpkg=./..., so integration tests count across packages).
+ignore:
+  - "examples/**"   # sample programs, not part of the tool
+  - "**/mocks/**"   # generated mocks
+coverage:
+  status:
+    project:
+      default:
+        target: 80%     # awesome-go requires >= 80%
+        threshold: 1%
+    patch: off

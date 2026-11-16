@@ -30,3 +30,4 @@ dist/
 # mkdocs output
 site/
 __pycache__/
+integration_test/advanced_data/spec/actual_advanced.json
