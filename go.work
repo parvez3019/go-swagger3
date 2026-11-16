@@ -1,0 +1,17 @@
+go 1.24.0
+
+use (
+	.
+	./examples/chi
+	./examples/echo
+	./examples/gin
+	./swagger/atreugo
+	./swagger/buffalo
+	./swagger/chi
+	./swagger/echo
+	./swagger/fiber
+	./swagger/flamingo
+	./swagger/gin
+	./swagger/hertz
+	./swagger/mux
+)

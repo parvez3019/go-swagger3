@@ -1,0 +1,23 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directories:
+      - "/"
+      - "/swagger/*"
+    schedule:
+      interval: monthly
+    groups:
+      go-deps:
+        patterns: ["*"]
+    ignore:
+      # Adapters pin the root module to a released version; bump it by hand
+      # as part of a release.
+      - dependency-name: "github.com/parvez3019/go-swagger3"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

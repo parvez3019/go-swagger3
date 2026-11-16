@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/cloudwego/hertz v0.10.5
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 )
 
 require (
@@ -24,5 +24,3 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 )
-
-replace github.com/parvez3019/go-swagger3 => ../..

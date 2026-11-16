@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gobuffalo/buffalo v1.1.0
-	github.com/parvez3019/go-swagger3 v0.0.0
+	github.com/parvez3019/go-swagger3 v1.2.0
 )
 
 require (
@@ -54,5 +54,3 @@ require (
 	golang.org/x/text v0.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/parvez3019/go-swagger3 => ../..
