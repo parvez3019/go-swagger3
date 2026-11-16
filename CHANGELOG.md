@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Array path/query/header/cookie parameters (`@Param tags query []string …`) are no longer silently dropped. They
+  render as `type: array` with typed `items`; `collectionFormat()` maps to `style`/`explode`, and `Enums()` applies to the items.
+- `map[string]T` in `@Success`/`@Failure`/body annotations renders as a map (`additionalProperties`) instead of `T`.
+  `[]Page[T]` (array of a generic type) is no longer mangled.
+
 ### Changed
 - README rewritten as a short landing page with a quick start and a comparison with swaggo/swag and go-swagger.
   The full reference moved to [docs/](docs/): CLI, annotations, security, serving Swagger UI.
@@ -14,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `authorizationUrl`. Fixed invalid struct-tag examples.
 
 ### Added
+- Live coverage badge in the README, published with the docs site (`coverage.json` and an HTML report).
 - `CONTRIBUTING.md`, issue and pull request templates, `CITATION.cff`.
 
 ## [v1.2.2] - 2026-11-16

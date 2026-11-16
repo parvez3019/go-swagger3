@@ -1,15 +1,9 @@
 name: Docs
 on:
+  # Every push to main redeploys, so the published coverage badge/report stay live.
   push:
     branches:
       - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'requirements-docs.txt'
-      - 'scripts/mkdocs_hooks.py'
-      - 'overrides/**'
-      - '.github/workflows/docs.yml'
   pull_request:
     branches:
       - main
@@ -46,6 +40,19 @@ jobs:
 
       - name: Build site
         run: mkdocs build --strict
+
+      - uses: actions/setup-go@v6
+        if: github.event_name != 'pull_request'
+        with:
+          go-version: '1.24'
+          check-latest: true
+
+      # Publishes site/coverage.json (Shields.io endpoint for the README badge) and
+      # site/coverage.html (browsable report). Measured like CI: -coverpkg=./...
+      # so integration tests count; mocks and examples are excluded.
+      - name: Coverage badge and report
+        if: github.event_name != 'pull_request'
+        run: scripts/coverage_badge.sh site
 
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
