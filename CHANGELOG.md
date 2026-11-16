@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- README rewritten as a short landing page with a quick start and a comparison with swaggo/swag and go-swagger.
+  The full reference moved to [docs/](docs/): CLI, annotations, security, serving Swagger UI.
+- Docs: corrected the OAuth2 resource-owner and client-credentials flows, which take a `tokenUrl`, not
+  `authorizationUrl`. Fixed invalid struct-tag examples.
+
+### Added
+- `CONTRIBUTING.md`, issue and pull request templates, `CITATION.cff`.
+
+## [v1.2.2] - 2026-11-16
+
+### Added
+- Prebuilt binaries for Linux, macOS and Windows (amd64/arm64) on GitHub Releases, built by GoReleaser.
+- Multi-arch Docker image (linux/amd64, linux/arm64).
+
+### Fixed
+- `--version` reports the actual release instead of a hardcoded `v1.0.0`.
+- The Docker image is built from the tagged source instead of `go install …@latest`.
+
+## [v1.2.1] - 2026-11-16
+
+### Fixed
+- Framework adapters (`swagger/<framework>`) can be installed with `go get`. They previously required an
+  unpublished `v0.0.0` of the root module (#69).
+- Schema generation supports `omitzero` and pointer schemas (#68).
+- Releases now use `vX.Y.Z` tags, so the Go module proxy and pkg.go.dev list them.
+
 #### Added - 10-07-2026
 
 Feature roadmap toward swag-class DX while remaining OpenAPI 3-first. Existing characterisation tests (`integration_test`) remain the regression gate; goldens unchanged.

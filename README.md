@@ -1,552 +1,142 @@
-### Demo
-
-Click here for [Youtube Demo Link](https://www.youtube.com/watch?v=GLM9c5j8g7I)
-
-
 # go-swagger3
 
+**Generate OpenAPI 3 specs from Go code annotations.** A [swaggo/swag](https://github.com/swaggo/swag) alternative
+with native OpenAPI 3.0 output, swag-style comments, generics, and built-in Swagger UI for Gin, Echo, chi, Fiber and
+more.
+
 [![CI](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml/badge.svg)](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml)
-[![Go Version](https://img.shields.io/badge/go-1.24.0-blue.svg)](https://golang.org/dl/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/parvez3019/go-swagger3.svg)](https://pkg.go.dev/github.com/parvez3019/go-swagger3)
+[![Release](https://img.shields.io/github/v/release/parvez3019/go-swagger3)](https://github.com/parvez3019/go-swagger3/releases/latest)
+[![codecov](https://codecov.io/gh/parvez3019/go-swagger3/branch/main/graph/badge.svg)](https://codecov.io/gh/parvez3019/go-swagger3)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Generate [OpenAPI Specification](https://swagger.io/specification) **v3** from Go godoc `@` annotations and struct tags.
+> [!TIP]
+> **[Read the docs](docs/)** · [Install](docs/cli.md#install) · [Annotation reference](docs/annotations.md) ·
+> [Migrating from swag](docs/MIGRATION_FROM_SWAG.md)
 
-OpenAPI 3-first, with swag-class DX: `@Accept`/`@Produce`, per-operation security, generics, composition, framework UI adapters, and `go-swagger3 fmt`.
+## Quick start
 
-Migrating from [swaggo/swag](https://github.com/swaggo/swag)? See [docs/MIGRATION_FROM_SWAG.md](docs/MIGRATION_FROM_SWAG.md).
+**1. Install**
+
+```shell
+go install github.com/parvez3019/go-swagger3@latest
+```
+
+Prebuilt binaries and a Docker image are also available: see [Install](docs/cli.md#install).
+
+**2. Annotate.** Describe the API in `main.go` and each operation on its handler:
+
+```go
+// main.go
+// @Version 1.0.0
+// @Title Pet Store API
+// @Server http://localhost:8080 Local
+package main
+```
+
+```go
+// handlers.go
+type Pet struct {
+	ID   int64  `json:"id" example:"1"`
+	Name string `json:"name" example:"Rex"`
+}
+
+// @Title Get a pet
+// @Param id path int true "Pet ID"
+// @Success 200 object Pet "The pet"
+// @Resource pets
+// @Route /pets/{id} [get]
+func GetPet(c *gin.Context) { /* ... */ }
+```
+
+**3. Generate**
+
+```shell
+go-swagger3 --module-path . --output oas.json --schema-without-pkg
+```
+
+**4. Serve Swagger UI** (Gin shown; [adapters for other frameworks](docs/serving-swagger-ui.md#framework-adapters)):
+
+```go
+import (
+	_ "embed"
+
+	"github.com/parvez3019/go-swagger3/swagger"
+	ginswagger "github.com/parvez3019/go-swagger3/swagger/gin"
+)
+
+//go:embed oas.json
+var spec []byte
+
+r.Any("/swagger/*any", ginswagger.WrapHandler(spec, swagger.Title("Pet Store API")))
+```
+
+Open `http://localhost:8080/swagger/index.html`.
+
+## How it compares
+
+| | go-swagger3 | [swaggo/swag](https://github.com/swaggo/swag) | [go-swagger](https://github.com/go-swagger/go-swagger) |
+|---|---|---|---|
+| Output | **OpenAPI 3.0** | Swagger 2.0 (v1); OpenAPI 3.1 in v2 release candidates | Swagger 2.0 only |
+| Approach | Comments → spec | Comments → spec | `swagger:` comments → spec; also generates code from a spec |
+| Annotation style | `@Param`, `@Success`, `@Router`… (swag-like) | `@Param`, `@Success`, `@Router`… | `swagger:route`, `swagger:model`… |
+| Generics | Yes (`Page[Pet]`) | Yes | Limited |
+| Swagger UI | Built in: net/http, Gin, Echo, chi, mux, Fiber, Hertz, Buffalo, Flamingo, Atreugo | Separate packages (`gin-swagger`, `echo-swagger`, …) | `swagger serve` command |
+| Annotation formatter | `go-swagger3 fmt` | `swag fmt` | No |
+
+Already using swag? Most annotations work unchanged: see the [migration guide](docs/MIGRATION_FROM_SWAG.md).
+
+## Features
+
+- **OpenAPI 3.0** output in JSON or YAML.
+- **swag-compatible annotations:** `@Param` with `Enums()`, `default()`, `minimum()`…; `@Accept`/`@Produce`;
+  `@Router` alias; `@OperationId`; `@deprecated`.
+- **Schemas from Go types:** generics, composition (`JSONResult{data=Order}`), maps, pointers as `nullable`,
+  `oneOf`/`anyOf`/`allOf`/`discriminator`, enums, field comments as descriptions.
+- **Security:** HTTP, API key, OpenID Connect and OAuth2 schemes, applied globally or per operation.
+- **Swagger UI adapters** for ten frameworks, each a separate Go module so you only pull in what you use.
+- **Annotation formatter:** `go-swagger3 fmt`.
+
+## Documentation
+
+| Page | Contents |
+|------|----------|
+| [Install & CLI](docs/cli.md) | Install options, flags, Docker, `fmt` |
+| [Annotation reference](docs/annotations.md) | Service info, parameters, headers, responses, tags, routes, struct tags, enums |
+| [Security](docs/security.md) | Security schemes, OAuth2 flows and scopes |
+| [Serving Swagger UI](docs/serving-swagger-ui.md) | net/http handler and framework adapters |
+| [Migrating from swag](docs/MIGRATION_FROM_SWAG.md) | Annotation-by-annotation mapping |
+| [Examples](examples/) | Runnable net/http, Gin, Echo and chi samples |
 
 ## AI agent skills
 
-Copy these into Claude / Cursor projects so agents can annotate existing Go APIs and generate OpenAPI 3 specs with go-swagger3:
+Copy these into Claude Code or Cursor projects so agents can annotate existing Go APIs and generate OpenAPI 3 specs
+with go-swagger3:
 
 | Agent | Source | Copy to |
 |-------|--------|---------|
 | Claude Code | [agent-skills/claude/SKILL.md](agent-skills/claude/SKILL.md) | `.claude/skills/go-swagger3-docs/SKILL.md` |
 | Cursor | [agent-skills/cursor/cursor_rules.mdc](agent-skills/cursor/cursor_rules.mdc) | `.cursor/rules/go-swagger3.mdc` |
 
-### Table of content
-
-- [1. Install](#1-install)
-- [2. Documentation Generation](#2-documentation-generation)
-- [3. Serving Swagger UI](#3-serving-swagger-ui)
-- [Supported Web Frameworks](#supported-web-frameworks)
-- [4. Usage](#4-usage)
-    - [Service Description](#service-description)
-    - [Handler functions](#handler-functions)
-    - [Title And Description](#title-and-description)
-    - [Parameter](#parameter)
-    - [Header](#header)
-    - [Header Parameters](#header-parameters)
-    - [Response Header](#response-header)
-    - [Response](#response)
-    - [Resource & Tag](#resource--tag)
-    - [Route](#route)
-    - [Enums](#enums)
-- [5. Security](#5-security)
-- [6. Limitations](#6-limitations)
-- [7. References](#7-references)
-- [Examples](examples/)
-- [Migration from swag](docs/MIGRATION_FROM_SWAG.md)
-
-## 1. Install
-
-```
-go install github.com/parvez3019/go-swagger3@latest
-```
-
-
-### 2. Documentation Generation
-#### Using binary
-Go to the folder where is main.go in
-
-``` shell
-// go.mod and main file are in the same directory
-go-swagger3 --module-path . --output oas.json --schema-without-pkg --generate-yaml true
-
-// go.mod and main file are in the different directory
-go-swagger3 --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
-
-// in case you get 'command not found: go-swagger3' error, please export add GOPATH/bin to PATH
-export PATH="$HOME/go/bin:$PATH"
-
-Notes:
-- `--schema-without-pkg` — schema names without package prefixes
-- `--generate-yaml` — write YAML instead of JSON
-- `--exclude dir1,dir2` — skip directories while walking the module
-- `--quiet` — reduce log noise
-- `--handler-path` — only scan handlers under this path
-- `--strict` / `--debug` — stricter parse / verbose logs
-
-Format annotations (like `go fmt` / `swag fmt`):
-
-```shell
-go-swagger3 fmt -d ./
-```
-
-#### Using docker
-``` shell
-// go.mod and main file are in the same directory
-docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --output oas.json --schema-without-pkg --generate-yaml true
-
-// go.mod and main file are in the different directory
-docker run -t --rm -v $(pwd):/app -w /app parvez3019/go-swagger3:latest --module-path . --main-file-path ./cmd/xxx/main.go --output oas.json --schema-without-pkg --generate-yaml true
-
-Notes:
-- `--schema-without-pkg` — schema names without package prefixes
-- `--generate-yaml` — write YAML instead of JSON
-
-```
-
-## 3. Serving Swagger UI
-
-Serve the generated OpenAPI file with an interactive UI at
-`http://localhost:8080/swagger/index.html` (same idea as [swaggo/swag](https://github.com/swaggo/swag)).
-
-1. Generate the spec:
-
-```shell
-go-swagger3 --module-path . --output oas.json --schema-without-pkg
-```
-
-2. Mount the handler in your HTTP server:
-
-```go
-package main
-
-import (
-	"log"
-	"net/http"
-	"os"
-
-	"github.com/parvez3019/go-swagger3/swagger"
-)
-
-func main() {
-	spec, err := os.ReadFile("oas.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	http.Handle("/swagger/", swagger.Handler(spec, swagger.Title("My API")))
-	// your API routes...
-	log.Println("Swagger UI at http://localhost:8080/swagger/index.html")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-```
-
-Or embed the file at build time:
-
-```go
-import "embed"
-
-//go:embed oas.json
-var oas []byte
-
-func main() {
-	http.Handle("/swagger/", swagger.Handler(oas))
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
-```
-
-Or load from disk:
-
-```go
-h, err := swagger.HandlerFromFile("oas.json")
-if err != nil {
-	log.Fatal(err)
-}
-http.Handle("/swagger/", h)
-```
-
-The handler serves:
-
-| Path | Content |
-|------|---------|
-| `/swagger/index.html` | Swagger UI |
-| `/swagger/doc.json` | OpenAPI 3 document |
-
-Add the dependency:
-
-```shell
-go get github.com/parvez3019/go-swagger3/swagger
-```
-
-## Supported Web Frameworks
-
-Thin UI adapters wrap the core `swagger.Handler` (`net/http`). Each adapter is a **separate module** so you only pull the framework you use.
-
-| Framework | Import | Mount example |
-|-----------|--------|---------------|
-| [net/http](https://pkg.go.dev/net/http) | `github.com/parvez3019/go-swagger3/swagger` | `http.Handle("/swagger/", swagger.Handler(spec))` |
-| [gin](https://github.com/gin-gonic/gin) | `.../swagger/gin` | `r.Any("/swagger/*any", ginswagger.WrapHandler(spec))` |
-| [echo](https://github.com/labstack/echo) | `.../swagger/echo` | `e.Any("/swagger/*", echoswagger.WrapHandler(spec))` |
-| [gorilla/mux](https://github.com/gorilla/mux) | `.../swagger/mux` | `r.PathPrefix("/swagger/").Handler(muxswagger.WrapHandler(spec))` |
-| [go-chi/chi](https://github.com/go-chi/chi) | `.../swagger/chi` | `r.Handle("/swagger/*", chiswagger.WrapHandler(spec))` |
-| [fiber](https://github.com/gofiber/fiber) | `.../swagger/fiber` | `app.All("/swagger/*", fiberswagger.WrapHandler(spec))` |
-| [hertz](https://github.com/cloudwego/hertz) | `.../swagger/hertz` | see package docs |
-| [buffalo](https://github.com/gobuffalo/buffalo) | `.../swagger/buffalo` | see package docs |
-| [flamingo](https://github.com/i-love-flamingo/flamingo) | `.../swagger/flamingo` | `http.Handler` wrapper |
-| [atreugo](https://github.com/savsgio/atreugo) | `.../swagger/atreugo` | see package docs |
-
-Minimal runnable samples: [examples/](examples/).
-
-Gin snippet:
-
-```go
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/parvez3019/go-swagger3/swagger"
-	ginswagger "github.com/parvez3019/go-swagger3/swagger/gin"
-)
-
-r := gin.Default()
-r.Any("/swagger/*any", ginswagger.WrapHandler(spec, swagger.Title("My API")))
-```
-
-```shell
-go get github.com/parvez3019/go-swagger3/swagger/gin
-```
-
-## 4. Usage
-
-You can document your service by placing annotations inside your godoc at various places in your code.
-
-### Service Description
-
-The service description comments can be located in any of your .go files. They provide general information about the service you are documenting.
-
-``` go
-// @Version 1.0.0
-// @Title Backend API
-// @Description API usually works as expected. But sometimes its not true.
-// @ContactName Parvez
-// @ContactEmail abce@email.com
-// @ContactURL http://someurl.oxox
-// @TermsOfServiceUrl http://someurl.oxox
-// @LicenseName MIT
-// @LicenseURL https://en.wikipedia.org/wiki/MIT_License
-// @Server http://www.fake.com Server-1
-// @Server http://www.fake2.com Server-2
-// @Security AuthorizationHeader read write
-// @SecurityScheme AuthorizationHeader http bearer Input your token
-```
-
-### Handler Functions
-
-By adding comments to your handler func godoc, you can document individual actions as well as their input and output.
-
-``` go
-type User struct {
-  ID   uint64 `json:"id" example:"100" description:"User identity"`
-  Name string `json:"name" example:"Parvez"` 
-}
-
-type UsersResponse struct {
-  Data []Users `json:"users" example:"[{\"id\":100, \"name\":\"Parvez\"}]"`
-}
-
-type Error struct {
-  Code string `json:"code"`
-  Msg  string `json:"msg" skip:"true"`
-  // use skip:"true" if you want to skip the field in the documentation spec
-}
-
-type ErrorResponse struct {
-  ErrorInfo Error `json:"error"`
-}
-
-// RequestHeaders represents the model for header params
-// @HeaderParameters RequestHeaders
-type RequestHeaders struct {
-    Authorization  string  `json:"Authorization"`
-}
-
-// @Title Get user list of a group.
-// @Description Get users related to a specific group.
-// @Header model.RequestHeaders
-// @Param  groupID  path  int  true  "Id of a specific group." "120"
-// @Success  200  object  UsersResponse  "UsersResponse JSON"
-// @Failure  400  object  ErrorResponse  "ErrorResponse JSON"
-// @Resource users
-// @Route /api/group/{groupID}/users [get]
-func GetGroupUsers() {
-  // ...
-}
-
-// @Title Get user list of a group.
-// @Description Create a new user.
-// @Param  user  body  User  true  "Info of a user."
-// @Success  200  object  User           "UsersResponse JSON"
-// @Failure  400  object  ErrorResponse  "ErrorResponse JSON"
-// @Resource users
-// @Route /api/user [post]
-func PostUser() {
-  // ...
-}
-```
-
-#### Title And Description
-```
-@Title {title}
-@Title Get user list of a group.
-
-@Description {description}.
-@Description Get users related to a specific group.
-```
-- {title}: The title of the route.
-- {description}: The description of the route.
-
-#### Parameter
-```
-@Param  {name}    {in}  {goType}  {required}  {description}             {example}
-@Param  groupID   path  int       true        "Id of a specific group." "120"
-```
-- {name}: The parameter name.
-- {in}: The parameter is in `path`, `query`, `form`, `header`, `cookie`, `body` or `file`.
-- {goType}: The type in go code. This will be ignored when {in} is `file`.
-- {required}: `true`, `false`, `required` or `optional`. 
-- {description}: The description of the parameter. Must be quoted.
-- {example}: **Optional** example of this parameter. Must be quoted.
-
-One can also override example for an object with `override-example` key in struct
-eg -
-``` go
-type Request struct {
-    version  model.Version `"json:"Version" override-example:"11.0.0"`
-}
-```
-
-#### Header 
-```
-@Header          {goType}
-@HeaderParameters   model.RequestHeaders
-```
-- Header query param for endpoints, parses the query param from the model
-
-#### Header Parameters
-```
-@Param              {goType}
-@HeaderParameters   RequestHeaders
-```
-
-- {goType}: The type in go code. This will be ignored when {in} is `file`.
-- Parses parameters from the type and keep it up component section for reference
-
-#### Response Header
-
-```
-@ResponseHeader  {status}  {headerName}  {type}    "{description}"                                                    "{example}"
-@ResponseHeader  200       Set-Cookie    string    "JWT token cookie"                                                 "accessToken=bzRslFay1i...; Path=/; HttpOnly; Secure; SameSite=Lax"
-```
-
-- {status}: The HTTP status code of the response this header belongs to.
-- {headerName}: The name of the response header (e.g. `Set-Cookie`, `X-Request-Id`).
-- {type}: The primitive type of the header value. Supported values: `string`, `integer`, `boolean`, `number`.
-- {description}: The description of the header. Must be quoted.
-- {example}: **Optional** example value for the header. Must be quoted.
-
-The `@ResponseHeader` annotation can be placed before or after the corresponding `@Success`/`@Failure` annotation — if the `ResponseObject` for the given status does not exist yet, it will be created automatically.
-
-Multiple headers for the same status are supported:
-
-``` go
-// @Success      200        object        TokenResponse   "Login successful"
-// @ResponseHeader  200  Set-Cookie    string  "Access token cookie"   "accessToken=bzRslFay1i...; Path=/; HttpOnly; Secure; SameSite=Lax"
-// @ResponseHeader  200  X-Request-Id  string  "Unique request identifier"
-func Login() {
-  // ...
-}
-```
-
-This produces the following OpenAPI output:
-
-``` json
-"200": {
-  "description": "Login successful",
-  "headers": {
-    "Set-Cookie": {
-      "description": "Access token cookie",
-      "schema": {
-        "type": "string",
-        "example": "accessToken=bzRslFay1i...; Path=/; HttpOnly; Secure; SameSite=Lax"
-      }
-    },
-    "X-Request-Id": {
-      "description": "Unique request identifier",
-      "schema": {
-        "type": "string"
-      }
-    }
-  },
-  "content": {
-    "application/json": {
-      "schema": {
-        "$ref": "#/components/schemas/TokenResponse"
-      }
-    }
-  }
-}
-```
-
-#### Response
-``` json
-@Success  {status}  {jsonType}  {goType}       {description}
-@Success  200       object      UsersResponse  "UsersResponse JSON"
-
-@Failure  {status}  {jsonType}  {goType}       {description}
-@Failure  400       object      ErrorResponse  "ErrorResponse JSON"
-```
-- {status}: The HTTP status code.
-- {jsonType}: The value can be `object` or `array`. 
-- {goType}: The type in go code.
-- {description}: The description of the response. Must be quoted.
-
-#### Resource & Tag
-``` json
-@Resource {resource}
-@Resource users
-
-@Tag {tag}
-@tag xxx
-```
-
-- {resource}, {tag}: Tag of the route.
-
-#### Route
-
-``` json
-@Route {path}    {method}
-@Route /api/user [post]
-```
-
-- {path}: The URL path.
-- {method}: The HTTP Method. Must be put in brackets.
-
-#### Enums
-
-- To generate enums create type structs for enum field with comma-separated values as follows:
-- Create struct type fields with @Enum Tag
-- Example as follows-
-
-``` go
-// @Enum CountriesEnum
-type CountriesEnum struct {
-    // Create the field name with same as struct name
-    CountriesEnum string `enum:"india,china,mexico,japan" example:"india"`
-}
-```
-
-##### How to add reference of Enum on types
-
-``` go
-type Request struct {
-  Name string `json:"name" example:"Parvez"` 
-  Country string `json:"country" $ref:"CountriesEnum"`
-}
-
-```
-
-#### Response body
-You need to provide swagger fields as reflect tags in your structure. In example:
-```go
-type Filter struct {
-	Rating       int    `json:"rating"`
-	Type         string `json:"type"`
-	Distance     int64  `json:"distance", minimum:"1", maximum:"100"`
-	DistrictCode string `json:"district_code", pattern:"[a-z]{2}\\d[a-z]\\s\\d[a-z]{2}"`
-}
-```
-
-Available fields:
-- type
-- format
-- required
-- properties
-- description
-- items
-- example
-- deprecated (bool)
-- ref
-- enum
-- title
-- maximum (float64)
-- exclusiveMaximum (bool)
-- minimum (float64)
-- exclusiveMinimum (bool)
-- maxLength (uint)
-- minLength (uint)
-- pattern
-- maxItems (uint)
-- minItems (uint)
-- uniqueItems (bool)
-- maxProperties (uint)
-- minProperties (uint)
-- additionalProperties (bool)
-- nullable (bool)
-- readOnly (bool)
-- writeOnly (bool)
-
-### 5. Security
-
-If authorization is required, you must define security schemes and then apply those to the API. A scheme is defined
-using `@SecurityScheme [name] [type] [parameters]` and applied by
-adding `@Security [scheme-name] [scope1] [scope2] [...]`.
-
-All examples in this section use `MyApiAuth` as the name. This name can be anything you chose; multiple named schemes
-are supported. Each scheme must have its own name, except for OAuth2 schemes - OAuth2 supports multiple schemes by the
-same name.
-
-A number of different types is supported, they all have different parameters:
-
-|Type|Description|Parameters|Example|
-|---|---|---|---|
-|HTTP|A HTTP Authentication scheme using the `Authorization` header|scheme: any [HTTP Authentication scheme](https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)|`@SecurityScheme MyApiAuth basic`|
-|APIKey|Authorization by passing an API Key along with the request|in: Location of the API Key, options are `header`, `query` and `cookie`. name: The name of the field where the API Key must be set|`@SecurityScheme MyApiAuth apiKey header X-MyCustomHeader`|
-|OpenIdConnect|Delegating security to a known OpenId server|url: The URL of the OpenId server|`@SecurityScheme MyApiAuth openIdConnect https://example.com/.well-known/openid-configuration`|
-|OAuth2AuthCode|Using the "Authentication Code" flow of OAuth2|authorizationUrl, tokenUrl|`@SecurityScheme MyApiAuth oauth2AuthCode /oauth/authorize /oauth/token`| 
-|OAuth2Implicit|Using the "Implicit" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2Implicit /oauth/authorize| 
-|OAuth2ResourceOwnerCredentials|Using the "Resource Owner Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ResourceOwnerCredentials /oauth/token| 
-|OAuth2ClientCredentials|Using the "Client Credentials" flow of OAuth2|authorizationUrl|`@SecurityScheme MyApiAuth oauth2ClientCredentials /oauth/token| 
-
-Any text that is present after the last parameter wil be used as the description. For
-instance `@SecurityScheme MyApiAuth basic Login with your admin credentials`.
-
-Once all security schemes have been defined, apply them with `@Security`.
-You can set **global** security on the service file and/or **per-operation** `@Security` on a handler.
-
-``` go
-// Global (service file)
-// @Security MyApiAuth read_user write_user
-
-// Per-operation (handler godoc)
-// @Security MyApiAuth read_user
-```
-
-#### Scopes
-
-For OAuth2 security schemes, it is possible to define scopes using
-the `@SecurityScope [schema-name] [scope-code] [scope-description]` comment.
-
-``` go
-// @SecurityScope MyApiAuth read_user Read a user from the system
-// @SecurityScope MyApiAuth write_user Write a user to the system
-```
-
-### 6. Limitations
+## Limitations
 
 - Go modules only.
 - Anonymous (unnamed) embedded struct fields have limited support; prefer named types.
-- OpenAPI output is **3.0.0** (3.1 mode planned; see migration guide).
-- Route discovery is annotation-driven (`@Router` / `@Route`); framework routers are not introspected.
+- Output is OpenAPI **3.0.0** (3.1 is planned).
+- Routes come from annotations (`@Route` / `@Router`); framework routers are not introspected.
 
-### 7. References
+## Contributing
 
-- The project is based on the following repositories -
-- [yvasiyarov/swagger](https://github.com/yvasiyarov/swagger)
-- [uudashr/go-module](https://github.com/uudashr/go-module)
-- [mikunalpha/goas](https://github.com/mikunalpha/goas)
-- [swaggo/swag](https://github.com/swaggo/swag) (feature inspiration; migration guide above)
+Bug reports, feature requests and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started,
+and look for issues labelled [`good first issue`](https://github.com/parvez3019/go-swagger3/labels/good%20first%20issue).
+Using go-swagger3 in a project? Tell us in [Show and tell](https://github.com/parvez3019/go-swagger3/discussions/categories/show-and-tell).
 
-## Star History
+## Acknowledgements
+
+go-swagger3 builds on [mikunalpha/goas](https://github.com/mikunalpha/goas),
+[yvasiyarov/swagger](https://github.com/yvasiyarov/swagger) and [uudashr/go-module](https://github.com/uudashr/go-module),
+and takes feature inspiration from [swaggo/swag](https://github.com/swaggo/swag).
+
+## Star history
 
 [![Star History Chart](https://api.star-history.com/image?repos=parvez3019/go-swagger3&type=date&legend=top-left)](https://www.star-history.com/?repos=parvez3019%2Fgo-swagger3&type=date&legend=top-left)

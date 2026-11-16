@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use go-swagger3 in your research or project, please cite it as below."
+title: "go-swagger3: generate OpenAPI 3 specs from Go annotations"
+type: software
+authors:
+  - alias: parvez3019
+repository-code: "https://github.com/parvez3019/go-swagger3"
+license: MIT
+version: 1.2.2
+date-released: "2026-11-16"
+keywords:
+  - openapi
+  - openapi3
+  - swagger
+  - go
+  - code-generation

@@ -1,0 +1,55 @@
+name: Bug report
+description: Wrong or missing output, a crash, or an install problem
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! A minimal Go snippet that reproduces the problem gets the fastest fix.
+  - type: input
+    id: version
+    attributes:
+      label: go-swagger3 version
+      description: Output of `go-swagger3 --version` (or the module version for adapters)
+      placeholder: v1.2.2
+    validations:
+      required: true
+  - type: input
+    id: go-version
+    attributes:
+      label: Go version
+      description: Output of `go version`
+      placeholder: go1.24.0 darwin/arm64
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact go-swagger3 command you ran
+      render: shell
+      placeholder: go-swagger3 --module-path . --output oas.json --schema-without-pkg
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Minimal Go code
+      description: Annotations and types needed to reproduce
+      render: go
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected output
+      description: The OpenAPI you expected (relevant part only)
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual output or error
+      description: The OpenAPI you got, or the full error message
+    validations:
+      required: true
