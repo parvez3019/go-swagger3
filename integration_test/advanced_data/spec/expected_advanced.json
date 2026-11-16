@@ -120,6 +120,81 @@
             }
           },
           {
+            "name": "tags",
+            "in": "query",
+            "description": "Tags",
+            "schema": {
+              "type": "array",
+              "description": "Tags",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "IDs",
+            "schema": {
+              "type": "array",
+              "description": "IDs",
+              "items": {
+                "type": "integer",
+                "format": "int64"
+              }
+            },
+            "style": "pipeDelimited",
+            "explode": false
+          },
+          {
+            "name": "words",
+            "in": "query",
+            "description": "Words",
+            "schema": {
+              "type": "array",
+              "description": "Words",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "spaceDelimited",
+            "explode": false
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "description": "Fields",
+            "schema": {
+              "type": "array",
+              "description": "Fields",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Statuses",
+            "schema": {
+              "type": "array",
+              "description": "Statuses",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "archived"
+                ]
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
             "name": "since",
             "in": "query",
             "description": "Only items updated since",
@@ -231,6 +306,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ItemIndex"
+                }
+              }
+            }
+          },
+          "203": {
+            "description": "Items by ID (explicit key type)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Item"
+                  }
                 }
               }
             }

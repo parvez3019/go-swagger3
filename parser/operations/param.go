@@ -207,6 +207,10 @@ func (p *parser) appendQueryParam(pkgPath string, pkgName string, operation *oas
 	if goType == "time.Time" {
 		return p.appendTimeParam(pkgPath, pkgName, operation, parameterObject, goType)
 	}
+	if strings.HasPrefix(goType, "[]") {
+		p.appendArrayParam(pkgPath, pkgName, operation, parameterObject, strings.TrimPrefix(goType, "[]"))
+		return nil
+	}
 	if utils.IsGoTypeOASType(goType) {
 		p.appendGoTypeParams(parameterObject, goType, operation)
 		return nil
@@ -229,6 +233,36 @@ func (p *parser) appendTimeParam(pkgPath string, pkgName string, operation *oas.
 	parameterObject.Schema = mergeParamSchema(parameterObject.Schema, schema)
 	operation.Parameters = append(operation.Parameters, parameterObject)
 	return err
+}
+
+// appendArrayParam adds an array-typed path/query/header/cookie parameter, e.g.
+// `@Param tags query []string false "Tags" collectionFormat(multi)`.
+// Enums(...) applies to the items. Element types that cannot be resolved are
+// skipped with a debug log rather than failing the whole generation.
+func (p *parser) appendArrayParam(pkgPath string, pkgName string, operation *oas.OperationObject, parameterObject oas.ParameterObject, elemType string) {
+	items := &oas.SchemaObject{}
+	switch {
+	case elemType == "time.Time":
+		items.Type, items.Format = "string", "date-time"
+	case utils.IsGoTypeOASType(elemType):
+		items.Type = utils.GoTypesOASTypes[elemType]
+		items.Format = utils.GoTypesOASFormats[elemType]
+	case p.isEnumType(elemType):
+		items.Ref = utils.AddSchemaRefLinkPrefix(strings.ReplaceAll(elemType, "model.", ""))
+	default:
+		typeName, err := p.RegisterType(pkgPath, pkgName, elemType)
+		if err != nil {
+			p.Debug("parse array param item type failed", elemType, err)
+			return
+		}
+		items.Ref = utils.AddSchemaRefLinkPrefix(typeName)
+	}
+	if s := parameterObject.Schema; s != nil && s.Enum != nil && items.Ref == "" {
+		items.Enum, s.Enum = s.Enum, nil
+	}
+	base := &oas.SchemaObject{Type: "array", Items: items, Description: parameterObject.Description}
+	parameterObject.Schema = mergeParamSchema(parameterObject.Schema, base)
+	operation.Parameters = append(operation.Parameters, parameterObject)
 }
 
 func (p *parser) appendGoTypeParams(parameterObject oas.ParameterObject, goType string, operation *oas.OperationObject) {
@@ -347,17 +381,26 @@ func getType(matches []string) string {
 	return normalizeAnnotatedGoType(matches[3])
 }
 
-// normalizeAnnotatedGoType converts legacy leading [Type] array notation to []Type
-// while preserving Generic[T] and Composition{field=Type} forms.
+// normalizeAnnotatedGoType normalizes the leading collection prefixes of an
+// annotated type so downstream code can match on "[]" and "map[]":
+//
+//	[5]int               -> []int
+//	map[string]Item      -> map[]Item
+//	map[string][]Item    -> map[][]Item
+//	[]Page[Pet]          -> []Page[Pet]   (generic brackets are left alone)
+//	JSONResult{data=X}   -> unchanged     (composition)
 func normalizeAnnotatedGoType(goType string) string {
-	if idx := strings.Index(goType, "["); idx > 0 {
-		return goType
+	switch {
+	case strings.HasPrefix(goType, "map["):
+		if end := strings.Index(goType, "]"); end > 0 {
+			return "map[]" + normalizeAnnotatedGoType(goType[end+1:])
+		}
+	case strings.HasPrefix(goType, "["):
+		if end := strings.Index(goType, "]"); end > 0 {
+			return "[]" + normalizeAnnotatedGoType(goType[end+1:])
+		}
 	}
-	if strings.Contains(goType, "{") {
-		return goType
-	}
-	re := regexp.MustCompile(`\[\w*\]`)
-	return re.ReplaceAllString(goType, "[]")
+	return goType
 }
 
 func appendRequired(paramObject *oas.ParameterObject, isRequired string) {

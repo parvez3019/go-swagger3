@@ -142,6 +142,15 @@ Constraints and defaults can follow the description, swag-style:
 Supported attributes: `Enums()`, `default()`, `minimum()`, `maximum()`, `minlength()`, `maxlength()`, `Format()`,
 `collectionFormat()`, `style()`, `explode()`, `example()`.
 
+Array parameters use a `[]` type. `collectionFormat()` sets the OpenAPI serialization (`multi` → repeated
+`?tags=a&tags=b`, `csv` → `?tags=a,b`, `ssv` → space-delimited, `pipes` → `a|b`), and `Enums()` applies to the items:
+
+```
+@Param tags   query []string false "Tags"     collectionFormat(multi)
+@Param status query []string false "Statuses" Enums(active,sold) collectionFormat(csv)
+@Param ids    query []int64  false "IDs"      collectionFormat(pipes)
+```
+
 To override the example of an object, use the `override-example` struct tag:
 
 ```go
@@ -320,5 +329,7 @@ type Request struct {
 ### Generics and composition
 
 - **Generics:** `@Success 200 object Page[Pet] "A page of pets"` generates a `Page_Pet` schema.
+- **Maps:** `@Success 200 object map[string]Pet "Pets by ID"` (or `map[]Pet`) generates an object with
+  `additionalProperties` of `Pet`.
 - **Composition:** `@Success 200 object JSONResult{data=Order} "Order"` replaces the `data` field of `JSONResult`
   with `Order`, the same sugar swag uses.

@@ -4,11 +4,16 @@ import (
 	_ "github.com/parvez3019/go-swagger3/model"
 )
 
-// SearchItems exercises scalar query, header and cookie parameters.
+// SearchItems exercises scalar and array query parameters, header and cookie parameters.
 // @Title Search items
 // @Description Search the catalogue.
 // @OperationId SearchItems
 // @Param q query string false "Search text" example(widget)
+// @Param tags query []string false "Tags" collectionFormat(multi)
+// @Param ids query []int false "IDs" collectionFormat(pipes)
+// @Param words query []string false "Words" collectionFormat(ssv)
+// @Param fields query []string false "Fields" collectionFormat(csv)
+// @Param status query []string false "Statuses" Enums(active,archived) collectionFormat(multi)
 // @Param since query time.Time false "Only items updated since"
 // @Param limit query int false "Page size" default(20) minimum(1) maximum(100)
 // @Param active query bool false "Only active items" default(true)
@@ -25,6 +30,7 @@ func SearchItems() {}
 // @Title Item index
 // @OperationId GetItemIndex
 // @Success 200 object map[]model.Item "Items by ID"
+// @Success 203 object map[string]model.Item "Items by ID (explicit key type)"
 // @Success 202 object model.ItemIndex "Named index"
 // @Success 204 object interface{} "Untyped payload"
 // @Resource items

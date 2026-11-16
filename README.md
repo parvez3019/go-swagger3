@@ -7,6 +7,7 @@ more.
 [![CI](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml/badge.svg)](https://github.com/parvez3019/go-swagger3/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/parvez3019/go-swagger3.svg)](https://pkg.go.dev/github.com/parvez3019/go-swagger3)
 [![Release](https://img.shields.io/github/v/release/parvez3019/go-swagger3)](https://github.com/parvez3019/go-swagger3/releases/latest)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fparvez3019.github.io%2Fgo-swagger3%2Fcoverage.json)](https://parvez3019.github.io/go-swagger3/coverage.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-parvez3019.github.io-00ADD8)](https://parvez3019.github.io/go-swagger3/)
 
