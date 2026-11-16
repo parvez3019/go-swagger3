@@ -13,6 +13,11 @@ updates:
       # Adapters pin the root module to a released version; bump it by hand
       # as part of a release.
       - dependency-name: "github.com/parvez3019/go-swagger3"
+      # golang.org/x/* only support the two newest Go releases, so bumping them
+      # raises our `go` directive (and every user's minimum Go). Bump by hand
+      # when deliberately raising the minimum Go version.
+      - dependency-name: "golang.org/x/*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
 
   - package-ecosystem: github-actions
     directory: "/"

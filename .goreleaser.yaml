@@ -1,0 +1,76 @@
+# GoReleaser config for the go-swagger3 CLI. Runs from .github/workflows/release.yml
+# on v* tags. Local dry run: goreleaser release --snapshot --clean
+version: 2
+
+project_name: go-swagger3
+
+builds:
+  - id: go-swagger3
+    main: .
+    binary: go-swagger3
+    env:
+      - CGO_ENABLED=0
+      # Build the root module only; go.work is for local development.
+      - GOWORK=off
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/parvez3019/go-swagger3/app.version={{ .Tag }}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^ci:"
+      - "^test:"
+      - Merge pull request
+      - Merge branch
+
+release:
+  github:
+    owner: parvez3019
+    name: go-swagger3
+  prerelease: auto
+
+# brew install parvez3019/tap/go-swagger3
+homebrew_casks:
+  - name: go-swagger3
+    repository:
+      owner: parvez3019
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    homepage: https://github.com/parvez3019/go-swagger3
+    description: Generate OpenAPI 3 specs from Go annotations
+    license: MIT
+    binaries: [go-swagger3]
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    hooks:
+      post:
+        # The binary is not notarized; clear the quarantine flag so macOS
+        # Gatekeeper does not block the first run.
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/go-swagger3"]
+          end
